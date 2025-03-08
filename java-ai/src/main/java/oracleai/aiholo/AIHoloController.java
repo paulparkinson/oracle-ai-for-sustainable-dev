@@ -80,8 +80,8 @@ public class AIHoloController {
             """;
 
     @GetMapping("")
-    public String root(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
-        System.out.println("AIHolo root languageCode = " + languageCode + ", model = " + model);
+    public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
+        System.out.println("AIHolo root languageCode = " + languageCode );
         model.addAttribute("languageCode", languageCode);
         if (languageCode.equals("pt-BR"))  model.addAttribute("voiceName", "pt-BR-Wavenet-D");
         else if (languageCode.equals("es-ES"))  model.addAttribute("voiceName", "es-ES-Wavenet-D");
