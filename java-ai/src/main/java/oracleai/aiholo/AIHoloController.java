@@ -79,11 +79,21 @@ public class AIHoloController {
             """;
 
     @GetMapping("/")
-    public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
+    public String root(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
+        System.out.println("AIHolo root languageCode = " + languageCode + ", model = " + model);
         model.addAttribute("languageCode", languageCode);
         if (languageCode.equals("pt-BR"))  model.addAttribute("voiceName", "pt-BR-Wavenet-D");
         else if (languageCode.equals("es-ES"))  model.addAttribute("voiceName", "es-ES-Wavenet-D");
-        return "AIHolo";
+        return "aiholo";
+    }
+
+    @GetMapping("/home")
+    public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
+        System.out.println("AIHolo home languageCode = " + languageCode + ", model = " + model);
+        model.addAttribute("languageCode", languageCode);
+        if (languageCode.equals("pt-BR"))  model.addAttribute("voiceName", "pt-BR-Wavenet-D");
+        else if (languageCode.equals("es-ES"))  model.addAttribute("voiceName", "es-ES-Wavenet-D");
+        return "aiholo";
     }
 
     @GetMapping("/play")
