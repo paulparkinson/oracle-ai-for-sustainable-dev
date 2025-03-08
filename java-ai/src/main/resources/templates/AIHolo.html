@@ -59,17 +59,19 @@
     </style>
 </head>
 <body>
-
+<p>Current Language Code: <span th:text="${languageCode}"></span></p>
+<p>Current Voice Name: <span th:text="${voicename}"></span></p>
 <div class="flags">
-    <a href="AIHolo-Brazil.html"><img src="../images/flags/Brazil-Flag.png" alt="Flag 1"></a>
-    <a href="AIHolo-United-Kingdom.html"><img src="../images/flags/United-Kingdom-Flag.png" alt="Flag 2"></a>
-    <a href="AIHolo-Brazil.html"><img src="../images/flags/Brazil-Flag.png" alt="Flag 3"></a>
-    <a href="AIHolo-Spain.html"><img src="../images/flags/Spain-Flag.png" alt="Flag 4"></a>
-    <a href="AIHolo-Italy.html"><img src="../images/flags/Italy-Flag.png" alt="Flag 5"></a>
+    <a href="aiholo?languageCode="><img src="images-aiholo/Flags/Portuguese.svg" alt="Flag 1"></a>
+    <a href="images-aiholo/AIHolo-United-Kingdom.html"><img src="../static/images/flags/United-Kingdom-Flag.png" alt="Flag 2"></a>
+    <a href="AIHolo.html"><img src="../static/images/flags/Brazil-Flag.png" alt="Flag 3"></a>
+    <a href="images-aiholo/AIHolo-Spain.html"><img src="../static/images/flags/Spain-Flag.png" alt="Flag 4"></a>
+    <a href="images-aiholo/AIHolo-Italy.html"><img src="../static/images/flags/Italy-Flag.png" alt="Flag 5"></a>
 </div>
 
-<h1>Oracle Database hologramas de IA interativos</h1>
-<p> Click "Start" and speak in Portuguese. <br>Click "Stop & Send" to finish and send your question.<br>Por exemplo "qual é o videogame mais vendido" </p>
+<h1>Interactive AI Holograms With Oracle Database</h1>
+<p> Click "Start" and speak your question.
+    <br>Click "Stop & Send" to finish and send your question.<br>For example "What is the most popular video game." </p>
 
 <div class="radio-group">
     <label><input type="radio" name="mode" value="use chat" checked> Chat</label>
@@ -87,7 +89,7 @@
 <div class="bottom-links">
     <!--    <a href="https://example.com/link1"><img src="aiholoarch.png" alt="Image 1"></a>-->
     <!--    <a href="https://example.com/link2"><img src="oracleconverged23ai.webp" alt="Image 2"></a>-->
-    <img src="../images/aiholoarch.png" alt="aiholoarch"><img src="../images/oracleconverged23ai.webp" alt="oracleconverged23ai">
+    <img src="../static/images/aiholoarch.png" alt="aiholoarch"><img src="../static/images/oracleconverged23ai.webp" alt="oracleconverged23ai">
 </div>
 
 <script>
@@ -141,18 +143,20 @@
         if (!isListening) recognition.start();
     });
 
-    // Stop & Send
+    const languageCode = /*[[${languageCode}]]*/ 'pt-BR';
+    const voiceName = /*[[${voiceName}]]*/ 'pt-BR';
+
+
     document.getElementById("stopSendBtn").addEventListener("click", async () => {
         if (isListening) recognition.stop();
            const transcriptionText = transcriptBuffer.trim();
         if (!transcriptionText) {
-            alert("⚠️ Nenhum texto capturado. Tente enviar novamente.");
+            alert("⚠️ No text captured. Try sending again.");
             return;
         }
-
         const selectedMode = document.querySelector('input[name="mode"]:checked').value;
-        const modifiedText = `${transcriptionText} use ${selectedMode}`;
-        const apiUrl = `http://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&languagecode=${encodeURIComponent("pt-BR")}&voicename=${encodeURIComponent("pt-BR-Wavenet-B")}`;
+        const modifiedText = `${transcriptionText} . responda em 20 palavras ou menos e em português brasileiro`;
+        const apiUrl = `http://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languagecode=${encodeURIComponent(languageCode)}&voicename=${encodeURIComponent(voicename)}`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -161,11 +165,9 @@
                     "Content-Type": "application/json"
                 }
             });
-
             if (!response.ok) {
                 throw new Error("❌ Failed to get response from server.");
             }
-
             const result = await response.text();
             document.getElementById("responseMessage").innerText = `✅ Response: ${result}`;
         } catch (error) {
@@ -173,7 +175,6 @@
         }
     });
 
-    // Clear transcription
     document.getElementById("clearBtn").addEventListener("click", () => {
         transcriptBuffer = "";
         document.getElementById("transcription").innerText = "";

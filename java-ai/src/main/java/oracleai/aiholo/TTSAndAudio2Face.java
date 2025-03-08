@@ -25,6 +25,9 @@ public class TTSAndAudio2Face {
                 sendToAudio2Face(fileName);
             } catch (Exception e) {
                 System.out.println("processMetahuman exception during TTS:" + e);
+                //com.google.api.gax.rpc.UnavailableException: io.grpc.StatusRuntimeException:
+                // UNAVAILABLE: Credentials failed to obtain metadata
+                // will occur if token expired
                 //TODO might be funny and helpful to do this, ie have the system gives its status and ask for help ...
                 // sendToAudio2Face("uhoh-lookslikeIneedanewTTStoken.wav");
                 sendToAudio2Face("hello-brazil.wav");

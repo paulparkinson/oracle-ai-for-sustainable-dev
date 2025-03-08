@@ -4,11 +4,13 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -30,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/aiholo")
@@ -42,7 +45,7 @@ public class AIHoloController {
     private static final String DEFAULT_LANGUAGE_CODE = "pt-BR";
     private static final String DEFAULT_VOICE_NAME = "pt-BR-Wavenet-D";
 
-//    @Autowired
+    @Autowired
     private DataSource dataSource;
 
     private static final Object metahumanLock = new Object();
@@ -74,6 +77,14 @@ public class AIHoloController {
                     action       => ?
                 ) FROM dual
             """;
+
+    @GetMapping("/")
+    public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
+        model.addAttribute("languageCode", languageCode);
+        if (languageCode.equals("pt-BR"))  model.addAttribute("voiceName", "pt-BR-Wavenet-D");
+        else if (languageCode.equals("es-ES"))  model.addAttribute("voiceName", "es-ES-Wavenet-D");
+        return "AIHolo";
+    }
 
     @GetMapping("/play")
     public String play(@RequestParam("question") String question, 
