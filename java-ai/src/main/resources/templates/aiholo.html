@@ -19,6 +19,7 @@
             color: #F1EFED; /* Ensure all text elements match */
         }
         #transcription {
+            color: #000000;
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ddd;
@@ -64,10 +65,8 @@
     </style>
 </head>
 <body>
-<p>Current Language Code: <span th:text="${languageCode}"></span></p>
-<p>Current Voice Name: <span th:text="${voiceName}"></span></p>
-<img src="images-aiholo/images-aiholo/ODBLogo/Oracle_Database_rgb.svg" alt="Oracle_Database">
-Oracle_Database_rgb.svg
+<p>Current Language Code: <span th:text="${languageCode}"> and Voice Name: <span th:text="${voiceName}"></span></p>
+<!--<img src="images-aiholo/ODBLogo/Oracle_Database_rgb.svg" alt="Oracle_Database">-->
 <div class="flags">
     <a href="aiholo?languageCode=pt-BR"><img src="images-aiholo/Flags/Portuguese.svg" alt="Portuguese"></a>
     <a href="aiholo?languageCode=es-ES"><img src="images-aiholo/Flags/Spanish.svg" alt="Spanish"></a>
