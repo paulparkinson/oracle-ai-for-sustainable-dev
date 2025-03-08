@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONObject;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -34,7 +35,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-@RestController
+@Controller
 @RequestMapping("/aiholo")
 // @CrossOrigin(origins = "*")
 public class AIHoloController {
@@ -78,7 +79,7 @@ public class AIHoloController {
                 ) FROM dual
             """;
 
-    @GetMapping("/")
+    @GetMapping("")
     public String root(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
         System.out.println("AIHolo root languageCode = " + languageCode + ", model = " + model);
         model.addAttribute("languageCode", languageCode);
@@ -87,14 +88,6 @@ public class AIHoloController {
         return "aiholo";
     }
 
-    @GetMapping("/home")
-    public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {
-        System.out.println("AIHolo home languageCode = " + languageCode + ", model = " + model);
-        model.addAttribute("languageCode", languageCode);
-        if (languageCode.equals("pt-BR"))  model.addAttribute("voiceName", "pt-BR-Wavenet-D");
-        else if (languageCode.equals("es-ES"))  model.addAttribute("voiceName", "es-ES-Wavenet-D");
-        return "aiholo";
-    }
 
     @GetMapping("/play")
     public String play(@RequestParam("question") String question, 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html  xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,11 @@
         body {
             text-align: center;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: #2A2F2F;
+            color: #F1EFED;
+        }
+        h1, p, label {
+            color: #F1EFED; /* Ensure all text elements match */
         }
         #transcription {
             margin-top: 20px;
@@ -29,6 +33,7 @@
         }
         button {
             margin-top: 10px;
+            color: #F1EFED;
         }
         .radio-group {
             margin-top: 15px;
@@ -60,13 +65,22 @@
 </head>
 <body>
 <p>Current Language Code: <span th:text="${languageCode}"></span></p>
-<p>Current Voice Name: <span th:text="${voicename}"></span></p>
+<p>Current Voice Name: <span th:text="${voiceName}"></span></p>
+<img src="images-aiholo/images-aiholo/ODBLogo/Oracle_Database_rgb.svg" alt="Oracle_Database">
+Oracle_Database_rgb.svg
 <div class="flags">
-    <a href="aiholo?languageCode="><img src="images-aiholo/Flags/Portuguese.svg" alt="Flag 1"></a>
-    <a href="images-aiholo/AIHolo-United-Kingdom.html"><img src="../static/images/flags/United-Kingdom-Flag.png" alt="Flag 2"></a>
-    <a href="aiholo.html"><img src="../static/images/flags/Brazil-Flag.png" alt="Flag 3"></a>
-    <a href="images-aiholo/AIHolo-Spain.html"><img src="../static/images/flags/Spain-Flag.png" alt="Flag 4"></a>
-    <a href="images-aiholo/AIHolo-Italy.html"><img src="../static/images/flags/Italy-Flag.png" alt="Flag 5"></a>
+    <a href="aiholo?languageCode=pt-BR"><img src="images-aiholo/Flags/Portuguese.svg" alt="Portuguese"></a>
+    <a href="aiholo?languageCode=es-ES"><img src="images-aiholo/Flags/Spanish.svg" alt="Spanish"></a>
+<!--    <a href="aiholo?languageCode=zh-CN"><img src="images-aiholo/Flags/Chinese.svg" alt="Chinese"></a>-->
+    <a href="aiholo?languageCode=zh-SG"><img src="images-aiholo/Flags/Chinese.svg" alt="Chinese-Singapore"></a>
+    <a href="aiholo?languageCode=it-IT"><img src="images-aiholo/Flags/Italian.svg" alt="Italian"></a>
+    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/English.svg" alt="English"></a>
+<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/Spanish-Mexico.svg" alt="Spanish-Mexico"></a>-->
+<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/German.svg" alt="German"></a>-->
+<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/Hindi.svg" alt="Hindi"></a>-->
+    <!--    <a href="aiholo?languageCode=en-US"><img src="images-aiholo/Flags/English-US.svg" alt="English-US"></a>-->
+    <a href="aiholo?languageCode=ar-ae"><img src="images-aiholo/Flags/Arabic.svg" alt="Arabic-UAE"></a>
+    <a href="aiholo?languageCode=ja-JP"><img src="images-aiholo/Flags/Japanese.svg" alt="Japanese"></a>
 </div>
 
 <h1>Interactive AI Holograms With Oracle Database</h1>
@@ -87,9 +101,10 @@
 <p id="responseMessage"></p>
 
 <div class="bottom-links">
-    <!--    <a href="https://example.com/link1"><img src="aiholoarch.png" alt="Image 1"></a>-->
-    <!--    <a href="https://example.com/link2"><img src="oracleconverged23ai.webp" alt="Image 2"></a>-->
-    <img src="../static/images/aiholoarch.png" alt="aiholoarch"><img src="../static/images/oracleconverged23ai.webp" alt="oracleconverged23ai">
+    <!--    <a href="https://link1"><img src="aiholoarch.png" alt="Image 1"></a>-->
+    <img src="images-aiholo/Reference architecture mobile version.png" alt="ai holo arch">
+    <img src="images-aiholo/ODT mobile version.png" alt="Oracle Data Types">
+    <img src="images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos">
 </div>
 
 <script>
@@ -144,7 +159,7 @@
     });
 
     const languageCode = /*[[${languageCode}]]*/ 'pt-BR';
-    const voiceName = /*[[${voiceName}]]*/ 'pt-BR';
+    const voiceName = /*[[${voiceName}]]*/ 'pt-BR-Wavenet-D';
 
 
     document.getElementById("stopSendBtn").addEventListener("click", async () => {
