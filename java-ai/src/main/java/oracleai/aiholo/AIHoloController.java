@@ -92,11 +92,11 @@ public class AIHoloController {
     @GetMapping("/play")
     public String play(@RequestParam("question") String question, 
         @RequestParam("selectedMode") String selectedMode,
-        @RequestParam("languagecode") String languagecode,
-         @RequestParam("voicename") String voicename) throws Exception {
+        @RequestParam("languageCode") String languageCode,
+         @RequestParam("voiceName") String voicename) throws Exception {
         System.out.println(
                 "play question: " + question + " selectedMode: " + selectedMode +
-                        " languagecode:"+ languagecode+ " voicename:"+ voicename);
+                        " languageCode:"+ languageCode+ " voicename:"+ voicename);
         question = "qual é o videogame mais popular";
         System.out.println(
                 "modified question: " + question );
@@ -141,7 +141,7 @@ public class AIHoloController {
         }
         String fileName = "output.wav";
         System.out.println("about to TTS and sendAudioToAudio2Face for answer: " + answer);
-        TTSAndAudio2Face.processMetahuman(fileName, answer, languagecode, voicename);
+        TTSAndAudio2Face.processMetahuman(fileName, answer, languageCode, voicename);
         return answer;
     }
 

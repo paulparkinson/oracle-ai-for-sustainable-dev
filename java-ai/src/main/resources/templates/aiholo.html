@@ -170,7 +170,7 @@
         }
         const selectedMode = document.querySelector('input[name="mode"]:checked').value;
         const modifiedText = `${transcriptionText} . responda em 20 palavras ou menos e em português brasileiro`;
-        const apiUrl = `http://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languagecode=${encodeURIComponent(languageCode)}&voicename=${encodeURIComponent(voicename)}`;
+        const apiUrl = `http://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
 
         try {
             const response = await fetch(apiUrl, {
