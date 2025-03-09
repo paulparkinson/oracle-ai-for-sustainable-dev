@@ -45,6 +45,13 @@ public class AIHoloController {
     private static final String AUTH_TOKEN = "Bearer asdf";
     private static final String DEFAULT_LANGUAGE_CODE = "pt-BR";
     private static final String DEFAULT_VOICE_NAME = "pt-BR-Wavenet-D";
+    private final static String sql = """
+                SELECT DBMS_CLOUD_AI.GENERATE(
+                    prompt       => ?,
+                    profile_name => 'VIDEOGAMES_PROFILE',
+                    action       => ?
+                ) FROM dual
+            """;
 
     @Autowired
     private DataSource dataSource;
@@ -70,14 +77,6 @@ public class AIHoloController {
         }, 1, 15, TimeUnit.MINUTES);
     }
 
-
-    static String sql = """
-                SELECT DBMS_CLOUD_AI.GENERATE(
-                    prompt       => ?,
-                    profile_name => 'VIDEOGAMES_PROFILE',
-                    action       => ?
-                ) FROM dual
-            """;
 
     @GetMapping("")
     public String home(@RequestParam(value = "languageCode", defaultValue = "pt-BR") String languageCode, Model model) {

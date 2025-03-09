@@ -68,6 +68,7 @@ public class TTSAndAudio2Face {
 
 
     private static void sendToAudio2Face(String fileName) {
+        System.out.println("sendToAudio2Face for fileName:" + " ...");
         RestTemplate restTemplate = new RestTemplate();
         String baseUrl = "http://localhost:8011/A2F/Player/";
 
@@ -88,6 +89,7 @@ public class TTSAndAudio2Face {
         Map<String, Object> playPayload = new HashMap<>();
         playPayload.put("a2f_player", "/World/audio2face/Player");
         sendPostRequest(restTemplate, playTrackUrl, playPayload);
+        System.out.print(" ...sendToAudio2Face complete");
     }
 
     private static void sendPostRequest(RestTemplate restTemplate, String url, Map<String, Object> payload) {
@@ -97,7 +99,7 @@ public class TTSAndAudio2Face {
 
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         if (response.getStatusCode().is2xxSuccessful()) {
-            System.out.println("Successfully sent request to: " + url);
+//            System.out.println("Successfully sent request to: " + url);
         } else {
             System.err.println("Failed to send request to " + url + ". Response: " + response.getBody());
         }

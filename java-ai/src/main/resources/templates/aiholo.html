@@ -83,8 +83,22 @@
 </div>
 
 <h1>Interactive AI Holograms With Oracle Database</h1>
-<p> Click "Start" and speak your question.
-    <br>Click "Stop & Send" to finish and send your question.<br>For example "What is the most popular video game." </p>
+<h4>Ask the hologram any question and get a visual reply!</h4>
+<h5>For example, say "What is the most popular video game?"</h5>
+<div class="container mt-3">
+    <div class="row text-left">
+        <div class="col-md-4">
+            <p>1. Click "Start" and speak your question.</p>
+        </div>
+        <div class="col-md-4">
+            <p>2. Click "Stop and Send" to send your question.</p>
+        </div>
+        <div class="col-md-4">
+            <p>3. Select "chat" to ask LLM directly<br>&nbsp&nbsp&nbsp&nbspSelect "narrate" to use Select AI<br>&nbsp&nbsp&nbsp  Select "vector" to use vector search.</p>
+        </div>
+    </div>
+</div>
+
 
 <div class="radio-group">
     <label><input type="radio" name="mode" value="use chat" checked>Use Chat (LLM)</label>
@@ -93,16 +107,16 @@
 </div>
 
 <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Microphone.png" alt="Start" style="width: 100px; height: auto;">
+    <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 100px; height: auto;">
 </button>
 <button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Stop recording.png" alt="Start" style="width: 100px; height: auto;">
+    <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" alt="Stop" style="width: 100px; height: auto;">
 </button>
 <button id="clearBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Trash bin.png" alt="Start" style="width: 100px; height: auto;">
+    <img src="../images-aiholo/Icons/Yellow/Trash bin.svg" alt="Clear" style="width: 100px; height: auto;">
 </button>
 <button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Face id.png" alt="Start" style="width: 100px; height: auto;">
+    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 100px; height: auto;">
 </button>
 
 <!--<button id="startBtn" class="btn btn-primary">🎤 Start</button>-->
@@ -116,9 +130,13 @@
 <div class="bottom-links">
         <a href="https://www.linkedin.com/pulse/interactive-ai-holograms-develop-digital-double-oracle-paul-parkinson-zdpjf">
             <img src="../images-aiholo/refarchdesktopversion.png" alt="ai holo arch"></a>
+    <br>
         <a href="https://www.oracle.com/database/">
             <img src="../images-aiholo/ODTdesktopversion.png" alt="Oracle Database"></a>
+    <br>
 <!--   todo use mobile instead of desktop for the image name when mobile is client-->
+    <br>Scan here for more details and instructions on how to build this exhibit yourself!...
+    <br>
     <a href="https://bit.ly/interactive-ai-holograms">
     <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos"></a>
 </div>
@@ -128,7 +146,6 @@
     let isListening = false;
     let transcriptBuffer = "";
 
-    // Check if SpeechRecognition is supported
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.continuous = true;
@@ -169,14 +186,12 @@
         alert("⚠️ Browser does not support Speech Recognition.");
     }
 
-    // Start recording
     document.getElementById("startBtn").addEventListener("click", () => {
         if (!isListening) recognition.start();
     });
 
     const languageCode = /*[[${languageCode}]]*/ 'pt-BR';
     const voiceName = /*[[${voiceName}]]*/ 'pt-BR-Wavenet-D';
-
 
     document.getElementById("stopSendBtn").addEventListener("click", async () => {
         if (isListening) recognition.stop();
