@@ -54,13 +54,13 @@ spring:
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 server:
-#  port: 8080
-  port: 8444
+  port: 8080
+#  port: 8444
   tomcat:
     max-swallow-size: 200MB
-#  ssl:
-#    enabled: true
-#    key-store-type: PKCS12
-#    key-store: classpath:keystore.p12
-#    key-store-password: Welcome1
-#    key-alias: springboot
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: classpath:keystore.p12
+    key-store-password: Welcome1
+    key-alias: springboot
