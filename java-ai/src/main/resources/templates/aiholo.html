@@ -95,16 +95,31 @@
 <div class="container mt-3">
     <div class="row text-left">
         <div class="col-md-4">
-            <p>Select radio button...
-                <br>&nbsp&nbsp&nbsp&nbsp"chat" to ask LLM directly
-                <br>&nbsp&nbsp&nbsp&nbsp"narrate" to use Select AI
-                <br>&nbsp&nbsp&nbsp&nbsp"vector" to use vector search and RAG</p>
+            <p>Select one...
+<!--                <br>&nbsp&nbsp&nbsp&nbsp"chat" to ask LLM directly-->
+<!--                <br>&nbsp&nbsp&nbsp&nbsp"narrate" to use Select AI-->
+<!--                <br>&nbsp&nbsp&nbsp&nbsp"vector" to use vector search and RAG</p>-->
+            <div class="radio-group">
+                <label><input type="radio" name="mode" value="use chat" checked>chat: to ask LLM directly</label>
+                <label><input type="radio" name="mode" value="use narrate">narrate: to use Select AI</label>
+                <label><input type="radio" name="mode" value="use vector">vector: to use vector search and RAG</label>
+            </div>
         </div>
         <div class="col-md-4">
-            <p>2. Click "Start" and speak your question.</p>
+            <p>2. Click "Start" and speak your question. (Select "Clear" to clear the text field)</p>
+
+            <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+                <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
+            </button>
+            <button id="clearBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+                <img src="../images-aiholo/Icons/Yellow/Trash bin.svg" alt="Clear" style="width: 70px; height: auto;">
+            </button>
         </div>
         <div class="col-md-4">
             <p>3. Click "Stop and Send" to send your question.</p>
+            <button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+                <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" alt="Stop" style="width: 70px; height: auto;">
+            </button>
         </div>
     </div>
 </div>
@@ -116,18 +131,6 @@
     <label><input type="radio" name="mode" value="use vector">vector</label>
 </div>
 
-<button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
-</button>
-<button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" alt="Stop" style="width: 70px; height: auto;">
-</button>
-<button id="clearBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Trash bin.svg" alt="Clear" style="width: 70px; height: auto;">
-</button>
-<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
-</button>
 
 <!--<button id="startBtn" class="btn btn-primary">🎤 Start</button>-->
 <!--<button id="stopSendBtn" class="btn btn-danger" disabled>🛑📤 Stop & Send</button>-->
@@ -136,6 +139,10 @@
 
 <div id="transcription"></div>
 <p id="responseMessage"></p>
+<br><p>Click to switch to "Mirror Me" mode.</p>
+<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
+</button>
 
 <!--<div class="bottom-links">-->
 <div>
@@ -157,11 +164,13 @@
     let isListening = false;
     let transcriptBuffer = "";
 
+    const languageCode = /*[[${languageCode}]]*/ 'pt-BR';
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = "pt-BR";
+        recognition.lang = languageCode;
 
         recognition.onstart = () => {
             console.log("🎤 Speech recognition started...");
