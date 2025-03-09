@@ -68,18 +68,18 @@
 <p>Current Language Code: <span th:text="${languageCode}"> and Voice Name: <span th:text="${voiceName}"></span></p>
 <!--<img src="images-aiholo/ODBLogo/Oracle_Database_rgb.svg" alt="Oracle_Database">-->
 <div class="flags">
-    <a href="aiholo?languageCode=pt-BR"><img src="images-aiholo/Flags/Portuguese.svg" alt="Portuguese"></a>
-    <a href="aiholo?languageCode=es-ES"><img src="images-aiholo/Flags/Spanish.svg" alt="Spanish"></a>
-<!--    <a href="aiholo?languageCode=zh-CN"><img src="images-aiholo/Flags/Chinese.svg" alt="Chinese"></a>-->
-    <a href="aiholo?languageCode=zh-SG"><img src="images-aiholo/Flags/Chinese.svg" alt="Chinese-Singapore"></a>
-    <a href="aiholo?languageCode=it-IT"><img src="images-aiholo/Flags/Italian.svg" alt="Italian"></a>
-    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/English.svg" alt="English"></a>
-<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/Spanish-Mexico.svg" alt="Spanish-Mexico"></a>-->
-<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/German.svg" alt="German"></a>-->
-<!--    <a href="aiholo?languageCode=en-GB"><img src="images-aiholo/Flags/Hindi.svg" alt="Hindi"></a>-->
-    <!--    <a href="aiholo?languageCode=en-US"><img src="images-aiholo/Flags/English-US.svg" alt="English-US"></a>-->
-    <a href="aiholo?languageCode=ar-ae"><img src="images-aiholo/Flags/Arabic.svg" alt="Arabic-UAE"></a>
-    <a href="aiholo?languageCode=ja-JP"><img src="images-aiholo/Flags/Japanese.svg" alt="Japanese"></a>
+    <a href="home?languageCode=pt-BR"><img src="https://141.148.204.74/aiholo/images-aiholo/Flags/Spanish.svgimages-aiholo/Flags/Portuguese.svg" alt="Portuguese"></a>
+    <a href="home?languageCode=es-ES"><img src="../images-aiholo/Flags/Spanish.svg" alt="Spanish"></a>
+<!--    <a href="home?languageCode=zh-CN"><img src="../images-aiholo/Flags/Chinese.svg" alt="Chinese"></a>-->
+    <a href="home?languageCode=zh-SG"><img src="../images-aiholo/Flags/Chinese.svg" alt="Chinese-Singapore"></a>
+    <a href="home?languageCode=it-IT"><img src="../images-aiholo/Flags/Italian.svg" alt="Italian"></a>
+    <a href="home?languageCode=en-GB"><img src="../images-aiholo/Flags/English.svg" alt="English"></a>
+<!--    <a href="aiholo?languageCode=en-GB"><img src="../images-aiholo/Flags/Spanish-Mexico.svg" alt="Spanish-Mexico"></a>-->
+<!--    <a href="aiholo?languageCode=en-GB"><img src="../images-aiholo/Flags/German.svg" alt="German"></a>-->
+<!--    <a href="aiholo?languageCode=en-GB"><img src="../images-aiholo/Flags/Hindi.svg" alt="Hindi"></a>-->
+    <!--    <a href="aiholo?languageCode=en-US"><img src="../images-aiholo/Flags/English-US.svg" alt="English-US"></a>-->
+    <a href="home?languageCode=ar-ae"><img src="../images-aiholo/Flags/Arabic.svg" alt="Arabic-UAE"></a>
+    <a href="home?languageCode=ja-JP"><img src="../images-aiholo/Flags/Japanese.svg" alt="Japanese"></a>
 </div>
 
 <h1>Interactive AI Holograms With Oracle Database</h1>
@@ -170,7 +170,7 @@
         }
         const selectedMode = document.querySelector('input[name="mode"]:checked').value;
         const modifiedText = `${transcriptionText} . responda em 20 palavras ou menos e em português brasileiro`;
-        const apiUrl = `http://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
+        const apiUrl = `https://141.148.204.74:8444/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
 
         try {
             const response = await fetch(apiUrl, {
