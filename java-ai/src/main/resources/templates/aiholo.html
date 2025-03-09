@@ -170,7 +170,7 @@
         }
         const selectedMode = document.querySelector('input[name="mode"]:checked').value;
         const modifiedText = `${transcriptionText} . `;
-        const apiUrl = `https://141.148.204.74:443/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
+        const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
 
         try {
             const response = await fetch(apiUrl, {
