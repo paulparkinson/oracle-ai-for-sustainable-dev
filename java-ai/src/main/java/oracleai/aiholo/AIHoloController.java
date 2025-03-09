@@ -118,10 +118,11 @@ public class AIHoloController {
         } else {
             if (selectedMode.contains("use narrate")) {
                 action = "narrate";
-//                question = question.replace("use narrate", "").trim();
+                question = question.replace("use narrate", "").trim();
             } else {
                 question = question.replace("use chat", "").trim();
             }
+            question += ". Respond in 20 words or less";
             try (Connection connection = dataSource.getConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 System.out.println("Database Connection : " + connection);

@@ -169,7 +169,7 @@
             return;
         }
         const selectedMode = document.querySelector('input[name="mode"]:checked').value;
-        const modifiedText = `${transcriptionText} . responda em 20 palavras ou menos e em português brasileiro`;
+        const modifiedText = `${transcriptionText} . `;
         const apiUrl = `https://141.148.204.74:443/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCode)}&voiceName=${encodeURIComponent(voiceName)}`;
 
         try {
