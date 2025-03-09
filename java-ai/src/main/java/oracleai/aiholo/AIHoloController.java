@@ -97,9 +97,7 @@ public class AIHoloController {
         System.out.println(
                 "play question: " + question + " selectedMode: " + selectedMode +
                         " languageCode:"+ languageCode+ " voicename:"+ voicename);
-        question = "qual é o videogame mais popular";
-        System.out.println(
-                "modified question: " + question );
+        System.out.println("modified question: " + question );
         theValue = "question";
         String filePath = "C:/Users/opc/aiholo_output.txt";
         try (FileWriter writer = new FileWriter(filePath)) {
@@ -110,7 +108,12 @@ public class AIHoloController {
         } catch (IOException e) {
             return "Error writing to file: " + e.getMessage();
         }
-        String answer = "I'm sorry. I couldn't find an answer", action = "chat"; //TODO, this should be in correct language
+        String action = "chat";
+        String answer;
+        if (languageCode.equals("pt-BR")) answer = "Desculpe. Não consegui encontrar uma resposta no banco de dados";
+        else if (languageCode.equals("es-ES")) answer = "Lo siento, no pude encontrar una respuesta en la base de datos.";
+        else if (languageCode.equals("zh-SG")) answer = "抱歉，我在数据库中找不到答案";
+        else answer = "I'm sorry. I couldn't find an answer in the database";
         if (question.contains("use vectorrag")) {
             action = "vectorrag";
             question = question.replace("use vectorrag", "").trim();
