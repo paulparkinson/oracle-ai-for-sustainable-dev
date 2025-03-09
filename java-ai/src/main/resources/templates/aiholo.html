@@ -6,7 +6,6 @@
     <title>Interactive AI Hologram With Oracle Database</title>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css"
-          integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTum6k5d8zV6gBiFeWPGFN9MuhOf23Q9Ifjh"
           crossorigin="anonymous">
     <style>
         body {
@@ -24,11 +23,11 @@
             padding: 10px;
             border: 1px solid #ddd;
             background: white;
-            width: 80%;
+            width: 50%;
             margin-left: auto;
             margin-right: auto;
             min-height: 100px;
-            max-height: 300px;
+            max-width: 400px;
             overflow-y: auto;
             text-align: left;
         }
@@ -65,7 +64,6 @@
     </style>
 </head>
 <body>
-<p>Current Language Code: <span th:text="${languageCode}"> and Voice Name: <span th:text="${voiceName}"></span></p>
 <!--<img src="images-aiholo/ODBLogo/Oracle_Database_rgb.svg" alt="Oracle_Database">-->
 <div class="flags">
     <a href="aiholo?languageCode=pt-BR"><img src="../images-aiholo/Flags/Portuguese.svg" alt="Portuguese"></a>
@@ -80,6 +78,8 @@
     <!--    <a href="aiholo?languageCode=en-US"><img src="../images-aiholo/Flags/English-US.svg" alt="English-US"></a>-->
     <a href="aiholo?languageCode=ar-ae"><img src="../images-aiholo/Flags/Arabic.svg" alt="Arabic-UAE"></a>
     <a href="aiholo?languageCode=ja-JP"><img src="../images-aiholo/Flags/Japanese.svg" alt="Japanese"></a>
+    Current Language Code: <span th:text="${languageCode}"></span> and Voice Name: <span th:text="${voiceName}"></span>
+
 </div>
 
 <h1>Interactive AI Holograms With Oracle Database</h1>
@@ -87,23 +87,37 @@
     <br>Click "Stop & Send" to finish and send your question.<br>For example "What is the most popular video game." </p>
 
 <div class="radio-group">
-    <label><input type="radio" name="mode" value="use chat" checked> Chat</label>
-    <label><input type="radio" name="mode" value="use narrate"> Narrate (NL2SQL / Select AI / Vector RAG)</label>
+    <label><input type="radio" name="mode" value="use chat" checked>Use Chat (LLM)</label>
+    <label><input type="radio" name="mode" value="use narrate">Use Narrate (NL2SQL, Select AI)</label>
+    <label><input type="radio" name="mode" value="use vector">Use Vector (Vector Search, RAG)</label>
 </div>
 
-<button id="startBtn" class="btn btn-primary">🎤 Start</button>
-<button id="stopSendBtn" class="btn btn-danger" disabled>🛑📤 Stop & Send</button>
-<button id="clearBtn" class="btn btn-warning">🗑️ Clear Text</button>
-<button id="mirrorMeBtn" class="btn btn-info">📸 Mirror Me</button>
+<button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Microphone.png" alt="Start" style="width: 100px; height: auto;">
+</button>
+<button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Stop recording.png" alt="Start" style="width: 100px; height: auto;">
+</button>
+<button id="clearBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Trash bin.png" alt="Start" style="width: 100px; height: auto;">
+</button>
+<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Face id.png" alt="Start" style="width: 100px; height: auto;">
+</button>
+
+<!--<button id="startBtn" class="btn btn-primary">🎤 Start</button>-->
+<!--<button id="stopSendBtn" class="btn btn-danger" disabled>🛑📤 Stop & Send</button>-->
+<!--<button id="clearBtn" class="btn btn-warning">🗑️ Clear Text</button>-->
+<!--<button id="mirrorMeBtn" class="btn btn-info">📸 Mirror Me</button>-->
 
 <div id="transcription"></div>
 <p id="responseMessage"></p>
 
 <div class="bottom-links">
         <a href="https://www.linkedin.com/pulse/interactive-ai-holograms-develop-digital-double-oracle-paul-parkinson-zdpjf">
-            <img src="../images-aiholo/Reference architecture desktop version.png" alt="ai holo arch"></a>
+            <img src="../images-aiholo/refarchdesktopversion.png" alt="ai holo arch"></a>
         <a href="https://www.oracle.com/database/">
-            <img src="../images-aiholo/ODT desktop version.png" alt="Oracle Database"></a>
+            <img src="../images-aiholo/ODTdesktopversion.png" alt="Oracle Database"></a>
 <!--   todo use mobile instead of desktop for the image name when mobile is client-->
     <a href="https://bit.ly/interactive-ai-holograms">
     <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos"></a>
