@@ -58,7 +58,7 @@ public class TTSAndAudio2Face {
             ByteString audioContents = response.getAudioContent();
             try (OutputStream out = new FileOutputStream(fileName)) {
                 out.write(audioContents.toByteArray());
-                System.out.println("Audio content written to file:" + fileName);
+//                System.out.println("Audio content written to file:" + fileName);
             }
         }
     }

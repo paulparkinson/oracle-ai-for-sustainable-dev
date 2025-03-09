@@ -190,7 +190,6 @@ public class AIHoloController {
             JSONObject responseData = new JSONObject(response.getBody());
             latestAnswer = responseData.getJSONArray("choices").getJSONObject(0).getJSONObject("message")
                     .getString("content");
-
             System.out.println("RAG Full Response latest_answer: " + latestAnswer);
             return latestAnswer;
         } else {
@@ -199,59 +198,56 @@ public class AIHoloController {
         }
     }
 
-   // `https://host:port/aiholo/tts?textToConvert=${encodeURIComponent(textToConvert)}&languageCode=${encodeURIComponent(languageCode)}&ssmlGender=${encodeURIComponent(ssmlGender)}&voiceName=${encodeURIComponent(voiceName)}`;
-   @GetMapping("/tts")
-   public ResponseEntity<byte[]>  tts(@RequestParam("textToConvert") String textToConvert, 
-       @RequestParam("languageCode") String languageCode, 
-       @RequestParam("ssmlGender") String ssmlGender, 
-       @RequestParam("voiceName") String voiceName) throws Exception {
+
+    /**
+     * Utilites not required by Interactive AI Holograms from here to end...
+     */
+
+
+
+    // `https://host:port/aiholo/tts?textToConvert=${encodeURIComponent(textToConvert)}
+    // &languageCode=${encodeURIComponent(languageCode)}&ssmlGender=${encodeURIComponent(ssmlGender)}
+    // &voiceName=${encodeURIComponent(voiceName)}`;
+    @GetMapping("/tts")
+    public ResponseEntity<byte[]>  ttsAndReturnAudioFile(@RequestParam("textToConvert") String textToConvert,
+                                                         @RequestParam("languageCode") String languageCode,
+                                                         @RequestParam("ssmlGender") String ssmlGender,
+                                                         @RequestParam("voiceName") String voiceName) throws Exception {
         String info= "tts for textToConvert " + textToConvert;
         System.out.println("in TTS GCP info:" + info);
         try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create()) {
-         System.out.println("in TTS GCP textToSpeechClient:" + textToSpeechClient + " languagecode:" + languageCode);
-          SynthesisInput input = SynthesisInput.newBuilder().setText(textToConvert).build();
-          VoiceSelectionParams voice =
-              VoiceSelectionParams.newBuilder()
-                  .setLanguageCode(languageCode)
-                //   .setSsmlGender(SsmlVoiceGender.NEUTRAL)
-                  .setSsmlGender(SsmlVoiceGender.FEMALE)
-                  .setName(voiceName)
-                //   .setName("pt-BR-Wavenet-A") 
-                  .build();
-          AudioConfig audioConfig =
-              AudioConfig.newBuilder()
-                      .setAudioEncoding(AudioEncoding.LINEAR16) // wav
-    //                  .setAudioEncoding(AudioEncoding.MP3)
-                      .build();
-          SynthesizeSpeechResponse response =
-              textToSpeechClient.synthesizeSpeech(input, voice, audioConfig);
-          ByteString audioContents = response.getAudioContent();
-          byte[] audioData = audioContents.toByteArray();
+            System.out.println("in TTS GCP textToSpeechClient:" + textToSpeechClient + " languagecode:" + languageCode);
+            SynthesisInput input = SynthesisInput.newBuilder().setText(textToConvert).build();
+            VoiceSelectionParams voice =
+                    VoiceSelectionParams.newBuilder()
+                            .setLanguageCode(languageCode)
+                            .setSsmlGender(SsmlVoiceGender.FEMALE) // SsmlVoiceGender.NEUTRAL SsmlVoiceGender.MALE
+                            .setName(voiceName) //eg "pt-BR-Wavenet-A"
+                            .build();
+            AudioConfig audioConfig =
+                    AudioConfig.newBuilder()
+                            .setAudioEncoding(AudioEncoding.LINEAR16) // wav AudioEncoding.MP3 being another
+                            .build();
+            SynthesizeSpeechResponse response =
+                    textToSpeechClient.synthesizeSpeech(input, voice, audioConfig);
+            ByteString audioContents = response.getAudioContent();
+            byte[] audioData = audioContents.toByteArray();
 
-          // Set response headers
-          HttpHeaders headers = new HttpHeaders();
-          headers.set(HttpHeaders.CONTENT_TYPE, "audio/mpeg"); 
-          headers.set(HttpHeaders.CONTENT_DISPOSITION, 
-          "attachment; filename=\"tts-" + languageCode + "" + ssmlGender+ "" + voiceName + "_" +
-                  getFirst10Chars(textToConvert) + ".mp3\"");
-
-          return new ResponseEntity<>(audioData, headers, HttpStatus.OK);
-    
-        //   try (OutputStream out = new FileOutputStream("output.wav")) {
-        //     out.write(audioContents.toByteArray());
-        //     System.out.println("Audio content written to file \"output.wav\"");
-        //   }
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_TYPE, "audio/mpeg");
+            headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"tts-" + languageCode + "" + ssmlGender+ "" + voiceName + "_" +
+                            getFirst10Chars(textToConvert) + ".mp3\"");
+            return new ResponseEntity<>(audioData, headers, HttpStatus.OK);
         }
-
-        // return "succesful " + info;
-   }
-
-   public static String getFirst10Chars(String textToConvert) {
-    if (textToConvert == null || textToConvert.isEmpty()) {
-        return "";
     }
-    return textToConvert.length() > 10 ? textToConvert.substring(0, 10) : textToConvert;
-   }
+
+    public static String getFirst10Chars(String textToConvert) {
+        if (textToConvert == null || textToConvert.isEmpty()) {
+            return "";
+        }
+        return textToConvert.length() > 10 ? textToConvert.substring(0, 10) : textToConvert;
+    }
 
 
     @GetMapping("/set")
