@@ -89,6 +89,7 @@ public class AIHoloController {
 
 
     @GetMapping("/play")
+    @ResponseBody
     public String play(@RequestParam("question") String question, 
         @RequestParam("selectedMode") String selectedMode,
         @RequestParam("languageCode") String languageCode,
