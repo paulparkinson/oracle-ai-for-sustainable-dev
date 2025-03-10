@@ -79,7 +79,7 @@ public class AIHoloController {
 
 
     @GetMapping("")
-    public String home(@RequestParam(value = "languageCode", defaultValue = "en-US") String languageCode, Model model) {
+    public String home(@RequestParam(value = "languageCode", defaultValue = "en-GB") String languageCode, Model model) {
         System.out.println("AIHolo root languageCode = " + languageCode );
         model.addAttribute("languageCode", languageCode);
         if (languageCode.equals("pt-BR"))

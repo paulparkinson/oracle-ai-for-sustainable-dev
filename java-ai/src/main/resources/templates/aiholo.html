@@ -15,7 +15,7 @@
             color: #F1EFED;
         }
         h1, p, label {
-            color: #F1EFED; /* Ensure all text elements match */
+            color: #F1EFED;
         }
         #transcription {
             color: #000000;
@@ -37,11 +37,11 @@
         }
         .radio-group {
             margin-top: 15px;
-            text-align: left;  /* Align content to the left */
+            text-align: left;
         }
         .radio-group label {
-            display: block; /* Each option appears on a new line */
-            margin-bottom: 5px; /* Add spacing between options */
+            display: block;
+            margin-bottom: 5px;
         }
         .flags {
             position: absolute;
@@ -68,6 +68,8 @@
     </style>
 </head>
 <body>
+
+<!-- Language selection -->
 <div class="flags">
     <a href="aiholo?languageCode=pt-BR"><img src="../images-aiholo/Flags/pt-BR.svg" alt="Portuguese"></a>
     <a href="aiholo?languageCode=es-ES"><img src="../images-aiholo/Flags/es-ES.svg" alt="Spanish"></a>
@@ -82,13 +84,13 @@
          th:alt="${languageCode}"
          style="width: 30px; height: 20px;">
 </div>
-<br>
-<br>
+
+<br><br>
 <h2>Interactive AI Holograms With Oracle Database</h2>
 <h5>Ask the hologram a question and get a reply!</h5>
 <h65>Eg, "What is the most popular video game?"</h65>
 
-<!-- ✅ Thymeleaf dynamically sets the languageCode variable in JavaScript -->
+<!-- ✅ Correctly sets languageCodeSTT for STT using Thymeleaf -->
 <script th:inline="javascript">
     var languageCodeSTT = /*[[${languageCode} ?: 'pt-BR']]*/ 'pt-BR';
     console.log("Using Speech Recognition Language: " + languageCodeSTT);
@@ -105,7 +107,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <p>2. Click the microphone button below and speak your question. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash bin button to clear the text field)</p>
+            <p>2. Click the microphone button below and speak your question.</p>
             <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
             </button>
@@ -122,6 +124,7 @@
     </div>
 </div>
 
+<!-- Speech Recognition -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let recognition;
@@ -174,6 +177,16 @@
 
     });
 </script>
+
+<!-- Transcription output -->
+<div id="transcription"></div>
+<p id="responseMessage"></p>
+
+<!-- Mirror Me Button -->
+<br><p>Click to switch to "Mirror Me" mode.</p>
+<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
+</button>
 
 </body>
 </html>
