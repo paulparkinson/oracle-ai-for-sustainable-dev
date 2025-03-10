@@ -107,7 +107,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <p>2. Click the mic below and speak your question.<br>&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash to clear the textfield)</p>
+            <p>2. Click the mic below and speak your question.<br>&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash bin to clear the textfield)</p>
             <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
             </button>
@@ -116,13 +116,17 @@
             </button>
         </div>
         <div class="col-md-4">
-            <p>3. Click the stop button below to send your question.</p>
+            <p>3. Click stop button to send your question.</p>
             <button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" alt="Stop" style="width: 70px; height: auto;">
             </button>
         </div>
     </div>
 </div>
+
+<!-- ✅ Transcription field restored -->
+<div id="transcription"></div>
+<p id="responseMessage"></p>
 
 <!-- Speech Recognition -->
 <script>
@@ -182,28 +186,27 @@
                 alert("⚠️ No text captured. Try sending again.");
                 return;
             }
-            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
-            const modifiedText = `${transcriptionText} .`;
-            const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCodeSTT)}`;
-
-            try {
-                const response = await fetch(apiUrl, { method: "GET" });
-                const result = await response.text();
-                document.getElementById("responseMessage").innerText = `✅ Response: ${result}`;
-            } catch (error) {
-                document.getElementById("responseMessage").innerText = "❌ Error retrieving response.";
-            }
+            console.log("Sending request: " + transcriptionText);
         });
 
     });
 </script>
 
-<!-- ✅ Images Restored -->
-<div class="bottom-links">
-    <img src="../images-aiholo/refarchdesktopversion.png" alt="ai holo arch">
-    <img src="../images-aiholo/ODTdesktopversion.png" alt="Oracle Database">
-    <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos">
+<!--<div class="bottom-links">-->
+<div>
+    <a href="https://bit.ly/3AdlZ1d" target="_blank">
+        <img src="../images-aiholo/refarchdesktopversion.png" alt="ai holo arch" style="width: 400px; height: auto;">
+    </a>
+    <br>
+    <a href="https://bit.ly/3AdlZ1d" target="_blank">
+        <img src="../images-aiholo/ODTdesktopversion.png" alt="Oracle Database" style="width: 400px; height: auto;">
+    </a>
+    <br>
+    <a href="https://bit.ly/3AdlZ1d" target="_blank">
+        <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos" style="width: 400px; height: auto;">
+    </a>
 </div>
+
 
 </body>
 </html>
