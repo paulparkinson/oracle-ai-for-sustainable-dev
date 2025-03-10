@@ -186,7 +186,17 @@
                 alert("⚠️ No text captured. Try sending again.");
                 return;
             }
-            console.log("Sending request: " + transcriptionText);
+            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+            const modifiedText = `${transcriptionText} .`;
+            const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCodeSTT)}`;
+
+            try {
+                const response = await fetch(apiUrl, { method: "GET" });
+                const result = await response.text();
+                document.getElementById("responseMessage").innerText = `✅ Response: ${result}`;
+            } catch (error) {
+                document.getElementById("responseMessage").innerText = "❌ Error retrieving response.";
+            }
         });
 
     });
