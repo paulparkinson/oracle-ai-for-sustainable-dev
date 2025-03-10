@@ -87,6 +87,13 @@
 <h2>Interactive AI Holograms With Oracle Database</h2>
 <h5>Ask the hologram a question and get a reply!</h5>
 <h65>Eg, "What is the most popular video game?"</h65>
+
+<!-- ✅ Thymeleaf dynamically sets the languageCode variable in JavaScript -->
+<script th:inline="javascript">
+    var languageCodeSTT = /*[[${languageCode} ?: 'pt-BR']]*/ 'pt-BR';
+    console.log("Using Speech Recognition Language: " + languageCodeSTT);
+</script>
+
 <div class="container mt-3">
     <div class="row text-left">
         <div class="col-md-4">
@@ -98,7 +105,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <p>2. Click the mic button and speak your question. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash button to clear the text field)</p>
+            <p>2. Click the microphone button below and speak your question. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash bin button to clear the text field)</p>
             <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
             </button>
@@ -107,7 +114,7 @@
             </button>
         </div>
         <div class="col-md-4">
-            <p>3. Click the stop button to send your question.</p>
+            <p>3. Click the stop button below to send your question.</p>
             <button id="stopSendBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" alt="Stop" style="width: 70px; height: auto;">
             </button>
@@ -115,24 +122,11 @@
     </div>
 </div>
 
-<div id="transcription"></div>
-<p id="responseMessage"></p>
-<br><p>Click to switch to "Mirror Me" mode.</p>
-<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
-</button>
-<br><br>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let recognition;
         let isListening = false;
         let transcriptBuffer = "";
-
-        // ✅ Get languageCode from Thymeleaf dynamically
-        const languageCodeSTT = document.querySelector("img[th\\:alt]").getAttribute("alt") || "pt-BR";
-
-        console.log("Using Speech Recognition Language: " + languageCodeSTT);
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
