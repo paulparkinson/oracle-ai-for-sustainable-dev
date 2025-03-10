@@ -107,7 +107,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <p>2. Click the microphone button below and speak your question.</p>
+            <p>2. Click the mic below and speak your question.<br>&nbsp;&nbsp;&nbsp;&nbsp;(Click the trash to clear the textfield)</p>
             <button id="startBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
                 <img src="../images-aiholo/Icons/Yellow/Microphone.svg" alt="Start" style="width: 70px; height: auto;">
             </button>
@@ -135,7 +135,7 @@
             recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = languageCodeSTT;  // ✅ Now using the correct language
+            recognition.lang = languageCodeSTT;
 
             recognition.onstart = () => {
                 console.log("🎤 Speech recognition started...");
@@ -175,18 +175,35 @@
             if (!isListening) recognition.start();
         });
 
+        document.getElementById("stopSendBtn").addEventListener("click", async () => {
+            if (isListening) recognition.stop();
+            const transcriptionText = transcriptBuffer.trim();
+            if (!transcriptionText) {
+                alert("⚠️ No text captured. Try sending again.");
+                return;
+            }
+            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+            const modifiedText = `${transcriptionText} .`;
+            const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCodeSTT)}`;
+
+            try {
+                const response = await fetch(apiUrl, { method: "GET" });
+                const result = await response.text();
+                document.getElementById("responseMessage").innerText = `✅ Response: ${result}`;
+            } catch (error) {
+                document.getElementById("responseMessage").innerText = "❌ Error retrieving response.";
+            }
+        });
+
     });
 </script>
 
-<!-- Transcription output -->
-<div id="transcription"></div>
-<p id="responseMessage"></p>
-
-<!-- Mirror Me Button -->
-<br><p>Click to switch to "Mirror Me" mode.</p>
-<button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
-    <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
-</button>
+<!-- ✅ Images Restored -->
+<div class="bottom-links">
+    <img src="../images-aiholo/refarchdesktopversion.png" alt="ai holo arch">
+    <img src="../images-aiholo/ODTdesktopversion.png" alt="Oracle Database">
+    <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos">
+</div>
 
 </body>
 </html>
