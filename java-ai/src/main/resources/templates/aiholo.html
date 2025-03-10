@@ -93,7 +93,8 @@
 <!-- ✅ Correctly sets languageCodeSTT for STT using Thymeleaf -->
 <script th:inline="javascript">
     var languageCodeSTT = /*[[${languageCode} ?: 'pt-BR']]*/ 'pt-BR';
-    console.log("Using Speech Recognition Language: " + languageCodeSTT);
+    var voiceName = /*[[${voiceName} ?: 'pt-BR-Wavenet-D']]*/ 'pt-BR-Wavenet-D';
+    console.log("Using Speech Recognition Language: " + languageCodeSTT + " and VoiceName: " + voiceName);
 </script>
 
 <div class="container mt-3">
@@ -188,7 +189,7 @@
             }
             const selectedMode = document.querySelector('input[name="mode"]:checked').value;
             const modifiedText = `${transcriptionText} .`;
-            const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCodeSTT)}`;
+            const apiUrl = `https://aiholo.org/aiholo/play?question=${encodeURIComponent(modifiedText)}&selectedMode=${encodeURIComponent(selectedMode)}&languageCode=${encodeURIComponent(languageCodeSTT)}&voiceName=${encodeURIComponent(voiceName)}`;
 
             try {
                 const response = await fetch(apiUrl, { method: "GET" });
