@@ -178,33 +178,20 @@ public class AIHoloController {
      */
 
     public String executeSandbox(String cummulativeResult) {
-        System.out.println("isRag is true, using AI sandbox: " + cummulativeResult);
-
-        // Remove "use RAG" references
-    //    cummulativeResult = cummulativeResult.replace("use RAG", "").replace("use rag", "").trim();
-      //  cummulativeResult += " . Make answer one sentence that is shorter than 50 words";
-
-        // Prepare request body
+        System.out.println("using AI sandbox: " + cummulativeResult);
         Map<String, Object> payload = new HashMap<>();
         Map<String, String> message = new HashMap<>();
         message.put("role", "user");
         message.put("content", cummulativeResult);
         payload.put("messages", new Object[] { message });
-
-        // Convert payload to JSON
         JSONObject jsonPayload = new JSONObject(payload);
-
-        // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", AUTH_TOKEN);
         headers.set("Accept", "application/json");
-
         HttpEntity<String> request = new HttpEntity<>(jsonPayload.toString(), headers);
-
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, request, String.class);
-
         String latestAnswer;
         if (response.getStatusCode() == HttpStatus.OK) {
             JSONObject responseData = new JSONObject(response.getBody());
