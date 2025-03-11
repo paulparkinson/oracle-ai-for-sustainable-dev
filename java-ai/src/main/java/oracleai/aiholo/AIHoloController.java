@@ -86,9 +86,12 @@ public class AIHoloController {
             model.addAttribute("voiceName", "pt-BR-Wavenet-D");
         else if (languageCode.equals("es-ES"))
             model.addAttribute("voiceName", "es-ES-Wavenet-D");
+        else if (languageCode.equals("zh-SG") )
+            model.addAttribute("voiceName", "cmn-CN-Wavenet-A"); // or cmn-CN-Standard-A
         else if (languageCode.equals("en-US") || languageCode.equals("en-GB"))
-            model.addAttribute("voiceName", "es-GB-Wavenet-D");
+            model.addAttribute("voiceName", "es-GB-Wavenet-D"); //todo Voice 'es-GB-Wavenet-D' does not exist.
         return "aiholo";
+
     }
 
 
