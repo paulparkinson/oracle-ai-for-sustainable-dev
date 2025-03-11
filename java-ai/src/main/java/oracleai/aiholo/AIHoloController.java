@@ -261,6 +261,7 @@ public class AIHoloController {
 
 
     @GetMapping("/set")
+    @ResponseBody
     public String setValue(@RequestParam("value") String value) {
         theValue = value;
         System.out.println("EchoController set: " + theValue);
@@ -274,14 +275,12 @@ public class AIHoloController {
             return "Error writing to file: " + e.getMessage();
         }
 
-        if (value.equals("mirrorme") || value.equals("question"))
-            return "「ミラーミー」モードが正常に有効化されました";
-        else
-            return "set successfully: " + theValue;
+        return "set successfully: " + theValue;
 
     }
 
     @GetMapping("/get")
+    @ResponseBody
     public String getValue() {
         System.out.println("EchoController get: " + theValue);
         return theValue;
