@@ -216,7 +216,7 @@
                 throw new Error("❌ Failed to fetch Mirror Me response.");
             }
             const imageUrl = await response.text();
-            document.getElementById("responseMessage").innerHTML = `<p>Switched To Mirror Me Mode</p>">`;
+            document.getElementById("responseMessage").innerHTML = `<p>Switched To Mirror Me Mode</p>`;
             } catch (error) {
                 document.getElementById("responseMessage").innerText = "❌ Error retrieving Mirror Me response.";
             }
