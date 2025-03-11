@@ -128,12 +128,14 @@
 <!-- ✅ Transcription field restored -->
 <div id="transcription"></div>
 <p id="responseMessage"></p>
+<br>
 <div>
+    <p>Click below button to switch to "Mirror Me" mode.</p>
     <button id="mirrorMeBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
         <img src="../images-aiholo/Icons/Yellow/Face id.svg" alt="Mirror Me" style="width: 70px; height: auto;">
     </button>
 </div>
-
+<br><br>
 <!-- Speech Recognition -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -214,7 +216,7 @@
                 throw new Error("❌ Failed to fetch Mirror Me response.");
             }
             const imageUrl = await response.text();
-            document.getElementById("responseMessage").innerHTML = `<img src="${imageUrl}" alt="Mirror Me Response" style="max-width: 100%; height: auto;">`;
+            document.getElementById("responseMessage").innerHTML = `<p>Switched To Mirror Me Mode</p>">`;
             } catch (error) {
                 document.getElementById("responseMessage").innerText = "❌ Error retrieving Mirror Me response.";
             }
