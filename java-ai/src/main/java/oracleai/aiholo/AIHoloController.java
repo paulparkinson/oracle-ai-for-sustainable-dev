@@ -121,7 +121,7 @@ public class AIHoloController {
         else if (languageCode.equals("es-ES")) answer = "Lo siento, no pude encontrar una respuesta en la base de datos.";
         else if (languageCode.equals("zh-SG")) answer = "抱歉，我在数据库中找不到答案";
         else answer = "I'm sorry. I couldn't find an answer in the database";
-        if (question.contains("use vectorrag")) {
+        if (selectedMode.contains("use narrate")) {
             action = "vectorrag";
             question = question.replace("use vectorrag", "").trim();
             answer = executeSandbox(question);
@@ -157,15 +157,21 @@ public class AIHoloController {
     }
 
 
-
-
-
-
-
-
-
-
-
+    /**
+     curl -X 'POST' \
+     'http://host/v1/chat/completions?client=server' \
+     -H 'accept: application/json' \
+     -H 'Authorization: Bearer bearer' \
+     -H 'Content-Type: application/json' \
+     -d '{
+     "messages": [
+     {
+     "role": "user",
+     "content": "What are Alternative Dispute Resolution"
+     }
+     ]
+     }'
+     */
 
     public String executeSandbox(String cummulativeResult) {
         System.out.println("isRag is true, using AI sandbox: " + cummulativeResult);
