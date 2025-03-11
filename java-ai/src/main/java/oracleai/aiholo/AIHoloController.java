@@ -89,7 +89,7 @@ public class AIHoloController {
         else if (languageCode.equals("zh-SG") )
             model.addAttribute("voiceName", "cmn-CN-Wavenet-A"); // or cmn-CN-Standard-A
         else if (languageCode.equals("en-US") || languageCode.equals("en-GB"))
-            model.addAttribute("voiceName", "es-GB-Wavenet-D"); //todo Voice 'es-GB-Wavenet-D' does not exist.
+            model.addAttribute("voiceName", "en-GB-Wavenet-A"); // or see long list at end of file
         return "aiholo";
 
     }
@@ -119,6 +119,7 @@ public class AIHoloController {
         String answer;
         if (languageCode.equals("pt-BR")) answer = "Desculpe. Não consegui encontrar uma resposta no banco de dados";
         else if (languageCode.equals("es-ES")) answer = "Lo siento, no pude encontrar una respuesta en la base de datos.";
+        else if (languageCode.equals("en-GB")) answer = "Sorry, I couldn't find an answer in the database.";
         else if (languageCode.equals("zh-SG")) answer = "抱歉，我在数据库中找不到答案";
         else answer = "I'm sorry. I couldn't find an answer in the database";
         if (selectedMode.contains("use narrate")) {
@@ -294,3 +295,31 @@ public class AIHoloController {
     }
 
 }
+
+/**
+ en-US (American English):
+ •	en-US-Neural2-F ￼
+ •	en-US-Neural2-G ￼
+ •	en-US-Neural2-H
+ •	en-US-Neural2-I ￼
+ •	en-US-Neural2-J ￼
+ •	en-US-Standard-C ￼
+ •	en-US-Standard-E
+ •	en-US-Standard-G ￼
+ •	en-US-Standard-I
+ •	en-US-Wavenet-C ￼
+ •	en-US-Wavenet-E ￼
+ •	en-US-Wavenet-G
+ •	en-US-Wavenet-I
+
+ en-GB (British English):
+ •	en-GB-Neural2-C ￼
+ •	en-GB-Neural2-E ￼
+ •	en-GB-Standard-A ￼
+ •	en-GB-Standard-C ￼
+ •	en-GB-Standard-E
+ •	en-GB-Wavenet-A ￼
+ •	en-GB-Wavenet-C ￼
+ •	en-GB-Wavenet-E
+
+ */
