@@ -58,6 +58,7 @@ public class AIHoloController {
 
     private static final Object metahumanLock = new Object();
     private static boolean isRecentQuestionProcessed;
+    private static String languageCode = "es";
 
     public AIHoloController() {
         System.out.println("startInactivityMonitor...");
@@ -72,7 +73,7 @@ public class AIHoloController {
             }
             String fileName = "currenttime.wav"; //testing123-brazil.wav
             TTSAndAudio2Face.processMetahuman(
-                        fileName, "a hora é agora " + TimeInWords.getTimeInWords(true),
+                        fileName, "a hora é agora " + TimeInWords.getTimeInWords(languageCode),
                     DEFAULT_LANGUAGE_CODE, DEFAULT_VOICE_NAME);
         }, 1, 15, TimeUnit.MINUTES);
     }
@@ -81,6 +82,7 @@ public class AIHoloController {
     @GetMapping("")
     public String home(@RequestParam(value = "languageCode", defaultValue = "en-GB") String languageCode, Model model) {
         System.out.println("AIHolo root languageCode = " + languageCode );
+        this.languageCode = languageCode;
         model.addAttribute("languageCode", languageCode);
         if (languageCode.equals("pt-BR"))
             model.addAttribute("voiceName", "pt-BR-Wavenet-D");
@@ -122,8 +124,8 @@ public class AIHoloController {
         else if (languageCode.equals("en-GB")) answer = "Sorry, I couldn't find an answer in the database.";
         else if (languageCode.equals("zh-SG")) answer = "抱歉，我在数据库中找不到答案";
         else answer = "I'm sorry. I couldn't find an answer in the database";
-        if (selectedMode.contains("use narrate")) {
-            action = "vectorrag";
+        if (selectedMode.contains("use vector")) {
+//  doesn't matter as its not select ai          action = "vectorrag";
             question = question.replace("use vectorrag", "").trim();
             question += ". Respond in 20 words or less";
             answer = executeSandbox(question);
