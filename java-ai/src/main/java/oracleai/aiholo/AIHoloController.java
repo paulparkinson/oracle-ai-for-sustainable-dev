@@ -124,6 +124,7 @@ public class AIHoloController {
         if (selectedMode.contains("use narrate")) {
             action = "vectorrag";
             question = question.replace("use vectorrag", "").trim();
+            question += ". Respond in 20 words or less";
             answer = executeSandbox(question);
         } else {
             if (selectedMode.contains("use narrate")) {
