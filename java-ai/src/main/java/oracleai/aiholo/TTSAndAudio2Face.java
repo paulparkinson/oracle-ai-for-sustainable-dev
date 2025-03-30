@@ -30,7 +30,8 @@ public class TTSAndAudio2Face {
                 // will occur if token expired
                 //TODO might be funny and helpful to do this, ie have the system gives its status and ask for help ...
                 // sendToAudio2Face("uhoh-lookslikeIneedanewTTStoken.wav");
-                sendToAudio2Face("hello-brazil.wav");
+                sendToAudio2Face("../audio-aiholo/explainer.wav");
+//                sendToAudio2Face("hello-brazil.wav");
             }
 
         });

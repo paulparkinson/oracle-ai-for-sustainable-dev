@@ -136,6 +136,13 @@
     </button>
 </div>
 <br>
+<div>
+    <p>Click below button to switch to "Mirror Me" mode.</p>
+    <button id="explainerBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
+        <img src="../images-aiholo/Icons/Yellow/Explain.svg" alt="Explain This" style="width: 70px; height: auto;">
+    </button>
+</div>
+<br>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let recognition;
@@ -221,6 +228,21 @@
             }
         });
 
+        document.getElementById("explainerBtn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("https://aiholo.org/aiholo/explainer", {
+                    method: "GET",
+                });
+            if (!response.ok) {
+                throw new Error("❌ Failed to fetch Mirror Me response.");
+            }
+            const imageUrl = await response.text();
+            document.getElementById("responseMessage").innerHTML = `<p>Explainer explained</p>`;
+            } catch (error) {
+                document.getElementById("responseMessage").innerText = "❌ Error retrieving Explainer response.";
+            }
+        });
+
     });
 </script>
 
@@ -238,7 +260,22 @@
         <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos" style="width: 400px; height: auto;">
     </a>
 </div>
+<div class="footer">
+    <div class="input-group">
+        <input type="text" id="speechInput" class="form-control" placeholder="Type something to say directly...">
+        <div class="input-group-append">
+            <img src="path_to_your_button_image.jpg" onclick="submitQuery()" style="cursor:pointer;">
+        </div>
+    </div>
+</div>
 
+<script>
+    function submitQuery() {
+        var inputVal = document.getElementById('speechInput').value;
+        var url = 'https://aiholo2.org/aiholo/saything?whattosay=' + encodeURIComponent(inputVal);
+        window.open(url, '_blank'); // This will open the URL in a new tab
+    }
+</script>
 
 </body>
 </html>

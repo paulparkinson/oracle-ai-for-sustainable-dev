@@ -5,11 +5,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.oracle.CreateOption;
+import dev.langchain4j.store.embedding.oracle.EmbeddingTable;
+import dev.langchain4j.store.embedding.oracle.Index;
+import dev.langchain4j.store.embedding.oracle.OracleEmbeddingStore;
 import org.json.JSONObject;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +45,6 @@ import java.util.Map;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 @Controller
 @RequestMapping("/aiholo")
 // @CrossOrigin(origins = "*")
@@ -61,7 +71,7 @@ public class AIHoloController {
     private static String languageCode = "es";
 
     public AIHoloController() {
-     //   startInactivityMonitor();
+        startInactivityMonitor();
     }
 
     private void startInactivityMonitor() {
@@ -248,6 +258,65 @@ public class AIHoloController {
             return new ResponseEntity<>(audioData, headers, HttpStatus.OK);
         }
     }
+
+
+
+    // Vector embedding, store, langchain, etc. stuff...
+
+
+    @Autowired
+    VectorStore vectorStore;
+
+    @GetMapping("/vectorstoretest")
+    @ResponseBody
+    public String vectorstoretest(@RequestParam("question") String question,
+                                  @RequestParam("selectedMode") String selectedMode,
+                                  @RequestParam("languageCode") String languageCode,
+                                  @RequestParam("voiceName") String voicename) throws Exception {
+//        System.out.println(
+        List<Document> documents = List.of(
+                new Document("Spring AI rocks!! Spring AI rocks!!", Map.of("meta1", "meta1")),
+                new Document("The World is Big and Salvation Lurks Around the Corner"),
+                new Document("You walk forward facing the past and you turn back toward the future.",  Map.of("meta2", "meta2")));
+        // Add the documents to Oracle Vector Store
+        vectorStore.add(documents);
+        // Retrieve documents similar to a query
+        List<Document> results =
+                vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
+        return results.getFirst().getFormattedContent();
+    }
+
+    @GetMapping("/langchain")
+    @ResponseBody
+    public String langchain(@RequestParam("question") String question,
+                            @RequestParam("selectedMode") String selectedMode,
+                            @RequestParam("languageCode") String languageCode,
+                            @RequestParam("voiceName") String voicename) throws Exception {
+        EmbeddingSearchRequest embeddingSearchRequest =  null;
+        OracleEmbeddingStore embeddingStore =
+                OracleEmbeddingStore.builder()
+                        .dataSource(dataSource)
+                        .embeddingTable(EmbeddingTable.builder()
+                                .createOption(CreateOption.CREATE_OR_REPLACE)
+                                .name("my_embedding_table")
+                                .idColumn("id_column_name")
+                                .embeddingColumn("embedding_column_name")
+                                .textColumn("text_column_name")
+                                .metadataColumn("metadata_column_name")
+                                .build())
+                        .index(Index.ivfIndexBuilder()
+                                .createOption(CreateOption.CREATE_OR_REPLACE).build())
+                        .build();
+        EmbeddingSearchResult<TextSegment> embeddingSearchResult = embeddingStore.search(embeddingSearchRequest);
+        return "langchain";
+    }
+
+
+
+    //set/get etc utilites to end....
+
+
+
 
     public static String getFirst10Chars(String textToConvert) {
         if (textToConvert == null || textToConvert.isEmpty()) {
