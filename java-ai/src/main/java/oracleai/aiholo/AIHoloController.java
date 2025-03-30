@@ -264,7 +264,7 @@ public class AIHoloController {
     // Vector embedding, store, langchain, etc. stuff...
 
 
-    @Autowired
+//    @Autowired
     VectorStore vectorStore;
 
     @GetMapping("/vectorstoretest")
