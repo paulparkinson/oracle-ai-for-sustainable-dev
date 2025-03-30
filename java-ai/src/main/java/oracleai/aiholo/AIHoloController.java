@@ -18,9 +18,9 @@ import dev.langchain4j.store.embedding.oracle.EmbeddingTable;
 import dev.langchain4j.store.embedding.oracle.Index;
 import dev.langchain4j.store.embedding.oracle.OracleEmbeddingStore;
 import org.json.JSONObject;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
+//import org.springframework.ai.document.Document;
+//import org.springframework.ai.vectorstore.SearchRequest;
+//import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -265,30 +265,30 @@ public class AIHoloController {
 
 
 //    @Autowired
-    VectorStore vectorStore;
-
-    @GetMapping("/vectorstoretest")
-    @ResponseBody
-    public String vectorstoretest(@RequestParam("question") String question,
-                                  @RequestParam("selectedMode") String selectedMode,
-                                  @RequestParam("languageCode") String languageCode,
-                                  @RequestParam("voiceName") String voicename) throws Exception {
-//        System.out.println(
-        List<Document> documents = List.of(
-                new Document("Spring AI rocks!! Spring AI rocks!!", Map.of("meta1", "meta1")),
-                new Document("The World is Big and Salvation Lurks Around the Corner"),
-                new Document("You walk forward facing the past and you turn back toward the future.",  Map.of("meta2", "meta2")));
-        // Add the documents to Oracle Vector Store
-        vectorStore.add(documents);
-        // Retrieve documents similar to a query
-        List<Document> results =
-                vectorStore.similaritySearch(SearchRequest.builder().query(question).topK(5).build());
-//                vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
-        return "test";
-        //results.getFirst().getFormattedContent(); give s cannot find symbol
-        //[ERROR]   symbol:   method getFirst()
-        //[ERROR]   location: variable results of type java.util.List<org.springframework.ai.document.Document>
-    }
+//    VectorStore vectorStore;
+//
+//    @GetMapping("/vectorstoretest")
+//    @ResponseBody
+//    public String vectorstoretest(@RequestParam("question") String question,
+//                                  @RequestParam("selectedMode") String selectedMode,
+//                                  @RequestParam("languageCode") String languageCode,
+//                                  @RequestParam("voiceName") String voicename) throws Exception {
+////        System.out.println(
+//        List<Document> documents = List.of(
+//                new Document("Spring AI rocks!! Spring AI rocks!!", Map.of("meta1", "meta1")),
+//                new Document("The World is Big and Salvation Lurks Around the Corner"),
+//                new Document("You walk forward facing the past and you turn back toward the future.",  Map.of("meta2", "meta2")));
+//        // Add the documents to Oracle Vector Store
+//        vectorStore.add(documents);
+//        // Retrieve documents similar to a query
+//        List<Document> results =
+//                vectorStore.similaritySearch(SearchRequest.builder().query(question).topK(5).build());
+////                vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
+//        return "test";
+//        //results.getFirst().getFormattedContent(); give s cannot find symbol
+//        //[ERROR]   symbol:   method getFirst()
+//        //[ERROR]   location: variable results of type java.util.List<org.springframework.ai.document.Document>
+//    }
 
     @GetMapping("/langchain")
     @ResponseBody
