@@ -282,8 +282,12 @@ public class AIHoloController {
         vectorStore.add(documents);
         // Retrieve documents similar to a query
         List<Document> results =
-                vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
-        return results.getFirst().getFormattedContent();
+                vectorStore.similaritySearch(SearchRequest.builder().query(question).topK(5).build());
+//                vectorStore.similaritySearch(SearchRequest.builder().query("Spring").topK(5).build());
+        return "test";
+        //results.getFirst().getFormattedContent(); give s cannot find symbol
+        //[ERROR]   symbol:   method getFirst()
+        //[ERROR]   location: variable results of type java.util.List<org.springframework.ai.document.Document>
     }
 
     @GetMapping("/langchain")
