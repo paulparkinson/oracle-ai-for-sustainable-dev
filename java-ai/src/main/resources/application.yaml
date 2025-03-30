@@ -62,6 +62,8 @@ server:
   ssl:
     enabled: true
     key-store-type: PKCS12
-    key-store: classpath:keystore.p12
+#    key-store: classpath:keystore.p12
+    key-store: classpath:aiholoorg.p12
     key-store-password: Welcome1
-    key-alias: springboot
+#    key-alias: springboot
+    key-alias: aiholoorg

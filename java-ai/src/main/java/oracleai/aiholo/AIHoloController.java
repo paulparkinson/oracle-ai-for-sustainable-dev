@@ -41,10 +41,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class AIHoloController {
     private String theValue = "mirrorme";
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private static final String API_URL = "http://129.x.x.x/v1/chat/completions?client=server";
-    private static final String AUTH_TOKEN = "Bearer asdf";
-    private static final String DEFAULT_LANGUAGE_CODE = "pt-BR";
-    private static final String DEFAULT_VOICE_NAME = "pt-BR-Wavenet-D";
+    private static final String SANDBOX_API_URL = System.getenv("SANDBOX_API_URL");
+    private static final String SANDBOX_AUTH_TOKEN = System.getenv("SANDBOX_AUTH_TOKEN");
+    private static final String DEFAULT_LANGUAGE_CODE = "es-ES";
+    private static final String DEFAULT_VOICE_NAME = "es-ES-Wavenet-D";
     private final static String sql = """
                 SELECT DBMS_CLOUD_AI.GENERATE(
                     prompt       => ?,
@@ -61,11 +61,11 @@ public class AIHoloController {
     private static String languageCode = "es";
 
     public AIHoloController() {
-        System.out.println("startInactivityMonitor...");
-        startInactivityMonitor();
+     //   startInactivityMonitor();
     }
 
     private void startInactivityMonitor() {
+        System.out.println("startInactivityMonitor...");
         scheduler.scheduleAtFixedRate(() -> {
             if (isRecentQuestionProcessed) {
                 System.out.println("isRecentQuestionProcessed true so skipping the timecheck/keepalive");
@@ -73,7 +73,7 @@ public class AIHoloController {
             }
             String fileName = "currenttime.wav"; //testing123-brazil.wav
             TTSAndAudio2Face.processMetahuman(
-                        fileName, "a hora é agora " + TimeInWords.getTimeInWords(languageCode),
+                        fileName,  TimeInWords.getTimeInWords(languageCode),
                     DEFAULT_LANGUAGE_CODE, DEFAULT_VOICE_NAME);
         }, 1, 15, TimeUnit.MINUTES);
     }
@@ -187,11 +187,11 @@ public class AIHoloController {
         JSONObject jsonPayload = new JSONObject(payload);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", AUTH_TOKEN);
+        headers.set("Authorization", SANDBOX_AUTH_TOKEN);
         headers.set("Accept", "application/json");
         HttpEntity<String> request = new HttpEntity<>(jsonPayload.toString(), headers);
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, request, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(SANDBOX_API_URL, HttpMethod.POST, request, String.class);
         String latestAnswer;
         if (response.getStatusCode() == HttpStatus.OK) {
             JSONObject responseData = new JSONObject(response.getBody());
