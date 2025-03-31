@@ -53,6 +53,7 @@ public class AIHoloController {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private static final String SANDBOX_API_URL = System.getenv("SANDBOX_API_URL");
     private static final String SANDBOX_AUTH_TOKEN = System.getenv("SANDBOX_AUTH_TOKEN");
+    static final String AUDIO_DIR_PATH = System.getenv("AUDIO_DIR_PATH");
     private static final String DEFAULT_LANGUAGE_CODE = "es-ES";
     private static final String DEFAULT_VOICE_NAME = "es-ES-Wavenet-D";
     private final static String sql = """
@@ -111,7 +112,7 @@ public class AIHoloController {
     @ResponseBody
     public String explainer() throws Exception {
         System.out.println("AIHoloController.explainer");
-        TTSAndAudio2Face.sendToAudio2Face("/audio-aiholo/explainer.wav");
+        TTSAndAudio2Face.sendToAudio2Face("explainer.wav");
         return "Explained";
     }
 

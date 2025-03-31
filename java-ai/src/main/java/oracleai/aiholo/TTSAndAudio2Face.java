@@ -76,7 +76,7 @@ public class TTSAndAudio2Face {
         String setRootPathUrl = baseUrl + "SetRootPath";
         Map<String, Object> rootPathPayload = new HashMap<>();
         rootPathPayload.put("a2f_player", "/World/audio2face/Player");
-        rootPathPayload.put("dir_path", "C:/Users/opc/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/java-ai");
+        rootPathPayload.put("dir_path", AIHoloController.AUDIO_DIR_PATH);
         sendPostRequest(restTemplate, setRootPathUrl, rootPathPayload);
 
         String setTrackUrl = baseUrl + "SetTrack";
