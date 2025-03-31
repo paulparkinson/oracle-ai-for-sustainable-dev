@@ -68,7 +68,7 @@ public class TTSAndAudio2Face {
 
 
 
-    private static void sendToAudio2Face(String fileName) {
+    public static void sendToAudio2Face(String fileName) {
         System.out.print("sendToAudio2Face for fileName:" + fileName + " ...");
         RestTemplate restTemplate = new RestTemplate();
         String baseUrl = "http://localhost:8011/A2F/Player/";

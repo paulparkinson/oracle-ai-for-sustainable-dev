@@ -137,11 +137,12 @@
 </div>
 <br>
 <div>
-    <p>Click below button to switch to "Mirror Me" mode.</p>
+    <p>Click below button to explain this exhibit.</p>
     <button id="explainerBtn" class="btn btn-primary" style="background: none; border: none; padding: 0;">
         <img src="../images-aiholo/Icons/Yellow/Explain.svg" alt="Explain This" style="width: 70px; height: auto;">
     </button>
 </div>
+<hr style="border-top: 2px solid #CC5500; margin: 20px 0;">
 <br>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -260,11 +261,14 @@
         <img src="../images-aiholo/bit.ly_interactive-ai-holograms.png" alt="aiholo repos" style="width: 400px; height: auto;">
     </a>
 </div>
+<br>
+<hr style="border-top: 2px solid #CC5500; margin: 20px 0;">
+<br>
 <div class="footer">
     <div class="input-group">
         <input type="text" id="speechInput" class="form-control" placeholder="Type something to say directly...">
         <div class="input-group-append">
-            <img src="path_to_your_button_image.jpg" onclick="submitQuery()" style="cursor:pointer;">
+            <img src="../images-aiholo/Icons/Yellow/Stop recording.svg" onclick="submitQuery()" style="cursor:pointer;">
         </div>
     </div>
 </div>
@@ -272,8 +276,8 @@
 <script>
     function submitQuery() {
         var inputVal = document.getElementById('speechInput').value;
-        var url = 'https://aiholo2.org/aiholo/saything?whattosay=' + encodeURIComponent(inputVal);
-        window.open(url, '_blank'); // This will open the URL in a new tab
+        var url = 'https://aiholo.org/aiholo/saything?whattosay=' + encodeURIComponent(inputVal);
+        window.open(url, '_blank');
     }
 </script>
 

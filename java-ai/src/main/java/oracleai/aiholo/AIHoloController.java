@@ -107,9 +107,17 @@ public class AIHoloController {
     }
 
 
+    @GetMapping("/explainer")
+    @ResponseBody
+    public String explainer() throws Exception {
+        System.out.println("AIHoloController.explainer");
+        TTSAndAudio2Face.sendToAudio2Face("/audio-aiholo/explainer.wav");
+        return "Explained";
+    }
+
     @GetMapping("/play")
     @ResponseBody
-    public String play(@RequestParam("question") String question, 
+    public String play(@RequestParam("question") String question,
         @RequestParam("selectedMode") String selectedMode,
         @RequestParam("languageCode") String languageCode,
          @RequestParam("voiceName") String voicename) throws Exception {
