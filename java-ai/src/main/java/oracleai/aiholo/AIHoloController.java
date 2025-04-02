@@ -72,7 +72,7 @@ public class AIHoloController {
     private static String languageCode = "es";
 
     public AIHoloController() {
-        startInactivityMonitor();
+//        startInactivityMonitor();
     }
 
     private void startInactivityMonitor() {
