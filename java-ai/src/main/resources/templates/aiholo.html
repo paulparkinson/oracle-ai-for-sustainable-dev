@@ -209,6 +209,7 @@
                 const response = await fetch(apiUrl, { method: "GET" });
                 const result = await response.text();
                 document.getElementById("responseMessage").innerText = `✅ Response: ${result}`;
+                document.getElementById("stopSendBtn").disabled = true;
             } catch (error) {
                 document.getElementById("responseMessage").innerText = "❌ Error retrieving response.";
             }

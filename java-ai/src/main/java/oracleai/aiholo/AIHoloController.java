@@ -218,6 +218,7 @@ public class AIHoloController {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", SANDBOX_AUTH_TOKEN);
         headers.set("Accept", "application/json");
+        headers.set("client", "server");
         HttpEntity<String> request = new HttpEntity<>(jsonPayload.toString(), headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(SANDBOX_API_URL, HttpMethod.POST, request, String.class);
