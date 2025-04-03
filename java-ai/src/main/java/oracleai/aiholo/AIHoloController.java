@@ -82,7 +82,8 @@ public class AIHoloController {
                 System.out.println("isRecentQuestionProcessed true so skipping the timecheck/keepalive");
                 isRecentQuestionProcessed = false;
             }
-            String fileName = "currenttime.wav"; //testing123-brazil.wav
+//            String fileName = "currenttime.wav"; //testing123-brazil.wav
+            String fileName = "explainer.wav"; //testing123-brazil.wav
             TTSAndAudio2Face.processMetahuman(
                         fileName,  TimeInWords.getTimeInWords(languageCode),
                     DEFAULT_LANGUAGE_CODE, DEFAULT_VOICE_NAME);
