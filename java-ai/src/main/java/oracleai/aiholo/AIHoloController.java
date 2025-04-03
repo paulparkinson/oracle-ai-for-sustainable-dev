@@ -83,10 +83,10 @@ public class AIHoloController {
                 isRecentQuestionProcessed = false;
             }
 //            String fileName = "currenttime.wav"; //testing123-brazil.wav
-            String fileName = "explainer.wav"; //testing123-brazil.wav
-            TTSAndAudio2Face.processMetahuman(
-                        fileName,  TimeInWords.getTimeInWords(languageCode),
-                    DEFAULT_LANGUAGE_CODE, DEFAULT_VOICE_NAME);
+//            TTSAndAudio2Face.processMetahuman(
+//                        fileName,  TimeInWords.getTimeInWords(languageCode),
+//                    DEFAULT_LANGUAGE_CODE, DEFAULT_VOICE_NAME);
+            TTSAndAudio2Face.sendToAudio2Face("../audio-aiholo/explainer.wav");
         }, 1, 15, TimeUnit.MINUTES);
     }
 
