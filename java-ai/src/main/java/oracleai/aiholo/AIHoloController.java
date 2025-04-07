@@ -72,7 +72,7 @@ public class AIHoloController {
     private static String languageCode = "es";
 
     public AIHoloController() {
-        startInactivityMonitor();
+//        startInactivityMonitor();
     }
 
     private void startInactivityMonitor() {
@@ -101,12 +101,26 @@ public class AIHoloController {
         else if (languageCode.equals("es-ES"))
             model.addAttribute("voiceName", "es-ES-Wavenet-D");
         else if (languageCode.equals("zh-SG") )
-            model.addAttribute("voiceName", "cmn-CN-Wavenet-A"); // or cmn-CN-Standard-A
+            model.addAttribute("voiceName", "cmn-CN-Wavenet-A");
+        else if (languageCode.equals("de-DE") )
+            model.addAttribute("voiceName", "de-DE-Wavenet-A");
+        else if (languageCode.equals("es-MX") )
+            model.addAttribute("voiceName", "es-MX-Wavenet-A");
+        else if (languageCode.equals("it-IT") )
+            model.addAttribute("voiceName", "it-IT-Wavenet-A");
+        else if (languageCode.equals("ar-ae") )
+            model.addAttribute("voiceName", "ar-ae-Wavenet-A");
+        else if (languageCode.equals("ja-JP") )
+            model.addAttribute("voiceName", "ja-JP-Wavenet-A");
+        else if (languageCode.equals("hi-IN") )
+            model.addAttribute("voiceName", "hi-IN-Wavenet-A");
         else if (languageCode.equals("en-US") || languageCode.equals("en-GB"))
-            model.addAttribute("voiceName", "en-GB-Wavenet-A"); // or see long list at end of file
+            model.addAttribute("voiceName", "en-GB-Wavenet-A");
+        else model.addAttribute("voiceName", "en-GB-Wavenet-A"); //default to GB
         return "aiholo";
 
     }
+
 
 
     @GetMapping("/explainer")
