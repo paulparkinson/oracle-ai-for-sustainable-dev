@@ -118,7 +118,6 @@ public class AIHoloController {
             model.addAttribute("voiceName", "en-GB-Wavenet-A");
         else model.addAttribute("voiceName", "en-GB-Wavenet-A"); //default to GB
         return "aiholo";
-
     }
 
 
