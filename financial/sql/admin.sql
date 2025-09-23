@@ -11,7 +11,7 @@ GRANT RESOURCE TO FINANCIAL;
 ALTER USER FINANCIAL DEFAULT ROLE CONSOLE_DEVELOPER, DWROLE, GRAPH_DEVELOPER, OML_DEVELOPER;
 
 --For TxEventQ/OKafka
-grant resource, connect, unlimited tablespace to testuser;
+grant resource, connect, unlimited tablespace to FINANCIAL;
 grant aq_user_role to FINANCIAL;
 grant execute on dbms_aq to  FINANCIAL;
 grant execute on dbms_aqadm to FINANCIAL;

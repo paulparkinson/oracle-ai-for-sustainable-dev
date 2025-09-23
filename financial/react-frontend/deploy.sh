@@ -18,7 +18,7 @@ echo "Using REACT_APP_ORDS_BASE_URL: $REACT_APP_ORDS_BASE_URL"
 kubectl delete deployment frontend-react  -n financial
 
 cp frontend-react-deployment_template.yaml frontend-react-deployment.yaml
-sed -i '' "s|IMAGE_PLACEHOLDER|$IMAGE|g" frontend-react-deployment.yaml
-sed -i '' "s|ORDS_BASE_URL_PLACEHOLDER|$REACT_APP_ORDS_BASE_URL|g" frontend-react-deployment.yaml
+sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" frontend-react-deployment.yaml
+sed -i "s|ORDS_BASE_URL_PLACEHOLDER|$REACT_APP_ORDS_BASE_URL|g" frontend-react-deployment.yaml
 kubectl apply -f frontend-react-deployment.yaml -n financial
 
