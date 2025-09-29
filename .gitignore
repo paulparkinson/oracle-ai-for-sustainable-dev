@@ -2,6 +2,10 @@
 grabdish/inventory-micronaut/build/
 financial/react-frontend/frontend-react-deployment.yaml
 
+#vim temp file
+*.swp
+*.swo
+
 # Deployment artifacts
 .deployed/
 .deployed/*.yaml
