@@ -8,6 +8,13 @@ grabdish/inventory-micronaut/build/
 # Generated deployment files with sensitive data
 **/healthai-backend-springboot-deployment.yaml
 
+# TLS/SSL certificates and keys
+**/tls/
+*.crt
+*.key
+*.pem
+*.p12
+
 # Compiled class file
 *.class
 
