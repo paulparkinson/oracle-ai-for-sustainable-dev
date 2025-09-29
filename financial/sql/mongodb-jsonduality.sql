@@ -4,6 +4,7 @@ BEGIN
 END;
 /
 
+-- ak: DBMS_CLOUD_ADMIN.ENABLE_MONGO_API doesn't seem to exist so just use the UI to enable MongoDB API and SODA drivers, add grand soda_app in admin.sql
 --  example URL format... mongodb://[user:password@]IJ1TYZIR3WPWLPE-FINANCIALDB.adb.eu-frankfurt-1.oraclecloudapps.com:27017/[user]?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true
 
 -- also see https://docs.oracle.com/en/database/oracle/oracle-database/23/jsnvu/json-relational-duality-developers-guide.pdf
@@ -28,7 +29,7 @@ CREATE JSON RELATIONAL DUALITY VIEW accounts_dv AS
     'accountOtherDetails'  : ACCOUNT_OTHER_DETAILS,
     'accountType'          : ACCOUNT_TYPE
   }
-  FROM accounts
+  FROM financial.accounts
   WITH INSERT UPDATE DELETE CHECK;
 
 

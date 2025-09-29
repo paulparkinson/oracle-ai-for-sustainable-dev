@@ -1,5 +1,6 @@
 # Temporary Builds
 grabdish/inventory-micronaut/build/
+financial/react-frontend/frontend-react-deployment.yaml
 
 # Deployment artifacts
 .deployed/

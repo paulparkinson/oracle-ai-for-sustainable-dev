@@ -19,7 +19,7 @@ spec:
             defaultMode: 420
       containers:
         - name: account-springboot
-          image: eu-frankfurt-1.ocir.io/oradbclouducm/financial/bank-account:0.1.1748547465
+          image: us-sanjose-1.ocir.io/oscnas001/financial/bank-account:0.1.1759169157
           imagePullPolicy: Always
           ports:
             - containerPort: 443

@@ -23,7 +23,7 @@ echo about to build...
 #podman build -t=$IMAGE .
 #podman buildx build --platform linux/amd64 --build-arg REACT_APP_BACKEND_URL=https://oracledatabase-financial.org -t $IMAGE .
 #podman buildx build --platform linux/amd64 -t $IMAGE --load .
-podman buildx build --memory=8g  --platform linux/amd64 \
+podman buildx build --platform linux/amd64 \
   --build-arg REACT_APP_BACKEND_URL=https://oracledatabase-financial.org \
   --build-arg REACT_APP_MICROTX_TRANSFER_SERVICE_URL=https://$lbPubIP/transfer \
   --build-arg REACT_APP_MICROTX_ACCOUNT_SERVICE_URL=https://$lbPubIP/accounts \
