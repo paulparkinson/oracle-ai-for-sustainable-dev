@@ -1,6 +1,9 @@
 # Temporary Builds
 grabdish/inventory-micronaut/build/
 financial/react-frontend/frontend-react-deployment.yaml
+financial/mongodb-mern-bank-account/mern-stack/mern-backend-deployment.yaml
+financial/react-frontend/frontend-react-deployment.yaml
+financial/mongodb-mern-bank-account/springboot-relational-stack/account-springboot-deployment.yaml
 
 #vim temp file
 *.swp

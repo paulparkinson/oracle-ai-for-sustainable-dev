@@ -6,6 +6,6 @@
 kubectl delete deployment mern-backend  -n financial
 
 cp mern-backend-deployment_template.yaml mern-backend-deployment.yaml
-sed -i '' "s|IMAGE_PLACEHOLDER|$IMAGE|g" mern-backend-deployment.yaml
+sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" mern-backend-deployment.yaml
 kubectl apply -f mern-backend-deployment.yaml -n financial
 

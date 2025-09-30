@@ -1,7 +1,12 @@
 #!/bin/bash
 
+# Load environment variables from .env file if it exists
+if [ -f "../../.env" ]; then
+    source ../../.env
+fi
+
 export IMAGE_VERSION=$TAG
-export DOCKER_REGISTRY=eu-frankfurt-1.ocir.io/oradbclouducm/financial
+#export DOCKER_REGISTRY=eu-frankfurt-1.ocir.io/oradbclouducm/financial
 #eg us-ashburn-1.ocir.io/oradbclouducm/financial/frontend:0.
 
 if [ -z "$DOCKER_REGISTRY" ]; then
@@ -21,7 +26,7 @@ echo about to build...
 #podman buildx build --platform linux/amd64 -t $IMAGE --load .
 #mongodb://financial:Welcome12345@IJ1TYZIR3WPWLPE-FINANCIALDB.adb.eu-frankfurt-1.oraclecloudapps.com:27017/financial?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true
 podman buildx build --platform linux/amd64 \
-  --build-arg MONGODB_URL="https://oracledatabase-financial.org" \
+  --build-arg MONGODB_URL="$MONGO_URI" \
   -t $IMAGE .
 
 
