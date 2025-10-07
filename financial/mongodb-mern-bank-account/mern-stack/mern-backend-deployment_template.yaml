@@ -27,13 +27,13 @@ spec:
             - name: DB_USER
               value: financial
             - name: DB_URL
-              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/oraclefinancial/creds
+              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=TNS_PLACEHOLDER
             - name: DB_PASSWORD
               value: Welcome12345
             - name: spring.datasource.username
               value: financial
             - name: spring.datasource.url
-              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/oraclefinancial/creds
+              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=TNS_PLACEHOLDER
             - name: spring.datasource.password
               value: Welcome12345
           resources: {}

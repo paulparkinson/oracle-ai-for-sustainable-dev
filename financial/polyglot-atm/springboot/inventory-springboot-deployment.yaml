@@ -56,14 +56,6 @@ spec:
           secretName: lemmingdb-tns-admin
 
 
-
-
-            - name: tns-admin
-              secret:
-                defaultMode: 420
-                secretName: lemmingdb-tns-admin
-
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:

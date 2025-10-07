@@ -3,8 +3,8 @@
 
 # Oracle Database 23ai Configuration
 ORACLE_DB_USERNAME: "ADMIN"
-ORACLE_DB_PASSWORD: "your_oracle_password_here"
-ORACLE_DB_DSN: "your_oracle_dsn_here"
+ORACLE_DB_PASSWORD: "JI2ZiYGz%_qdzT6i"
+ORACLE_DB_DSN: "(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-sanjose-1.oraclecloud.com))(connect_data=(service_name=gd78fe9447add3b_financialdb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))"
 
 # OpenAI Configuration (optional, for LLM features)
 OPENAI_API_KEY: "your_openai_api_key_here"

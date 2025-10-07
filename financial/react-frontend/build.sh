@@ -17,38 +17,28 @@ fi
 export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
 echo ${IMAGE}
 
-echo Getting public IP of LoadBalancer as follow:
-lbPubIP=`kubectl -n financial get service frontend| awk '/LoadBalancer/ {print $4}'`
-echo $lbPubIP
-if [ -z "$lbPubIP" ]; then
-    echo "Error: no loadbalancer, please run the following command to deploy it first:"
-    echo "kubectl apply -f frontend-loadbalancer-service.yaml -n financial"
-    exit 1
-fi
-
 #oci artifacts container repository create --compartment-id ocid1.compartment.oc1..aaaaaaaafnah3ogykjsg34qruhixhb2drls6zhsejzm7mubi2i5qj66slcoq  --display-name financial/frontend  --is-public true
-
 
 echo about to build...
 #podman build -t=$IMAGE .
-#podman buildx build --platform linux/amd64 --build-arg REACT_APP_BACKEND_URL=https://$lbPubIP -t $IMAGE .
+#podman buildx build --platform linux/amd64 --build-arg REACT_APP_BACKEND_URL=http://kwok.dns05.com -t $IMAGE .
 #podman buildx build --platform linux/amd64 -t $IMAGE --load .
 podman buildx build --platform linux/amd64 \
-  --build-arg REACT_APP_BACKEND_URL=http://$lbPubIP \
-  --build-arg REACT_APP_MICROTX_TRANSFER_SERVICE_URL=http://$lbPubIP/transfer \
-  --build-arg REACT_APP_MICROTX_ACCOUNT_SERVICE_URL=http://$lbPubIP/accounts \
-  --build-arg REACT_APP_MERN_BACKEND_SERVICE_URL=http://$lbPubIP/mern-backend \
-  --build-arg REACT_APP_MERN_MONGODB_SERVICE_URL=http://$lbPubIP/accounts \
-  --build-arg REACT_APP_MERN_MONGODB_JSONDUALITY_ORACLE_SERVICE_URL=http://$lbPubIP/accounts \
-  --build-arg REACT_APP_MERN_SQL_ORACLE_SERVICE_URL=http://$lbPubIP/accounts \
-  --build-arg REACT_APP_JAVA_ACCOUNTDETAIL_SERVICE_URL=http://$lbPubIP/accounts \
-  --build-arg REACT_APP_GRAPH_LAUNDERING_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_TRUECACHE_STOCK_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_SHARDING_SPATIAL_CC_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_STOCK_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_KAFKA_TXEVENTQ_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_AIAGENT_VECTOR_ADVISOR_SERVICE_URL=http://$lbPubIP \
-  --build-arg REACT_APP_SPEECH_SELECTAI_QUERY_SERVICE_URL=http://$lbPubIP \
+  --build-arg REACT_APP_BACKEND_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MICROTX_TRANSFER_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MICROTX_ACCOUNT_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MERN_BACKEND_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MERN_MONGODB_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MERN_MONGODB_JSONDUALITY_ORACLE_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_MERN_SQL_ORACLE_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_JAVA_ACCOUNTDETAIL_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_GRAPH_LAUNDERING_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_TRUECACHE_STOCK_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_SHARDING_SPATIAL_CC_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_STOCK_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_KAFKA_TXEVENTQ_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_AIAGENT_VECTOR_ADVISOR_SERVICE_URL=http://kwok.dns05.com \
+  --build-arg REACT_APP_SPEECH_SELECTAI_QUERY_SERVICE_URL=http://kwok.dns05.com \
   --build-arg REACT_APP_ORDS_BASE_URL="$REACT_APP_ORDS_BASE_URL" \
   -t $IMAGE .
 

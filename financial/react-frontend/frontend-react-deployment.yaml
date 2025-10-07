@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend-react
-          image: us-sanjose-1.ocir.io/oscnas001/financial/react-frontend:0.1.1759270149
+          image: us-sanjose-1.ocir.io/oscnas001/financial/react-frontend:0.1.1759339619
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

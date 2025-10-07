@@ -19,7 +19,7 @@ spec:
             defaultMode: 420
       containers:
         - name: mern-backend
-          image: us-sanjose-1.ocir.io/oscnas001/financial/mern-backend:0.1.1759253536
+          image: us-sanjose-1.ocir.io/oscnas001/financial/mern-backend:0.1.1759349682
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -27,13 +27,13 @@ spec:
             - name: DB_USER
               value: financial
             - name: DB_URL
-              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/oraclefinancial/creds
+              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/home/akwok/Wallet_FINANCIALDB
             - name: DB_PASSWORD
               value: Welcome12345
             - name: spring.datasource.username
               value: financial
             - name: spring.datasource.url
-              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/oraclefinancial/creds
+              value: jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/home/akwok/Wallet_FINANCIALDB
             - name: spring.datasource.password
               value: Welcome12345
           resources: {}
