@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Load environment variables from .env file if it exists
+# Source environment variables from parent financial/.env file
 if [ -f "../.env" ]; then
     source ../.env
+    echo "Environment variables loaded from ../.env"
+else
+    echo "Warning: ../.env file not found, using default values"
 fi
 
 export IMAGE_VERSION=$TAG
@@ -23,23 +26,24 @@ echo about to build...
 #podman build -t=$IMAGE .
 #podman buildx build --platform linux/amd64 --build-arg REACT_APP_BACKEND_URL=http://kwok.dns05.com -t $IMAGE .
 #podman buildx build --platform linux/amd64 -t $IMAGE --load .
-podman buildx build --platform linux/amd64 \
-  --build-arg REACT_APP_BACKEND_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MICROTX_TRANSFER_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MICROTX_ACCOUNT_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MERN_BACKEND_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MERN_MONGODB_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MERN_MONGODB_JSONDUALITY_ORACLE_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_MERN_SQL_ORACLE_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_JAVA_ACCOUNTDETAIL_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_GRAPH_LAUNDERING_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_TRUECACHE_STOCK_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_SHARDING_SPATIAL_CC_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_STOCK_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_KAFKA_TXEVENTQ_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_AIAGENT_VECTOR_ADVISOR_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_SPEECH_SELECTAI_QUERY_SERVICE_URL=http://kwok.dns05.com \
-  --build-arg REACT_APP_ORDS_BASE_URL="$REACT_APP_ORDS_BASE_URL" \
+podman buildx build --memory=8g  --platform linux/amd64 \
+  --build-arg REACT_APP_BACKEND_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_MICROTX_TRANSFER_SERVICE_URL=${REACT_APP_MICROTX_TRANSFER_SERVICE_URL} \
+  --build-arg REACT_APP_MICROTX_ACCOUNT_SERVICE_URL=${REACT_APP_MICROTX_ACCOUNT_SERVICE_URL} \
+  --build-arg REACT_APP_MERN_BACKEND_SERVICE_URL=https://oracleai-financial.org/mern-backend \
+  --build-arg REACT_APP_MERN_MONGODB_SERVICE_URL=${REACT_APP_MERN_MONGODB_SERVICE_URL} \
+  --build-arg REACT_APP_MERN_MONGODB_JSONDUALITY_ORACLE_SERVICE_URL=${REACT_APP_MERN_MONGODB_JSONDUALITY_ORACLE_SERVICE_URL} \
+  --build-arg REACT_APP_MERN_SQL_ORACLE_SERVICE_URL=${REACT_APP_MERN_SQL_ORACLE_SERVICE_URL} \
+  --build-arg REACT_APP_JAVA_ACCOUNTDETAIL_SERVICE_URL=${REACT_APP_JAVA_ACCOUNTDETAIL_SERVICE_URL} \
+  --build-arg REACT_APP_GRAPH_LAUNDERING_SERVICE_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_TRUECACHE_STOCK_SERVICE_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_SHARDING_SPATIAL_CC_SERVICE_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_STOCK_SERVICE_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_KAFKA_TXEVENTQ_SERVICE_URL=https://oracledatabase-financial.org \
+  --build-arg REACT_APP_AIAGENT_VECTOR_ADVISOR_SERVICE_URL=${REACT_APP_AIAGENT_VECTOR_ADVISOR_SERVICE_URL} \
+  --build-arg REACT_APP_SPEECH_SELECTAI_QUERY_SERVICE_URL=${REACT_APP_SPEECH_SELECTAI_QUERY_SERVICE_URL} \
+  --build-arg REACT_APP_AI_AGENTS_BACKEND_URL=${REACT_APP_AI_AGENTS_BACKEND_URL} \
+  --build-arg REACT_APP_ORDS_BASE_URL=${REACT_APP_ORDS_BASE_URL} \
   -t $IMAGE .
 
 

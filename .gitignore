@@ -685,7 +685,7 @@ cython_debug/
 # Flutter/Dart plugins
 .flutter*
 *pubspec*
-package*
+packages/
 .dart*
 *.key
 *.cert
