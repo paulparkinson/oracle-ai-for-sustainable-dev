@@ -57,7 +57,7 @@ This workshop demonstrates building a production-ready RAG (Retrieval Augmented 
 ## Prerequisites
 
 ### Required Accounts & Access
-- **Oracle Cloud Account** with Autonomous Database (23ai)
+- **Oracle Cloud Account** with Autonomous Database (26ai)
 - **Google Cloud Project** with billing enabled
 - **APIs Enabled:**
   - Vertex AI API
@@ -92,7 +92,7 @@ cd interactive-ai-holograms/oracle-ai-database-gcp-vertex-ai
 1. **Create Autonomous Database** (if not already created):
    - Database Name: `PAULPARKDB_TP`
    - Workload Type: Transaction Processing
-   - Version: 23ai
+   - Version: 26ai
    - Storage: 1TB minimum
 
 2. **Download Wallet**:
@@ -275,7 +275,7 @@ curl -X POST "http://localhost:8501/query" \
 **Response**:
 ```json
 {
-  "answer": "Oracle Database 23ai introduces...",
+  "answer": "Oracle Database 26ai introduces...",
   "context_chunks": ["chunk1", "chunk2", ...],
   "vector_search_time": 0.15,
   "llm_response_time": 2.3,
@@ -510,13 +510,13 @@ while has_function_call and iteration < max_iterations:
 
 **Example 1: Complex Query**
 ```
-You: Compare spatial features between Oracle 19c and 23ai
+You: Compare spatial features between Oracle 19c and 26ai
 
 Agent reasoning:
   🔧 query_oracle_database(query="Oracle 19c spatial features", top_k=5)
-  🔧 query_oracle_database(query="Oracle 23ai spatial features", top_k=5)
+  🔧 query_oracle_database(query="Oracle 26ai spatial features", top_k=5)
   
-Agent: Oracle 23ai introduces several enhancements over 19c:
+Agent: Oracle 26ai introduces several enhancements over 19c:
 1. Spatial Web Services...
 2. Enhanced GeoJSON support...
 [Synthesized from 2 tool calls]
@@ -545,7 +545,7 @@ View history:
 > history
 
 [1] User: What are new spatial features in the oracle database
-    Agent: Oracle Database 23ai introduces enhanced spatial capabilities...
+    Agent: Oracle Database 26ai introduces enhanced spatial capabilities...
 
 [2] User: How do I enable these features?
     Agent: To enable spatial features, you need to...

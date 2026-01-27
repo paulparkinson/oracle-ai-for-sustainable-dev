@@ -1,6 +1,6 @@
 # Oracle AI Database + GCP Vertex AI
 
-This directory contains RAG (Retrieval-Augmented Generation) AI agent implementations that integrate Oracle Database 23ai vector storage with Google Cloud Vertex AI for intelligent question-answering.
+This directory contains RAG (Retrieval-Augmented Generation) AI agent implementations that integrate Oracle Database 26ai vector storage with Google Cloud Vertex AI for intelligent question-answering.
 
 ## Overview
 
@@ -26,7 +26,7 @@ Both implementations provide REST APIs that can be integrated with Google Cloud 
               │ Vector Search            │ Vector Search
               │                          │
     ┌─────────▼──────────────────────────▼──────────┐
-    │         Oracle Database 23ai                   │
+    │         Oracle Database 26ai                   │
     │           Vector Store (RAG_TAB)               │
     │      - Text chunks with embeddings             │
     │      - DOT_PRODUCT similarity search           │
@@ -90,7 +90,7 @@ Both implementations provide:
 
 ✅ **RAG Pipeline:**
 1. Question embedding generation (Vertex AI text-embedding-004)
-2. Vector similarity search (Oracle Database 23ai)
+2. Vector similarity search (Oracle Database 26ai)
 3. Context retrieval from vector store
 4. LLM response generation (Vertex AI Gemini)
 
@@ -114,7 +114,7 @@ Both implementations provide:
 ## Getting Started
 
 ### Prerequisites (Both)
-- Oracle Database 23ai with vector data populated (RAG_TAB table)
+- Oracle Database 26ai with vector data populated (RAG_TAB table)
 - Oracle wallet files in `~/wallet/`
 - Google Cloud project with Vertex AI enabled
 - Authenticated GCP credentials: `gcloud auth application-default login`
@@ -167,7 +167,7 @@ Both implementations can be integrated with Google Cloud Dialogflow agents:
    - OpenAPI spec URL: `http://YOUR_VM_IP:8080/api-docs`
 3. **Update Agent Instructions**:
    ```
-   For questions about Oracle Database 23ai features, use ${TOOL: Oracle Database Knowledge}
+   For questions about Oracle Database 26ai features, use ${TOOL: Oracle Database Knowledge}
    ```
 
 Detailed integration guide: [DIALOGFLOW_INTEGRATION.md](rag-ai-agent-java/DIALOGFLOW_INTEGRATION.md)
@@ -289,7 +289,7 @@ See `.env.example` files in each directory for complete configuration options.
 
 ## Support & Resources
 
-- **Oracle Database 23ai**: https://docs.oracle.com/en/database/
+- **Oracle Database 26ai**: https://docs.oracle.com/en/database/
 - **Vertex AI**: https://cloud.google.com/vertex-ai/docs
 - **Dialogflow CX**: https://cloud.google.com/dialogflow/cx/docs
 - **LangChain**: https://python.langchain.com/docs/

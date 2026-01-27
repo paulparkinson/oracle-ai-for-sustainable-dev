@@ -32,7 +32,8 @@ def chunks_to_docs_wrapper(row: dict) -> Document:
     return Document(page_content=row['text'], metadata=metadata)
 
 def main():
-    load_dotenv()
+    # Load from parent directory .env file
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
     st.set_page_config(page_title="ask question based on pdf")
     st.info("Oracle Database@Google Cloud and Google Vertex AI")

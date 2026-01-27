@@ -130,7 +130,7 @@ This script:
 
 [Uses search-rag-documents tool]
 
-JSON Relational Duality is a feature in Oracle Database 23ai that provides 
+JSON Relational Duality is a feature in Oracle Database 26ai that provides 
 a unified view of data as both relational tables and JSON documents...
 
 💬 You: Show me the RAG table schema

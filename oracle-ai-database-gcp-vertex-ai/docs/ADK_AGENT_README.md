@@ -56,7 +56,7 @@ Two versions of the Oracle AI Database ADK Agent:
         ▼                       ▼
 ┌──────────────────┐    ┌──────────────────┐
 │  Vector Search   │    │ Oracle Database  │
-│  (Oracle 23ai)   │    │   paulparkdb     │
+│  (Oracle 26ai)   │    │   paulparkdb     │
 │  428 doc chunks  │    │  via paulparkdb_ │
 └──────────────────┘    │  mcp connection  │
                         └──────────────────┘
@@ -135,7 +135,7 @@ python oracle_ai_database_adk_agent.py
 
 **Documentation Questions (Uses RAG):**
 ```
-You: What are the new spatial features in Oracle 23ai?
+You: What are the new spatial features in Oracle 26ai?
 Agent: [Searches RAG knowledge base for documentation]
 ```
 

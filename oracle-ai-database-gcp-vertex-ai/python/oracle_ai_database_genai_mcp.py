@@ -13,8 +13,8 @@ import vertexai
 from vertexai.generative_models import GenerativeModel, Tool, FunctionDeclaration, Part
 from typing import Dict, Any, Optional
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from parent directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 class MCPClient:
     """Manual MCP client using JSON-RPC over stdio"""

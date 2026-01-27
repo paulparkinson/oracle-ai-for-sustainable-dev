@@ -112,7 +112,7 @@ embeddings = VertexAIEmbeddings(
 
 ### Search Performance
 
-Both use efficient Oracle 23ai vector search with similar query times:
+Both use efficient Oracle 26ai vector search with similar query times:
 - Vector search: ~0.1-0.3 seconds
 - Difference in quality, not speed
 
@@ -276,7 +276,7 @@ Both embedding approaches work with the same LLMs:
 ### Current Stack
 - **Embeddings**: Vertex AI (text-embedding-004)
 - **LLM**: Gemini 2.0 Flash (via Vertex AI)
-- **Vector DB**: Oracle 23ai
+- **Vector DB**: Oracle 26ai
 - **Framework**: LangChain 1.x
 
 ---

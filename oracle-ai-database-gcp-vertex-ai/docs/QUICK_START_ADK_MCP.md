@@ -87,7 +87,7 @@ python oracle_ai_database_adk_agent.py
 
 ### Documentation Questions (RAG)
 ```
-You: What are vector indexes in Oracle 23ai?
+You: What are vector indexes in Oracle 26ai?
 Agent: [Searches documentation and provides detailed answer]
 ```
 

@@ -16,8 +16,8 @@ from google.adk import Agent
 from google.adk.apps import Runner
 from toolbox_core import ToolboxClient
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from parent directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Configuration
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "adb-pm-prod")
