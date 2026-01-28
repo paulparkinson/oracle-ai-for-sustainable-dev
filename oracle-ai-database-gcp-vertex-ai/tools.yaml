@@ -25,7 +25,7 @@ tools:
         description: The search query or question to find relevant documents for.
       - name: top_k
         type: integer
-        description: Number of top results to return (default: 5).
+        description: "Number of top results to return (default: 5)."
     statement: |
       SELECT 
         id,
