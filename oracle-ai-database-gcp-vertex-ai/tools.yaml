@@ -58,10 +58,6 @@ tools:
     description: >-
       Execute any SQL query on the Oracle database.
       Use this for schema inspection, data analysis, or custom queries.
-    parameters:
-      - name: sql_query
-        type: string
-        description: The SQL query to execute.
 
   # Get table schema information
   get-table-schema:
