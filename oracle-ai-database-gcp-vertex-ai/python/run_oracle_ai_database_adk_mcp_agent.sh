@@ -86,8 +86,21 @@ fi
 
 # Start MCP Toolbox server in background
 echo -e "${GREEN}Starting MCP Toolbox server...${NC}"
+echo "Running: $TOOLBOX_BIN serve --config tools.yaml --port 5000"
 $TOOLBOX_BIN serve --config tools.yaml --port 5000 > toolbox.log 2>&1 &
 TOOLBOX_PID=$!
+echo "Toolbox PID: $TOOLBOX_PID"
+
+# Give the process a moment to fail if there's an immediate error
+sleep 2
+
+# Check if process is still running
+if ! kill -0 $TOOLBOX_PID 2>/dev/null; then
+    echo -e "${RED}Error: MCP Toolbox server process died immediately${NC}"
+    echo "Toolbox log contents:"
+    cat toolbox.log 2>/dev/null || echo "No log file created"
+    exit 1
+fi
 
 # Wait for server to start
 echo "Waiting for MCP Toolbox server to start..."
@@ -98,8 +111,8 @@ for i in {1..30}; do
     fi
     if [ $i -eq 30 ]; then
         echo -e "${RED}Error: MCP Toolbox server failed to start${NC}"
-        echo "Check toolbox.log for details:"
-        tail -20 toolbox.log
+        echo "Toolbox log contents:"
+        cat toolbox.log 2>/dev/null || echo "No log file created"
         exit 1
     fi
     sleep 1
