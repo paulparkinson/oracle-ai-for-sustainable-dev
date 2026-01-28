@@ -334,7 +334,7 @@ Be helpful, technically accurate, and AUTONOMOUS - don't make users specify conn
         
         # Create Gemini model with tools
         model = GenerativeModel(
-            "gemini-2.0-flash-exp",
+            "gemini-2.5-flash",
             tools=[oracle_tool],
             system_instruction=instructions
         )
@@ -359,22 +359,22 @@ Be helpful, technically accurate, and AUTONOMOUS - don't make users specify conn
                 connection_name = args.get("connection_name", "")
                 if not connection_name:
                     return "Error: connection_name is required"
-                result = await self.mcp_client.call_tool("connect", {"connection_name": connection_name, "model": "gemini-2.0-flash-exp"})
+                result = await self.mcp_client.call_tool("connect", {"connection_name": connection_name, "model": "gemini-2.5-flash"})
                 return f"Connection Result:\n{result}"
             
             elif function_name == "mcp_run_sql":
                 sql = args.get("sql", "")
                 if not sql:
                     return "Error: sql query is required"
-                result = await self.mcp_client.call_tool("run-sql", {"sql": sql, "model": "gemini-2.0-flash-exp"})
+                result = await self.mcp_client.call_tool("run-sql", {"sql": sql, "model": "gemini-2.5-flash"})
                 return f"Query Results (CSV):\n{result}"
             
             elif function_name == "mcp_schema_information":
-                result = await self.mcp_client.call_tool("schema-information", {"model": "gemini-2.0-flash-exp"})
+                result = await self.mcp_client.call_tool("schema-information", {"model": "gemini-2.5-flash"})
                 return f"Schema Information:\n{result}"
             
             elif function_name == "mcp_disconnect":
-                result = await self.mcp_client.call_tool("disconnect", {"model": "gemini-2.0-flash-exp"})
+                result = await self.mcp_client.call_tool("disconnect", {"model": "gemini-2.5-flash"})
                 return f"Disconnect Result:\n{result}"
             
             else:
