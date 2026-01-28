@@ -12,8 +12,8 @@ for database operations without requiring custom SQLcl MCP server setup.
 import os
 import asyncio
 from dotenv import load_dotenv
-from google.adk import Agent
-from google.adk.apps import Runner
+from google.adk import Agent, Runner
+from google.adk.sessions import InMemorySessionService
 from toolbox_core import ToolboxClient
 
 # Load environment variables from parent directory
@@ -93,7 +93,10 @@ Be helpful, accurate, and concise in your responses."""
         print("\nAsk questions about Oracle Database features, or query the database.")
         print("Type 'quit' or 'exit' to stop.\n")
         
-        runner = Runner(agent=self.agent)
+        runner = Runner(
+            agent=self.agent,
+            session_service=InMemorySessionService()
+        )
         
         while True:
             try:
@@ -109,7 +112,7 @@ Be helpful, accurate, and concise in your responses."""
                 
                 # Run the agent
                 print(f"\n🤔 Agent: ", end='', flush=True)
-                result = await runner.run(user_input)
+                result = await runner.run(user_input, session_id='default')
                 print(result.text)
                 
             except KeyboardInterrupt:
