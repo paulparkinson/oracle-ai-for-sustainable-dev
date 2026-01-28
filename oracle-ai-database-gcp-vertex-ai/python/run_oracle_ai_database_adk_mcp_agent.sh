@@ -86,8 +86,8 @@ fi
 
 # Start MCP Toolbox server in background
 echo -e "${GREEN}Starting MCP Toolbox server...${NC}"
-echo "Running: $TOOLBOX_BIN serve --config tools.yaml --port 5000"
-$TOOLBOX_BIN serve --config tools.yaml --port 5000 > toolbox.log 2>&1 &
+echo "Running: $TOOLBOX_BIN serve --tools-file tools.yaml --port 5000"
+$TOOLBOX_BIN serve --tools-file tools.yaml --port 5000 > toolbox.log 2>&1 &
 TOOLBOX_PID=$!
 echo "Toolbox PID: $TOOLBOX_PID"
 
