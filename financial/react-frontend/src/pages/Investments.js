@@ -272,7 +272,7 @@ sql = """CREATE TABLE IF NOT EXISTS PDFCollection (
               </div>
               <div>
                 <a
-                  href="http://141.148.204.74:8080"
+                  href={process.env.REACT_APP_AI_AGENTS_BACKEND_URL || "http://localhost:8080"}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: bankerAccent, textDecoration: 'none' }}
