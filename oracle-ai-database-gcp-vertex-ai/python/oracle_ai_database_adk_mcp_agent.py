@@ -23,7 +23,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "adb-pm-prod")
 GCP_REGION = os.getenv("GCP_REGION", "us-central1")
 TOOLBOX_URL = os.getenv("TOOLBOX_URL", "http://127.0.0.1:5000")
-MODEL_NAME = "gemini-2.0-flash-001"  # Stable model
+MODEL_NAME = "gemini-2.5-flash"  # Improved tool calling over 2.0
 
 
 class OracleADKMCPAgent:

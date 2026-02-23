@@ -40,12 +40,15 @@ show_menu() {
     echo "  3) ADK Agent with Google MCP Toolbox - requires supported platform, like AMD64"
     echo "     → oracle_ai_database_adk_mcp_agent.py"
     echo ""
-    echo "  4) Vertex AI + Oracle MCP - requires SQLcl"
+    echo "  4) Vertex AI + Oracle MCP - requires SQLcl (manual MCP)"
     echo "     → oracle_ai_database_genai_mcp.py"
     echo ""
+    echo "  5) ADK Agent with SQLcl MCP (McpToolset) - requires SQLcl + Java"
+    echo "     → oracle_ai_database_adk_sqlcl_mcp_agent.py"
+    echo ""
     echo -e "${YELLOW}Other Options:${NC}"
-    echo "  5) Show environment configuration"
-    echo "  6) Refresh Google ADC authentication"
+    echo "  6) Show environment configuration"
+    echo "  7) Refresh Google ADC authentication"
     echo "     → ../auth.sh"
     echo "  0) Exit"
     echo ""
@@ -85,6 +88,13 @@ run_genai_mcp() {
     python oracle_ai_database_genai_mcp.py
 }
 
+run_adk_sqlcl_mcp() {
+    echo -e "${CYAN}Starting ADK Agent with SQLcl MCP (McpToolset)...${NC}"
+    echo -e "${YELLOW}Note: Requires SQLcl with MCP support, Java, and google-adk>=1.25.1${NC}"
+    echo ""
+    python oracle_ai_database_adk_sqlcl_mcp_agent.py
+}
+
 run_auth() {
     echo -e "${CYAN}Refreshing Google ADC authentication...${NC}"
     echo ""
@@ -118,10 +128,10 @@ show_config() {
 # Main loop
 while true; do
     show_menu
-    echo -n "Enter your choice [0-6]: "
+    echo -n "Enter your choice [0-7]: "
     read choice
     echo ""
-    
+
     case $choice in
         1)
             run_streamlit
@@ -136,9 +146,12 @@ while true; do
             run_genai_mcp
             ;;
         5)
-            show_config
+            run_adk_sqlcl_mcp
             ;;
         6)
+            show_config
+            ;;
+        7)
             run_auth
             ;;
         0)
@@ -150,9 +163,9 @@ while true; do
             read
             ;;
     esac
-    
+
     # After running a command, wait for user
-    if [ "$choice" != "5" ] && [ "$choice" != "0" ]; then
+    if [ "$choice" != "6" ] && [ "$choice" != "0" ]; then
         echo ""
         echo -e "${YELLOW}Press Enter to return to menu...${NC}"
         read

@@ -228,12 +228,11 @@ After the tool returns results, analyze them and provide a helpful answer to the
         print("  → Creating ADK LlmAgent with RAG tool...")
         
         # Create agent with RAG tool
-        # Using gemini-2.0-flash-001 (stable version, not experimental)
-        # This has better rate limits than -exp variants
+        # Using gemini-2.5-flash (improved tool calling over 2.0)
         from google.genai.types import GenerateContentConfig
-        
+
         self.agent = LlmAgent(
-            model="gemini-2.0-flash-001",
+            model="gemini-2.5-flash",
             name="oracle_rag_assistant",
             instruction=instruction,
             tools=[rag_tool],
