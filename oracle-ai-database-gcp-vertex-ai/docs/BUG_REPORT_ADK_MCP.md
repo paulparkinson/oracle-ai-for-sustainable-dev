@@ -1,5 +1,11 @@
 # ADK McpToolset Schema Converter Bug Report
 
+## Status Update (2026-02-23)
+- This issue was fixed upstream in `google/adk-python` after it was reported.
+- Original reproduction was against `google-adk==1.22.1`.
+- Local project baseline has been moved to `google-adk>=1.25.1` for MCP retesting.
+- Keep this document as historical context and for root-cause details.
+
 ## Bug Summary
 **Component:** google-adk (Agent Development Kit)  
 **Version:** 1.22.1  

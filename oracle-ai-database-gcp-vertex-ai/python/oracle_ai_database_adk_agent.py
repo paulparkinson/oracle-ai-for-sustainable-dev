@@ -105,6 +105,33 @@ class OracleADKRAGAgent:
         self.session = None
         self.connection = None
         self.knowledge_base = None
+        self.auth_script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "auth.sh"))
+
+    def _is_adc_auth_error(self, error: Exception) -> bool:
+        """Return True when the exception chain indicates ADC reauthentication is needed."""
+        error_messages = []
+        current_error = error
+
+        while current_error is not None:
+            error_messages.append(str(current_error).lower())
+            current_error = current_error.__cause__ or current_error.__context__
+
+        combined = "\n".join(error_messages)
+        auth_markers = [
+            "reauthentication is needed",
+            "gcloud auth application-default login",
+            "failed to retrieve access token",
+            "invalid_grant",
+            "unable to acquire impersonated credentials",
+        ]
+        return any(marker in combined for marker in auth_markers)
+
+    def _print_adc_auth_help(self):
+        """Print concise remediation for ADC auth failures."""
+        print("\n  ⚠️  Google ADC authentication is required.")
+        if os.path.exists(self.auth_script_path):
+            print(f"  → Run: {self.auth_script_path}")
+        print("  → Or run: gcloud auth application-default login --no-launch-browser")
         
     def connect_database(self):
         """Connect to Oracle Database and initialize vector store"""
@@ -155,8 +182,11 @@ class OracleADKRAGAgent:
             print(f"  ✓ Vector store ready")
             
         except Exception as e:
+            if self._is_adc_auth_error(e):
+                self._print_adc_auth_help()
+                raise RuntimeError("Google ADC authentication required") from e
+
             print(f"  ⚠️  Error initializing vector store: {str(e)}")
-            print("  → Please ensure you've run: gcloud auth application-default login")
             raise
         
         return self.knowledge_base
@@ -397,9 +427,13 @@ Please provide a clear, concise answer based on this documentation."""
             await self.cleanup_async()
                     
         except Exception as e:
-            print(f"\n❌ Failed to initialize agent: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            if self._is_adc_auth_error(e):
+                print("\n❌ Failed to initialize agent due to expired or missing ADC credentials.")
+                self._print_adc_auth_help()
+            else:
+                print(f"\n❌ Failed to initialize agent: {str(e)}")
+                import traceback
+                traceback.print_exc()
             await self.cleanup_async()
 
 

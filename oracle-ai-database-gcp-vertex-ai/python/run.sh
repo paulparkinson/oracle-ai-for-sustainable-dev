@@ -45,6 +45,8 @@ show_menu() {
     echo ""
     echo -e "${YELLOW}Other Options:${NC}"
     echo "  5) Show environment configuration"
+    echo "  6) Refresh Google ADC authentication"
+    echo "     → ../auth.sh"
     echo "  0) Exit"
     echo ""
     echo -e "${BLUE}────────────────────────────────────────────────────────────────────${NC}"
@@ -83,6 +85,12 @@ run_genai_mcp() {
     python oracle_ai_database_genai_mcp.py
 }
 
+run_auth() {
+    echo -e "${CYAN}Refreshing Google ADC authentication...${NC}"
+    echo ""
+    bash ../auth.sh
+}
+
 show_config() {
     echo -e "${CYAN}Environment Configuration:${NC}"
     echo ""
@@ -110,7 +118,7 @@ show_config() {
 # Main loop
 while true; do
     show_menu
-    echo -n "Enter your choice [0-5]: "
+    echo -n "Enter your choice [0-6]: "
     read choice
     echo ""
     
@@ -129,6 +137,9 @@ while true; do
             ;;
         5)
             show_config
+            ;;
+        6)
+            run_auth
             ;;
         0)
             echo -e "${GREEN}Goodbye!${NC}"
