@@ -94,10 +94,32 @@ def _patched_sanitize_schema_formats_for_gemini(
                 for value in field_value
             ]
         elif field_name in dict_schema_field_names and field_value is not None:
-            snake_case_schema[field_name] = {
-                key: _patched_sanitize_schema_formats_for_gemini(value)
-                for key, value in field_value.items()
+            # JSON Schema keywords (oneOf, allOf, anyOf, required) sometimes
+            # appear as keys inside "properties" in malformed MCP schemas
+            # (e.g. Oracle SQLcl). Property definitions must be dicts, so
+            # skip any entries whose values are not dicts, and hoist any
+            # recognized schema keywords to the parent level.
+            json_schema_keywords = {
+                "one_of", "all_of", "any_of", "required",
+                "oneOf", "allOf", "anyOf",
             }
+            cleaned_props = {}
+            for key, value in field_value.items():
+                snake_key = _to_snake_case(key)
+                if snake_key in list_schema_field_names and isinstance(value, list):
+                    # Hoist to parent schema level
+                    snake_case_schema[snake_key] = [
+                        _patched_sanitize_schema_formats_for_gemini(v)
+                        for v in value
+                    ]
+                elif not isinstance(value, dict):
+                    # Skip non-dict property values (malformed)
+                    continue
+                else:
+                    cleaned_props[key] = (
+                        _patched_sanitize_schema_formats_for_gemini(value)
+                    )
+            snake_case_schema[field_name] = cleaned_props
         elif field_name == "format" and field_value:
             current_type = schema.get("type")
             if (

@@ -81,7 +81,9 @@ properties.oneOf
 
 ## Suggested Fix
 
-In `_sanitize_schema_formats_for_gemini`, add `one_of` and `all_of` to `list_schema_field_names`:
+Two issues need to be addressed:
+
+### Issue 1: Add `one_of` and `all_of` to `list_schema_field_names`
 
 ```python
 # Current (broken):
@@ -91,13 +93,28 @@ list_schema_field_names: set[str] = {"any_of"}
 list_schema_field_names: set[str] = {"any_of", "one_of", "all_of"}
 ```
 
-This is a one-line change. The rest of the list handling logic already works correctly — `oneOf` and `allOf` are structurally identical to `anyOf` (arrays of sub-schemas).
+This handles `oneOf`/`allOf` at the top level of a schema. The `should_preserve`
+variable already references `one_of`, confirming it was intended to be handled.
 
-Note: the `should_preserve` variable on the next line already references `one_of`:
-```python
-should_preserve = field_name in ("any_of", "one_of")
+### Issue 2: Handle `oneOf`/`allOf`/`anyOf` appearing inside `properties`
+
+Some MCP servers (Oracle SQLcl) emit schemas where `oneOf` appears as a key
+inside the `properties` dict rather than at the schema level. For example:
+
+```json
+{
+  "properties": {
+    "sql": {"type": "string"},
+    "oneOf": [{"required": ["job_id", "command"]}]
+  }
+}
 ```
-...which confirms `one_of` was intended to be handled as a list but was accidentally left out of `list_schema_field_names`.
+
+The `properties` handler iterates values and recurses, but since `oneOf`'s value
+is a list (not a dict), `_ExtendedJSONSchema` rejects it. The fix: when
+processing `properties`, detect JSON Schema keywords that are lists and either
+hoist them to the parent schema level or skip them, and skip any remaining
+non-dict property values.
 
 ## Workaround
 
