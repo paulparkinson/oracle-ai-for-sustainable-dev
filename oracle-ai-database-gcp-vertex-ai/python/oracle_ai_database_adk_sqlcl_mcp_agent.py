@@ -8,13 +8,14 @@ This version:
 - Uses ADK's built-in McpToolset (no manual JSON-RPC plumbing)
 - Connects to Oracle SQLcl MCP server via stdio
 - Requires SQLcl with MCP support and Java runtime
-- Requires google-adk>=1.25.1 (fixes schema converter bug with array properties)
-
-Previously blocked by: https://github.com/google/adk-python issues with
-_gemini_schema_util.py failing on array-type schema properties like required: ["sql"]
+- Requires google-adk>=1.25.1
+- Includes monkey-patch for ADK schema converter bug with oneOf arrays
+  (see docs/BUG_REPORT_ADK_MCP_ONEOF.md)
 """
 import os
+import re
 import asyncio
+from typing import Any, Optional
 from contextlib import AsyncExitStack
 from dotenv import load_dotenv
 import vertexai
@@ -29,6 +30,95 @@ from google.genai.types import GenerateContentConfig
 
 # Load environment variables from parent directory
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+
+# ---------------------------------------------------------------------------
+# Monkey-patch: ADK _gemini_schema_util.py oneOf / allOf handling
+#
+# ADK 1.25.1 _sanitize_schema_formats_for_gemini only lists "any_of" in
+# list_schema_field_names. "one_of" and "all_of" (snake_case of JSON Schema
+# oneOf / allOf) are arrays of schemas but are NOT routed through the list
+# handler. They fall through to the generic "supported_fields" branch, which
+# passes the raw list straight to _ExtendedJSONSchema.model_validate() and
+# Pydantic rejects it:
+#   ValidationError: properties.oneOf - Input should be a valid dictionary
+#
+# Fix: add "one_of" and "all_of" to list_schema_field_names so they get the
+# same recursive-list treatment as "any_of".
+# ---------------------------------------------------------------------------
+import google.adk.tools._gemini_schema_util as _schema_mod
+
+_original_sanitize = _schema_mod._sanitize_schema_formats_for_gemini
+
+
+def _patched_sanitize_schema_formats_for_gemini(
+    schema: Any, preserve_null_type: bool = False
+) -> Any:
+    """Patched version that handles oneOf/allOf as list schema fields."""
+    if isinstance(schema, list):
+        return [
+            _patched_sanitize_schema_formats_for_gemini(
+                item, preserve_null_type=preserve_null_type
+            )
+            for item in schema
+        ]
+    if not isinstance(schema, dict):
+        return schema
+
+    from google.adk.tools._gemini_schema_util import (
+        _ExtendedJSONSchema,
+        _sanitize_schema_type,
+        _to_snake_case,
+    )
+
+    supported_fields: set[str] = set(_ExtendedJSONSchema.model_fields.keys())
+    supported_fields.discard("additional_properties")
+    schema_field_names: set[str] = {"items"}
+    # FIX: include one_of and all_of alongside any_of
+    list_schema_field_names: set[str] = {"any_of", "one_of", "all_of"}
+    dict_schema_field_names: tuple[str, ...] = ("properties", "defs")
+    snake_case_schema: dict[str, Any] = {}
+
+    for field_name, field_value in schema.items():
+        field_name = _to_snake_case(field_name)
+        if field_name in schema_field_names:
+            snake_case_schema[field_name] = (
+                _patched_sanitize_schema_formats_for_gemini(field_value)
+            )
+        elif field_name in list_schema_field_names:
+            should_preserve = field_name in ("any_of", "one_of")
+            snake_case_schema[field_name] = [
+                _patched_sanitize_schema_formats_for_gemini(
+                    value, preserve_null_type=should_preserve
+                )
+                for value in field_value
+            ]
+        elif field_name in dict_schema_field_names and field_value is not None:
+            snake_case_schema[field_name] = {
+                key: _patched_sanitize_schema_formats_for_gemini(value)
+                for key, value in field_value.items()
+            }
+        elif field_name == "format" and field_value:
+            current_type = schema.get("type")
+            if (
+                (current_type in ("integer", "number")
+                 and field_value in ("int32", "int64"))
+                or
+                (current_type == "string"
+                 and field_value in ("date-time", "enum"))
+            ):
+                snake_case_schema[field_name] = field_value
+        elif field_name in supported_fields and field_value is not None:
+            snake_case_schema[field_name] = field_value
+
+    return _sanitize_schema_type(snake_case_schema, preserve_null_type)
+
+
+# Apply the patch
+_schema_mod._sanitize_schema_formats_for_gemini = (
+    _patched_sanitize_schema_formats_for_gemini
+)
+print("  ✓ Applied ADK schema converter patch (oneOf/allOf list handling)")
 
 
 class OracleADKSqlclMCPAgent:
