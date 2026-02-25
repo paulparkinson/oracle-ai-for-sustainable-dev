@@ -75,6 +75,7 @@ def _patched_sanitize_schema_formats_for_gemini(
     supported_fields.discard("additional_properties")
     schema_field_names: set[str] = {"items"}
     # FIX: include one_of and all_of alongside any_of
+    # _ExtendedJSONSchema only has "any_of", so we remap one_of/all_of → any_of
     list_schema_field_names: set[str] = {"any_of", "one_of", "all_of"}
     dict_schema_field_names: tuple[str, ...] = ("properties", "defs")
     snake_case_schema: dict[str, Any] = {}
@@ -87,7 +88,9 @@ def _patched_sanitize_schema_formats_for_gemini(
             )
         elif field_name in list_schema_field_names:
             should_preserve = field_name in ("any_of", "one_of")
-            snake_case_schema[field_name] = [
+            # Remap one_of/all_of → any_of (only any_of exists in _ExtendedJSONSchema)
+            output_key = "any_of"
+            snake_case_schema[output_key] = [
                 _patched_sanitize_schema_formats_for_gemini(
                     value, preserve_null_type=should_preserve
                 )
@@ -107,8 +110,8 @@ def _patched_sanitize_schema_formats_for_gemini(
             for key, value in field_value.items():
                 snake_key = _to_snake_case(key)
                 if snake_key in list_schema_field_names and isinstance(value, list):
-                    # Hoist to parent schema level
-                    snake_case_schema[snake_key] = [
+                    # Hoist to parent schema level, remap to any_of
+                    snake_case_schema["any_of"] = [
                         _patched_sanitize_schema_formats_for_gemini(v)
                         for v in value
                     ]
