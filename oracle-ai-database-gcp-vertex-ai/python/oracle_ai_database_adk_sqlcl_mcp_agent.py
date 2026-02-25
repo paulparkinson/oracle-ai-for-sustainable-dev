@@ -51,6 +51,51 @@ import google.adk.tools._gemini_schema_util as _schema_mod
 _original_sanitize = _schema_mod._sanitize_schema_formats_for_gemini
 
 
+def _merge_schema_variants(variants: list) -> dict:
+    """Merge oneOf/anyOf/allOf schema variants into a single flat schema.
+
+    Combines all properties from all variants into one object schema.
+    Only marks a field as required if it appears in ALL variants.
+    This avoids using any_of which Gemini doesn't support alongside other fields.
+    """
+    if not variants or not isinstance(variants, list):
+        return {}
+
+    merged_props = {}
+    merged_description = []
+    all_required_sets = []
+
+    for variant in variants:
+        if not isinstance(variant, dict):
+            continue
+        props = variant.get("properties", {})
+        for prop_name, prop_schema in props.items():
+            if prop_name not in merged_props:
+                merged_props[prop_name] = prop_schema
+        req = variant.get("required", [])
+        if req:
+            all_required_sets.append(set(req))
+        desc = variant.get("description", "")
+        if desc:
+            merged_description.append(desc)
+
+    if not merged_props:
+        return {}
+
+    # Only require fields present in ALL variants
+    if all_required_sets:
+        common_required = list(set.intersection(*all_required_sets))
+    else:
+        common_required = []
+
+    result = {"type": "object", "properties": merged_props}
+    if common_required:
+        result["required"] = common_required
+    if merged_description:
+        result["description"] = " | ".join(merged_description)
+    return result
+
+
 def _patched_sanitize_schema_formats_for_gemini(
     schema: Any, preserve_null_type: bool = False
 ) -> Any:
@@ -87,34 +132,40 @@ def _patched_sanitize_schema_formats_for_gemini(
                 _patched_sanitize_schema_formats_for_gemini(field_value)
             )
         elif field_name in list_schema_field_names:
-            should_preserve = field_name in ("any_of", "one_of")
-            # Remap one_of/all_of → any_of (only any_of exists in _ExtendedJSONSchema)
-            output_key = "any_of"
-            snake_case_schema[output_key] = [
-                _patched_sanitize_schema_formats_for_gemini(
-                    value, preserve_null_type=should_preserve
-                )
-                for value in field_value
-            ]
+            # Gemini doesn't support any_of alongside other fields, so
+            # flatten oneOf/allOf/anyOf variants into a single merged schema
+            # with all properties combined (union of all variants).
+            merged = _merge_schema_variants(field_value)
+            if merged:
+                for mk, mv in _patched_sanitize_schema_formats_for_gemini(merged).items():
+                    # Merge into current schema (properties, required, etc.)
+                    if mk == "properties" and "properties" in snake_case_schema:
+                        snake_case_schema["properties"].update(mv)
+                    elif mk == "required" and "required" in snake_case_schema:
+                        # Only keep required fields common to ALL variants
+                        pass
+                    else:
+                        snake_case_schema[mk] = mv
         elif field_name in dict_schema_field_names and field_value is not None:
-            # JSON Schema keywords (oneOf, allOf, anyOf, required) sometimes
-            # appear as keys inside "properties" in malformed MCP schemas
-            # (e.g. Oracle SQLcl). Property definitions must be dicts, so
-            # skip any entries whose values are not dicts, and hoist any
-            # recognized schema keywords to the parent level.
-            json_schema_keywords = {
-                "one_of", "all_of", "any_of", "required",
-                "oneOf", "allOf", "anyOf",
-            }
+            # JSON Schema keywords (oneOf, allOf, anyOf) sometimes appear as
+            # keys inside "properties" in malformed MCP schemas (e.g. Oracle
+            # SQLcl puts oneOf inside properties dict). Flatten the variants
+            # into merged properties instead of hoisting.
             cleaned_props = {}
             for key, value in field_value.items():
                 snake_key = _to_snake_case(key)
                 if snake_key in list_schema_field_names and isinstance(value, list):
-                    # Hoist to parent schema level, remap to any_of
-                    snake_case_schema["any_of"] = [
-                        _patched_sanitize_schema_formats_for_gemini(v)
-                        for v in value
-                    ]
+                    # Flatten oneOf variants into merged properties
+                    merged = _merge_schema_variants(value)
+                    if merged:
+                        sanitized = _patched_sanitize_schema_formats_for_gemini(merged)
+                        for mk, mv in sanitized.items():
+                            if mk == "properties":
+                                cleaned_props.update(mv)
+                            elif mk == "required":
+                                snake_case_schema.setdefault("required", [])
+                            elif mk not in snake_case_schema:
+                                snake_case_schema[mk] = mv
                 elif not isinstance(value, dict):
                     # Skip non-dict property values (malformed)
                     continue
@@ -138,7 +189,7 @@ def _patched_sanitize_schema_formats_for_gemini(
 
     # Ensure top-level schemas have a "type" field — Gemini API rejects
     # function declarations whose parameters schema lacks "type".
-    if "type" not in snake_case_schema and ("properties" in snake_case_schema or "any_of" in snake_case_schema):
+    if "type" not in snake_case_schema and "properties" in snake_case_schema:
         snake_case_schema["type"] = "object"
 
     return _sanitize_schema_type(snake_case_schema, preserve_null_type)
