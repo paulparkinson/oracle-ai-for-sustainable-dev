@@ -139,7 +139,7 @@ def _patched_sanitize_schema_formats_for_gemini(
     # Ensure top-level schemas have a "type" field — Gemini API rejects
     # function declarations whose parameters schema lacks "type".
     if "type" not in snake_case_schema and ("properties" in snake_case_schema or "any_of" in snake_case_schema):
-        snake_case_schema["type"] = "OBJECT"
+        snake_case_schema["type"] = "object"
 
     return _sanitize_schema_type(snake_case_schema, preserve_null_type)
 
