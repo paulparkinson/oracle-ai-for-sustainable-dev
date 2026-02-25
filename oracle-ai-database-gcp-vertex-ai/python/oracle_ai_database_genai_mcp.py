@@ -402,19 +402,27 @@ Be helpful, technically accurate, and AUTONOMOUS - don't make users specify conn
             # Send message
             response = chat.send_message(user_input)
             
-            # Handle function calls
+            # Handle function calls (scan all parts for function_call,
+            # since Gemini 2.5 may return text + function_call in one response)
             max_iterations = 10  # More iterations for multi-step MCP workflows
             iteration = 0
-            
-            while response.candidates[0].content.parts[0].function_call and iteration < max_iterations:
+
+            def _find_function_call(resp):
+                """Find the first function_call across all parts."""
+                for part in resp.candidates[0].content.parts:
+                    if part.function_call and part.function_call.name:
+                        return part.function_call
+                return None
+
+            fc = _find_function_call(response)
+            while fc and iteration < max_iterations:
                 iteration += 1
-                function_call = response.candidates[0].content.parts[0].function_call
-                function_name = function_call.name
-                function_args = dict(function_call.args)
-                
+                function_name = fc.name
+                function_args = dict(fc.args)
+
                 # Execute the function (async for MCP calls)
                 function_response = await self.execute_function_call(function_name, function_args)
-                
+
                 # Send function response back to model
                 response = chat.send_message(
                     Part.from_function_response(
@@ -422,9 +430,20 @@ Be helpful, technically accurate, and AUTONOMOUS - don't make users specify conn
                         response={"result": function_response}
                     )
                 )
-            
-            # Get final text response
-            final_answer = response.text
+                fc = _find_function_call(response)
+
+            # Extract text from potentially multi-part response
+            # (Gemini 2.5 may return text + function_call in one response)
+            text_parts = []
+            for part in response.candidates[0].content.parts:
+                if part.function_call:
+                    continue
+                try:
+                    if part.text:
+                        text_parts.append(part.text)
+                except (AttributeError, ValueError):
+                    continue
+            final_answer = "\n".join(text_parts) if text_parts else "No response generated"
             
             # Store in conversation history
             self.conversation_history.append({
