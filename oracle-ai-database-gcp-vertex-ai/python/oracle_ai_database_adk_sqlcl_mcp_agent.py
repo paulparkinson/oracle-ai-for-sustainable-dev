@@ -272,7 +272,7 @@ class OracleADKSqlclMCPAgent:
                 args=["-mcp"],
                 env={"TNS_ADMIN": self.wallet_path}
             ),
-            protocol_version="2024-11-05"
+            timeout=30.0,
         )
 
         # Create McpToolset - ADK handles MCP protocol, schema conversion, tool dispatch
