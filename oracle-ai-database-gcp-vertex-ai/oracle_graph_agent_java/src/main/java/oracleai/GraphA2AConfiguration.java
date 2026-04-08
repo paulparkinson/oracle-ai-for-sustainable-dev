@@ -10,24 +10,26 @@ import io.a2a.spec.AgentSkill;
 import io.a2a.spec.FilePart;
 import io.a2a.spec.FileWithBytes;
 import io.a2a.spec.JSONRPCError;
-import io.a2a.spec.Message;
-import io.a2a.spec.TaskNotCancelableError;
 import io.a2a.spec.Part;
+import io.a2a.spec.TaskNotCancelableError;
 import io.a2a.spec.TextPart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Base64;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +37,6 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 public class GraphA2AConfiguration {
-
-    private static final Pattern PRODUCT_ID_PATTERN =
-            Pattern.compile("\\b([A-Z]{2,}-\\d+)\\b");
 
     @Bean
     AgentCard agentCard(Environment environment) {
@@ -99,7 +98,8 @@ public class GraphA2AConfiguration {
 
     @Bean
     AgentExecutor agentExecutor(
-            Function<GraphTools.GraphRequest, GraphTools.GraphResponse> getSupplyChainDependencies
+            Function<GraphTools.GraphRequest, GraphTools.GraphResponse> getSupplyChainDependencies,
+            GraphRequestParser graphRequestParser
     ) {
         return new AgentExecutor() {
             @Override
@@ -113,15 +113,15 @@ public class GraphA2AConfiguration {
 
                 try {
                     String userInput = context.getUserInput("");
-                    String productId = extractProductId(userInput);
+                    GraphTools.GraphRequest graphRequest = graphRequestParser.parse(userInput);
                     GraphTools.GraphResponse graphResponse =
-                            getSupplyChainDependencies.apply(new GraphTools.GraphRequest(productId));
-                    String responseText = formatResponse(productId, graphResponse);
+                            getSupplyChainDependencies.apply(graphRequest);
+                    String responseText = formatResponse(graphResponse);
                     Part<?> imagePart = new FilePart(
                             new FileWithBytes(
                                     "image/png",
                                     "supply-chain-graph.png",
-                                    renderGraphPng(productId, graphResponse)
+                                    renderGraphPng(graphResponse.productId(), graphResponse)
                             )
                     );
 
@@ -130,8 +130,9 @@ public class GraphA2AConfiguration {
                             null,
                             "supply_chain_graph_png",
                             Map.of(
-                                    "productId", productId,
-                                    "contentType", "image/png"
+                                    "productId", graphResponse.productId(),
+                                    "contentType", "image/png",
+                                    "sourceMode", graphResponse.sourceMode()
                             )
                     );
                     updater.complete(
@@ -139,7 +140,8 @@ public class GraphA2AConfiguration {
                                     List.of(new TextPart(responseText)),
                                     Map.of(
                                             "tool", "getSupplyChainDependencies",
-                                            "artifactName", "supply-chain-graph.png"
+                                            "artifactName", "supply-chain-graph.png",
+                                            "sourceMode", graphResponse.sourceMode()
                                     )
                             )
                     );
@@ -164,82 +166,49 @@ public class GraphA2AConfiguration {
         };
     }
 
-    private static String extractProductId(String userInput) {
-        Matcher matcher = PRODUCT_ID_PATTERN.matcher(userInput);
-        if (matcher.find()) {
-            return matcher.group(1);
+    private static String formatResponse(GraphTools.GraphResponse graphResponse) {
+        String productId = graphResponse.productId();
+        List<String> route = new ArrayList<>();
+        addRouteLabel(route, graphResponse, "SUPPLIER");
+        addRouteLabel(route, graphResponse, "PLANT");
+        addRouteLabel(route, graphResponse, "PORT");
+        addRouteLabel(route, graphResponse, "WAREHOUSE");
+        addRouteLabel(route, graphResponse, "PRODUCT");
+
+        String routeSummary = route.isEmpty()
+                ? "No dependency path found"
+                : String.join(" -> ", route);
+
+        Map<String, String> alertNode = findNodeByType(graphResponse, "ALERT");
+        if (!alertNode.isEmpty()) {
+            return "Dependencies for " + productId + ": " + routeSummary
+                    + ". Active signal: " + alertNode.getOrDefault("label", "Alert")
+                    + " | " + alertNode.getOrDefault("metric", "Risk unavailable")
+                    + ". Data source: " + graphResponse.sourceDetail() + ".";
         }
-        return "SKU-500";
-    }
 
-    private static String formatResponse(String productId, GraphTools.GraphResponse graphResponse) {
-        String nodeSummary = graphResponse.nodes().stream()
-                .map(node -> node.getOrDefault("label", node.toString()))
-                .reduce((left, right) -> left + " -> " + right)
-                .orElse("No nodes found");
-
-        String edgeSummary = graphResponse.edges().stream()
-                .map(edge -> edge.getOrDefault("label", "RELATED_TO"))
-                .reduce((left, right) -> left + ", " + right)
-                .orElse("No relationships found");
-
-        return "Dependencies for " + productId + ": " + nodeSummary + " | relationships: " + edgeSummary;
+        return "Dependencies for " + productId + ": " + routeSummary
+                + ". Data source: " + graphResponse.sourceDetail() + ".";
     }
 
     private static String renderGraphPng(String productId, GraphTools.GraphResponse graphResponse) throws Exception {
-        int width = 1100;
-        int height = 720;
+        int width = 1480;
+        int height = 940;
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
-        String supplierLabel = nodeLabel(graphResponse, 0, "Supplier");
-        String productLabel = nodeLabel(graphResponse, 1, "Product: " + productId);
-        String relationshipLabel = edgeLabel(graphResponse, "RELATED_TO");
 
         try {
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            graphics.setColor(new Color(0xF6F2EA));
-            graphics.fillRect(0, 0, width, height);
+            drawBackground(graphics, width, height);
+            drawHeader(graphics, width, productId, graphResponse);
 
-            graphics.setColor(new Color(0x17324D));
-            graphics.fillRect(0, 0, width, 132);
-            graphics.setColor(new Color(0xF8FAFC));
-            graphics.setFont(new Font("SansSerif", Font.BOLD, 32));
-            graphics.drawString("Oracle Graph Dependency View", 48, 56);
-            graphics.setColor(new Color(0xCBD5E1));
-            graphics.setFont(new Font("SansSerif", Font.PLAIN, 18));
-            graphics.drawString("PNG artifact returned over A2A for Gemini Enterprise rendering.", 48, 94);
+            List<NodeCard> nodeCards = layoutNodeCards(graphResponse);
+            drawEdges(graphics, nodeCards, graphResponse.edges());
+            for (NodeCard nodeCard : nodeCards) {
+                drawNodeCard(graphics, nodeCard);
+            }
 
-            drawNode(graphics, 110, 250, 310, 120, new Color(0xE0F2FE), supplierLabel);
-            drawNode(graphics, 665, 250, 310, 120, new Color(0xFEF3C7), productLabel);
-
-            graphics.setStroke(new BasicStroke(6f));
-            graphics.setColor(new Color(0xC2410C));
-            graphics.drawLine(420, 310, 655, 310);
-            graphics.fillOval(645, 300, 18, 18);
-            graphics.setFont(new Font("SansSerif", Font.BOLD, 22));
-            graphics.drawString(relationshipLabel, 466, 282);
-
-            graphics.setColor(new Color(0xFFFFFF));
-            graphics.fill(new RoundRectangle2D.Double(110, 450, 865, 180, 28, 28));
-            graphics.setColor(new Color(0xD6CABB));
-            graphics.setStroke(new BasicStroke(2f));
-            graphics.draw(new RoundRectangle2D.Double(110, 450, 865, 180, 28, 28));
-            graphics.setColor(new Color(0x1E293B));
-            graphics.setFont(new Font("SansSerif", Font.BOLD, 24));
-            graphics.drawString("Dependency Summary", 148, 500);
-            graphics.setFont(new Font("SansSerif", Font.PLAIN, 18));
-            graphics.setColor(new Color(0x475569));
-            graphics.drawString("Product: " + productId, 148, 542);
-            graphics.drawString(
-                    "Relationship: " + relationshipLabel,
-                    148,
-                    576
-            );
-            graphics.drawString(
-                    "Replace GraphTools.getSupplyChainDependencies() with a real Oracle Graph query later.",
-                    148,
-                    610
-            );
+            drawSummaryPanel(graphics, productId, graphResponse, width);
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(image, "png", outputStream);
@@ -249,45 +218,433 @@ public class GraphA2AConfiguration {
         }
     }
 
-    private static String nodeLabel(
-            GraphTools.GraphResponse graphResponse,
-            int index,
-            String fallback
-    ) {
-        if (graphResponse.nodes().size() <= index) {
-            return fallback;
+    private static void drawBackground(Graphics2D graphics, int width, int height) {
+        graphics.setPaint(new GradientPaint(
+                0,
+                0,
+                new Color(0xF8F4EC),
+                width,
+                height,
+                new Color(0xE2E8F0)
+        ));
+        graphics.fillRect(0, 0, width, height);
+
+        graphics.setColor(new Color(0xD9E2EC));
+        for (int x = 80; x < width; x += 120) {
+            graphics.drawLine(x, 140, x, height - 40);
         }
-        return graphResponse.nodes().get(index).getOrDefault("label", fallback);
+        for (int y = 160; y < height; y += 100) {
+            graphics.drawLine(40, y, width - 40, y);
+        }
     }
 
-    private static String edgeLabel(
-            GraphTools.GraphResponse graphResponse,
-            String fallback
+    private static void drawHeader(
+            Graphics2D graphics,
+            int width,
+            String productId,
+            GraphTools.GraphResponse graphResponse
     ) {
-        if (graphResponse.edges().isEmpty()) {
-            return fallback;
-        }
-        return graphResponse.edges().get(0).getOrDefault("label", fallback);
+        graphics.setColor(new Color(0x102A43));
+        graphics.fill(new RoundRectangle2D.Double(32, 28, width - 64, 112, 36, 36));
+
+        graphics.setColor(new Color(0xF8FAFC));
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 34));
+        graphics.drawString("Oracle Graph Dependency View", 62, 78);
+
+        graphics.setColor(new Color(0xCBD5E1));
+        graphics.setFont(new Font("SansSerif", Font.PLAIN, 18));
+        graphics.drawString(headerSubtitle(productId, graphResponse), 62, 112);
+
+        drawHeaderChip(graphics, width - 360, 56, "Nodes " + graphResponse.nodes().size());
+        drawHeaderChip(graphics, width - 228, 56, "Edges " + graphResponse.edges().size());
+        drawHeaderChip(graphics, width - 96, 56, "PNG");
     }
 
-    private static void drawNode(
+    private static void drawHeaderChip(Graphics2D graphics, int centerX, int centerY, String label) {
+        Font chipFont = new Font("SansSerif", Font.BOLD, 15);
+        graphics.setFont(chipFont);
+        FontMetrics metrics = graphics.getFontMetrics();
+        int width = metrics.stringWidth(label) + 28;
+        int height = 30;
+        int x = centerX - (width / 2);
+        int y = centerY - (height / 2);
+
+        graphics.setColor(new Color(0x173F5F));
+        graphics.fill(new RoundRectangle2D.Double(x, y, width, height, 18, 18));
+        graphics.setColor(new Color(0xE2E8F0));
+        graphics.drawString(label, x + 14, y + 20);
+    }
+
+    private static List<NodeCard> layoutNodeCards(GraphTools.GraphResponse graphResponse) {
+        List<NodeCard> cards = new ArrayList<>();
+        Map<String, int[]> positions = new LinkedHashMap<>();
+        positions.put("SUPPLIER", new int[]{90, 250});
+        positions.put("PLANT", new int[]{370, 130});
+        positions.put("PORT", new int[]{680, 130});
+        positions.put("WAREHOUSE", new int[]{1000, 250});
+        positions.put("PRODUCT", new int[]{1010, 510});
+        positions.put("ALERT", new int[]{690, 510});
+
+        int fallbackIndex = 0;
+        for (Map<String, String> node : graphResponse.nodes()) {
+            String type = node.getOrDefault("type", "NODE");
+            int[] position = positions.get(type);
+            if (position == null) {
+                position = new int[]{90 + ((fallbackIndex % 4) * 300), 250 + ((fallbackIndex / 4) * 180)};
+                fallbackIndex++;
+            }
+            cards.add(
+                    new NodeCard(
+                            node.getOrDefault("id", "node-" + cards.size()),
+                            type,
+                            node.getOrDefault("label", type),
+                            node.getOrDefault("detail", ""),
+                            node.getOrDefault("metric", ""),
+                            position[0],
+                            position[1],
+                            260,
+                            118,
+                            fillColorForType(type),
+                            accentColorForType(type)
+                    )
+            );
+        }
+        return cards;
+    }
+
+    private static void drawEdges(
+            Graphics2D graphics,
+            List<NodeCard> nodeCards,
+            List<Map<String, String>> edges
+    ) {
+        Map<String, NodeCard> nodesById = new LinkedHashMap<>();
+        for (NodeCard nodeCard : nodeCards) {
+            nodesById.put(nodeCard.id(), nodeCard);
+        }
+
+        for (Map<String, String> edge : edges) {
+            NodeCard from = nodesById.get(edge.get("from"));
+            NodeCard to = nodesById.get(edge.get("to"));
+            if (from == null || to == null) {
+                continue;
+            }
+            drawEdge(graphics, from, to, edge.getOrDefault("label", "RELATED_TO"));
+        }
+    }
+
+    private static void drawEdge(
+            Graphics2D graphics,
+            NodeCard from,
+            NodeCard to,
+            String label
+    ) {
+        int fromCenterX = from.x() + (from.width() / 2);
+        int fromCenterY = from.y() + (from.height() / 2);
+        int toCenterX = to.x() + (to.width() / 2);
+        int toCenterY = to.y() + (to.height() / 2);
+
+        int deltaX = toCenterX - fromCenterX;
+        int deltaY = toCenterY - fromCenterY;
+
+        int startX;
+        int startY;
+        int endX;
+        int endY;
+
+        if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+            startX = deltaX >= 0 ? from.x() + from.width() : from.x();
+            startY = fromCenterY;
+            endX = deltaX >= 0 ? to.x() : to.x() + to.width();
+            endY = toCenterY;
+        } else {
+            startX = fromCenterX;
+            startY = deltaY >= 0 ? from.y() + from.height() : from.y();
+            endX = toCenterX;
+            endY = deltaY >= 0 ? to.y() : to.y() + to.height();
+        }
+
+        graphics.setColor(new Color(0xC2410C));
+        graphics.setStroke(new BasicStroke(4.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        graphics.drawLine(startX, startY, endX, endY);
+        drawArrowHead(graphics, startX, startY, endX, endY);
+        drawEdgeLabel(graphics, label, (startX + endX) / 2, (startY + endY) / 2);
+    }
+
+    private static void drawArrowHead(
+            Graphics2D graphics,
+            int startX,
+            int startY,
+            int endX,
+            int endY
+    ) {
+        double angle = Math.atan2(endY - startY, endX - startX);
+        int arrowLength = 16;
+        int arrowWidth = 7;
+
+        int x1 = endX - (int) (arrowLength * Math.cos(angle - (Math.PI / 6)));
+        int y1 = endY - (int) (arrowLength * Math.sin(angle - (Math.PI / 6)));
+        int x2 = endX - (int) (arrowLength * Math.cos(angle + (Math.PI / 6)));
+        int y2 = endY - (int) (arrowLength * Math.sin(angle + (Math.PI / 6)));
+
+        Polygon arrow = new Polygon();
+        arrow.addPoint(endX, endY);
+        arrow.addPoint(x1, y1);
+        arrow.addPoint(x2, y2);
+
+        graphics.fillPolygon(arrow);
+        graphics.fillOval(endX - arrowWidth, endY - arrowWidth, arrowWidth * 2, arrowWidth * 2);
+    }
+
+    private static void drawEdgeLabel(Graphics2D graphics, String label, int x, int y) {
+        Font font = new Font("SansSerif", Font.BOLD, 14);
+        graphics.setFont(font);
+        FontMetrics metrics = graphics.getFontMetrics();
+        int width = metrics.stringWidth(label) + 22;
+        int height = 28;
+        int left = x - (width / 2);
+        int top = y - (height / 2);
+
+        graphics.setColor(new Color(0xFFF7ED));
+        graphics.fill(new RoundRectangle2D.Double(left, top, width, height, 16, 16));
+        graphics.setColor(new Color(0xC2410C));
+        graphics.setStroke(new BasicStroke(1.5f));
+        graphics.draw(new RoundRectangle2D.Double(left, top, width, height, 16, 16));
+        graphics.drawString(label, left + 11, top + 19);
+    }
+
+    private static void drawNodeCard(Graphics2D graphics, NodeCard nodeCard) {
+        RoundRectangle2D.Double shape = new RoundRectangle2D.Double(
+                nodeCard.x(),
+                nodeCard.y(),
+                nodeCard.width(),
+                nodeCard.height(),
+                28,
+                28
+        );
+
+        graphics.setColor(nodeCard.fillColor());
+        graphics.fill(shape);
+        graphics.setColor(nodeCard.accentColor());
+        graphics.setStroke(new BasicStroke(3f));
+        graphics.draw(shape);
+
+        drawNodeTypeChip(graphics, nodeCard);
+
+        graphics.setColor(new Color(0x0F172A));
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 20));
+        graphics.drawString(
+                truncate(graphics, nodeCard.label(), nodeCard.width() - 34),
+                nodeCard.x() + 18,
+                nodeCard.y() + 62
+        );
+
+        graphics.setColor(new Color(0x475569));
+        graphics.setFont(new Font("SansSerif", Font.PLAIN, 15));
+        graphics.drawString(
+                truncate(graphics, nodeCard.detail(), nodeCard.width() - 34),
+                nodeCard.x() + 18,
+                nodeCard.y() + 88
+        );
+
+        graphics.setColor(nodeCard.accentColor().darker());
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 15));
+        graphics.drawString(
+                truncate(graphics, nodeCard.metric(), nodeCard.width() - 34),
+                nodeCard.x() + 18,
+                nodeCard.y() + 108
+        );
+    }
+
+    private static void drawNodeTypeChip(Graphics2D graphics, NodeCard nodeCard) {
+        Font font = new Font("SansSerif", Font.BOLD, 13);
+        graphics.setFont(font);
+        FontMetrics metrics = graphics.getFontMetrics();
+        String chipText = nodeCard.type();
+        int width = metrics.stringWidth(chipText) + 20;
+
+        graphics.setColor(withAlpha(nodeCard.accentColor(), 230));
+        graphics.fill(new RoundRectangle2D.Double(
+                nodeCard.x() + 16,
+                nodeCard.y() + 14,
+                width,
+                24,
+                14,
+                14
+        ));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString(chipText, nodeCard.x() + 26, nodeCard.y() + 31);
+    }
+
+    private static void drawSummaryPanel(
+            Graphics2D graphics,
+            String productId,
+            GraphTools.GraphResponse graphResponse,
+            int canvasWidth
+    ) {
+        int x = 70;
+        int y = 690;
+        int width = canvasWidth - 140;
+        int height = 190;
+
+        graphics.setColor(new Color(0xFFFFFF));
+        graphics.fill(new RoundRectangle2D.Double(x, y, width, height, 30, 30));
+        graphics.setColor(new Color(0xCBD5E1));
+        graphics.setStroke(new BasicStroke(2f));
+        graphics.draw(new RoundRectangle2D.Double(x, y, width, height, 30, 30));
+
+        graphics.setColor(new Color(0x0F172A));
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 26));
+        graphics.drawString("Traversal Summary", x + 28, y + 42);
+
+        graphics.setColor(new Color(0x475569));
+        graphics.setFont(new Font("SansSerif", Font.PLAIN, 17));
+        graphics.drawString(buildPathSummary(graphResponse), x + 28, y + 76);
+        graphics.drawString("Requested product: " + productId, x + 28, y + 106);
+        graphics.drawString(
+                "Resolved source: " + graphResponse.sourceDetail() + ".",
+                x + 28,
+                y + 136
+        );
+        graphics.drawString(
+                "Modes supported: database, payload, and auto validation/fallback.",
+                x + 28,
+                y + 164
+        );
+
+        drawMetricBadge(
+                graphics,
+                x + 880,
+                y + 34,
+                findNodeMetric(graphResponse, "PORT", "Delay risk n/a"),
+                new Color(0xF59E0B)
+        );
+        drawMetricBadge(
+                graphics,
+                x + 880,
+                y + 84,
+                findNodeMetric(graphResponse, "WAREHOUSE", "Fill rate n/a"),
+                new Color(0x0F766E)
+        );
+        drawMetricBadge(
+                graphics,
+                x + 880,
+                y + 134,
+                findNodeMetric(graphResponse, "ALERT", "Risk n/a"),
+                new Color(0xC2410C)
+        );
+    }
+
+    private static void drawMetricBadge(
             Graphics2D graphics,
             int x,
             int y,
-            int width,
-            int height,
-            Color fillColor,
-            String label
+            String text,
+            Color accent
     ) {
-        RoundRectangle2D.Double node = new RoundRectangle2D.Double(x, y, width, height, 30, 30);
-        graphics.setColor(fillColor);
-        graphics.fill(node);
-        graphics.setColor(new Color(0x475569));
-        graphics.setStroke(new BasicStroke(3f));
-        graphics.draw(node);
-        graphics.setColor(new Color(0x0F172A));
-        graphics.setFont(new Font("SansSerif", Font.BOLD, 22));
-        graphics.drawString(label, x + 24, y + 68);
+        graphics.setColor(withAlpha(accent, 40));
+        graphics.fill(new RoundRectangle2D.Double(x, y, 430, 34, 18, 18));
+        graphics.setColor(accent);
+        graphics.setFont(new Font("SansSerif", Font.BOLD, 15));
+        graphics.drawString(text, x + 16, y + 22);
+    }
+
+    private static String headerSubtitle(String productId, GraphTools.GraphResponse graphResponse) {
+        return switch (graphResponse.sourceMode()) {
+            case "database" -> "Oracle Database property graph result for product request: " + productId;
+            case "payload" -> "Validated upstream graph payload for product request: " + productId;
+            default -> "Graph result for product request: " + productId;
+        };
+    }
+
+    private static void addRouteLabel(
+            List<String> route,
+            GraphTools.GraphResponse graphResponse,
+            String type
+    ) {
+        Map<String, String> node = findNodeByType(graphResponse, type);
+        if (!node.isEmpty()) {
+            route.add(node.getOrDefault("label", type));
+        }
+    }
+
+    private static String buildPathSummary(GraphTools.GraphResponse graphResponse) {
+        List<String> route = new ArrayList<>();
+        addRouteLabel(route, graphResponse, "SUPPLIER");
+        addRouteLabel(route, graphResponse, "PLANT");
+        addRouteLabel(route, graphResponse, "PORT");
+        addRouteLabel(route, graphResponse, "WAREHOUSE");
+        addRouteLabel(route, graphResponse, "PRODUCT");
+        return route.isEmpty() ? "No path available" : String.join(" -> ", route);
+    }
+
+    private static String findNodeMetric(
+            GraphTools.GraphResponse graphResponse,
+            String type,
+            String fallback
+    ) {
+        Map<String, String> node = findNodeByType(graphResponse, type);
+        return node.getOrDefault("metric", fallback);
+    }
+
+    private static Map<String, String> findNodeByType(
+            GraphTools.GraphResponse graphResponse,
+            String type
+    ) {
+        for (Map<String, String> node : graphResponse.nodes()) {
+            if (type.equals(node.get("type"))) {
+                return node;
+            }
+        }
+        return Map.of();
+    }
+
+    private static Color fillColorForType(String type) {
+        return switch (type) {
+            case "SUPPLIER" -> new Color(0xDBEAFE);
+            case "PLANT" -> new Color(0xE0F2FE);
+            case "PORT" -> new Color(0xFEF3C7);
+            case "WAREHOUSE" -> new Color(0xDCFCE7);
+            case "PRODUCT" -> new Color(0xFCE7F3);
+            case "ALERT" -> new Color(0xFEE2E2);
+            default -> new Color(0xE2E8F0);
+        };
+    }
+
+    private static Color accentColorForType(String type) {
+        return switch (type) {
+            case "SUPPLIER" -> new Color(0x2563EB);
+            case "PLANT" -> new Color(0x0284C7);
+            case "PORT" -> new Color(0xD97706);
+            case "WAREHOUSE" -> new Color(0x15803D);
+            case "PRODUCT" -> new Color(0xBE185D);
+            case "ALERT" -> new Color(0xDC2626);
+            default -> new Color(0x475569);
+        };
+    }
+
+    private static Color withAlpha(Color color, int alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+    }
+
+    private static String truncate(Graphics2D graphics, String text, int maxWidth) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        FontMetrics metrics = graphics.getFontMetrics();
+        if (metrics.stringWidth(text) <= maxWidth) {
+            return text;
+        }
+
+        String ellipsis = "...";
+        int targetWidth = maxWidth - metrics.stringWidth(ellipsis);
+        StringBuilder builder = new StringBuilder();
+        for (char character : text.toCharArray()) {
+            if (metrics.stringWidth(builder.toString() + character) > targetWidth) {
+                break;
+            }
+            builder.append(character);
+        }
+        return builder + ellipsis;
     }
 
     private static String valueOrDefault(Environment environment, String key, String defaultValue) {
@@ -302,4 +659,18 @@ public class GraphA2AConfiguration {
         }
         return "";
     }
+
+    private record NodeCard(
+            String id,
+            String type,
+            String label,
+            String detail,
+            String metric,
+            int x,
+            int y,
+            int width,
+            int height,
+            Color fillColor,
+            Color accentColor
+    ) {}
 }

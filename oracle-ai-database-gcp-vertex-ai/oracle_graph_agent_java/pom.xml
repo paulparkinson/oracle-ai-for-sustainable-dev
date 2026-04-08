@@ -11,6 +11,23 @@
 	<artifactId>oracle-graph-agent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<properties>
+		<oracle-database.version>23.3.0.23.09</oracle-database.version>
+		<oracle.jdbc.version>23.3.0.23.09</oracle.jdbc.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.oracle.database.jdbc</groupId>
+				<artifactId>ojdbc-bom</artifactId>
+				<version>${oracle.jdbc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -29,7 +46,10 @@
 		<dependency>
 			<groupId>com.oracle.database.jdbc</groupId>
 			<artifactId>ojdbc11</artifactId>
-			<version>23.3.0.23.09</version>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>oraclepki</artifactId>
 		</dependency>
 	</dependencies>
 
