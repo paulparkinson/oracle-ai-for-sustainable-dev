@@ -111,6 +111,73 @@ public class GraphRequestParser {
             return fenceMatcher.group(1);
         }
 
+        return extractEmbeddedJsonObject(userInput);
+    }
+
+    private static String extractEmbeddedJsonObject(String userInput) {
+        int length = userInput.length();
+        for (int start = 0; start < length; start++) {
+            if (userInput.charAt(start) != '{') {
+                continue;
+            }
+
+            String candidate = balancedJsonObject(userInput, start);
+            if (candidate == null) {
+                continue;
+            }
+
+            try {
+                JsonNode root = new ObjectMapper().readTree(candidate);
+                JsonNode payloadNode = unwrapPayloadNode(root);
+                if (payloadNode.isObject()
+                        && (payloadNode.has("nodes")
+                        || payloadNode.has("edges")
+                        || payloadNode.has("graphPayload")
+                        || payloadNode.has("graph"))) {
+                    return candidate;
+                }
+            } catch (Exception ignored) {
+                // Keep scanning until we find a valid embedded JSON payload.
+            }
+        }
+
+        return null;
+    }
+
+    private static String balancedJsonObject(String text, int start) {
+        int depth = 0;
+        boolean inString = false;
+        boolean escaped = false;
+
+        for (int index = start; index < text.length(); index++) {
+            char current = text.charAt(index);
+
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (current == '\\') {
+                    escaped = true;
+                } else if (current == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (current == '"') {
+                inString = true;
+                continue;
+            }
+
+            if (current == '{') {
+                depth++;
+            } else if (current == '}') {
+                depth--;
+                if (depth == 0) {
+                    return text.substring(start, index + 1);
+                }
+            }
+        }
+
         return null;
     }
 
