@@ -16,6 +16,7 @@ Today, the live implementation is still graph-first: it uses a deterministic A2A
 - [`HTTPS_SETUP.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
 - [`agent-card-graph.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-graph.json): saved snapshot of the primary graph card.
 - [`agent-card-spatial.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial alias card served by the same Java process.
+- [`agent-card-action.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-action.json): saved snapshot of the inventory-action coordinator card.
 
 ## Setup Instructions
 
@@ -72,9 +73,11 @@ Today, the live implementation is still graph-first: it uses a deterministic A2A
    - standard HTTPS: `https://34.48.146.146/.well-known/agent-card.json`
    - graph alias card on the same Java process: `https://34.48.146.146/agent-card-graph.json`
    - spatial alias card on the same Java process: `https://34.48.146.146/agent-card-spatial.json`
+   - inventory-action card on the same Java process: `https://34.48.146.146/agent-card-action.json`
+   - dedicated inventory-action A2A card path: `https://34.48.146.146/inventory-action/.well-known/agent-card.json`
    - direct HTTPS on 8080: `https://34.48.146.146:8080/.well-known/agent-card.json`
 
-   The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial card is currently an import alias for Gemini Enterprise experiments, not a separate spatial implementation yet.
+   The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial card is currently an import alias for Gemini Enterprise experiments, not a separate spatial implementation yet. The inventory-action card is a real additional agent surface in the same Spring Boot process, served at `/inventory-action`.
 
    On the GCP VM, a reliable way to keep the `443` deployment alive after SSH exits is to
    start it as a transient `systemd` service instead of a background shell job:
@@ -181,6 +184,55 @@ Expected success signal:
 - the returned PNG artifact renders the exact nodes and edges you supplied
 - the metadata reports `sourceMode=payload`
 
+## Inventory Action Coordinator
+
+The same Java process now also serves an ADK-backed inventory-action coordinator at:
+
+- card alias: `https://34.48.146.146/agent-card-action.json`
+- dedicated card path: `https://34.48.146.146/inventory-action/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://34.48.146.146/inventory-action`
+
+This coordinator is the first cut of the final-stage action flow described in the root repo README:
+
+- it uses Google ADK Java inside the existing Spring Boot process
+- it runs a `ParallelAgent` for graph, spatial, and external evidence gathering
+- it follows that with an `LlmAgent` decision step that checks policy and drafts a transfer recommendation
+- it does not execute the move; it only recommends and drafts, with approval handling called out in the response
+
+Current tool coverage inside the coordinator:
+
+- `getGraphEvidence`: calls the Oracle graph tool directly and summarizes the dependency path
+- `getSpatialEvidence`: returns the current seeded hotspot view and a suggested transfer direction
+- `getExternalSignals`: returns seeded weather or lane-risk context
+- `checkTransferPolicy`: decides whether approval is required
+- `draftInventoryTransferAction`: creates a draft, not an execution
+
+Recommended Gemini Enterprise prompt:
+
+```text
+What inventory action should we take for SKU-500 given the current supply risk? Gather graph, spatial, and external evidence first, then recommend the safest next move and say whether approval is required.
+```
+
+More explicit transfer-oriented prompt:
+
+```text
+For SKU-500, gather the supporting graph, spatial, and external evidence, then tell me whether we should shift inventory between warehouses. If a transfer is appropriate, draft the move but do not execute it.
+```
+
+Local test script:
+
+```bash
+./test_inventory_action.sh
+./test_inventory_action.sh "What inventory action should we take for SKU-500 given the current supply risk?"
+GRAPH_AGENT_URL="https://34.48.146.146" ./test_inventory_action.sh
+```
+
+Expected response shape:
+
+- evidence-backed recommendation in plain text
+- explicit approval status
+- if a transfer was drafted, the source warehouse, destination warehouse, units, and draft action id
+
 ## What Success Looks Like
 
 When `./test.sh` succeeds, discovery should show:
@@ -240,5 +292,6 @@ If you move this agent under another repo:
 - The current response model is: PNG artifact first, text summary second.
 - The graph agent now supports `GRAPH_DATA_MODE=database|payload|auto`. In `database` mode it queries the seeded Oracle Property Graph directly; in `payload` mode it renders a validated upstream JSON payload; in `auto` mode it prefers payload and falls back to the database.
 - `GraphTools.getSupplyChainDependencies()` now owns both the Oracle query path and the validated payload path.
+- The inventory-action coordinator uses Google ADK Java in-process. It currently mixes one live Oracle graph tool with seeded spatial and external evidence tools while we keep the overall demo in a single convenient JVM.
 - For wallet-backed Oracle Database access, the Maven config now imports Oracle's `ojdbc-bom`, pins Spring Boot's managed Oracle version to `23.3.0.23.09`, and includes `oraclepki` alongside `ojdbc11`. Older 19c/21c examples in this repo use `osdt_core` and `osdt_cert`, but Oracle's 23ai guidance says wallet support on 23ai only requires `oraclepki`, and the `23.3.0.23.09` `osdt_*` artifacts are not published on Maven Central.
 - Self-signed certificates are a poor fit for Gemini Enterprise because the Google-managed caller must trust the certificate chain. Use a publicly trusted certificate instead.

@@ -34,4 +34,15 @@ public class AdditionalAgentCardController {
     AgentCard spatialAgentCard() {
         return GraphA2AConfiguration.buildSpatialAliasCard(environment);
     }
+
+    @GetMapping(
+            value = {
+                    "/agent-card-action.json",
+                    "/inventory-action-agent-card.json"
+            },
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    AgentCard actionAgentCard() {
+        return InventoryActionCardFactory.buildInventoryActionAgentCard(environment);
+    }
 }

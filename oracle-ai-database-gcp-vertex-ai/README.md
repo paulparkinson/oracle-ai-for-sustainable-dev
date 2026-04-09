@@ -154,3 +154,22 @@ A good final-stage pipeline would be:
 5. Execution tool: create the transfer or replenishment action in the target system only after the approval result is positive.
 
 That is the point where ADK Java becomes especially appropriate: it gives us a clean way to maintain shared state across the conversation, compose specialized agents, and add a human-in-the-loop approval stage for the "what should we do about inventory?" moment.
+
+## Current Java ADK Implementation
+
+The first cut of that final-stage action flow now lives in the shared Java runtime at [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md).
+
+What is implemented today:
+
+- a dedicated inventory-action A2A agent surface served by the same Spring Boot process at `/inventory-action`
+- a separate action card import URL at `https://34.48.146.146/agent-card-action.json`
+- a Google ADK Java coordinator that uses a `ParallelAgent` for evidence gathering and a final `LlmAgent` for recommendation synthesis
+- tool-backed graph evidence from the live Oracle graph path
+- seeded spatial and external evidence tools so we can demonstrate the full multi-agent arc without splitting the runtime yet
+- a policy check and draft transfer tool so the final answer can explicitly say whether approval is required
+
+What still comes next:
+
+- swap the seeded spatial and external tools for real downstream A2A or MCP-backed calls
+- persist richer shared state across multi-turn conversations
+- optionally separate the action coordinator into its own runtime once the demo shape settles

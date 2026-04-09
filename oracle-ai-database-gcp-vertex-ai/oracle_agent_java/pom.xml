@@ -12,6 +12,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
+		<google.adk.version>1.0.0</google.adk.version>
 		<oracle-database.version>23.3.0.23.09</oracle-database.version>
 		<oracle.jdbc.version>23.3.0.23.09</oracle.jdbc.version>
 	</properties>
@@ -42,6 +43,11 @@
 			<groupId>org.springaicommunity</groupId>
 			<artifactId>spring-ai-a2a-server-autoconfigure</artifactId>
 			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.adk</groupId>
+			<artifactId>google-adk</artifactId>
+			<version>${google.adk.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle.database.jdbc</groupId>
