@@ -1,0 +1,54 @@
+{
+  "name": "oracle_spatial_agent",
+  "description": "Spatial import alias served by the shared Oracle Java agent runtime. Current behavior still routes to the graph-oriented implementation.",
+  "url": "https://34.48.146.146",
+  "version": "0.0.1",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false,
+    "extensions": []
+  },
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "image/png",
+    "text/plain"
+  ],
+  "skills": [
+    {
+      "id": "oracle_graph_agent",
+      "name": "model",
+      "description": "Specialist in Oracle Graph dependency analysis. When a user asks for supply chain dependencies or graph relationships, use the getSupplyChainDependencies tool.",
+      "tags": [
+        "llm"
+      ],
+      "examples": [],
+      "inputModes": [
+        "text/plain"
+      ],
+      "outputModes": [
+        "image/png",
+        "text/plain"
+      ]
+    },
+    {
+      "id": "oracle_graph_agent-getSupplyChainDependencies",
+      "name": "getSupplyChainDependencies",
+      "description": "Fetches supply chain dependencies from Oracle Property Graph for a specific product ID.",
+      "tags": [
+        "llm",
+        "tools"
+      ],
+      "examples": [],
+      "outputModes": [
+        "image/png"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "additionalInterfaces": [],
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0"
+}

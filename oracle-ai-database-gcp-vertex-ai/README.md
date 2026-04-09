@@ -121,4 +121,36 @@ Inference from Google's docs: the Vertex AI ADC path is the better fit for this 
 ## Agent Directories
 
 - [oracle_spatial_agent_python](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_spatial_agent_python/README.md): Python A2A agent for warehouse map / spatial workflows. The current version is deterministic and returns a PNG artifact.
-- [oracle_graph_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/README.md): Java/Spring Boot A2A agent for graph and dependency workflows. The current version is deterministic and returns a PNG artifact.
+- [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md): shared Java/Spring Boot A2A runtime. The current implementation is graph-first, but the same process now serves multiple agent cards and is the natural home for future Java-side orchestration.
+
+## Demo Flow
+
+The current demo storyboard is:
+
+1. Gemini Enterprise calls an Oracle AI Database agent to identify inventory risk, such as likely stockouts next quarter.
+2. The same conversation drills into which warehouses, counties, or regions are driving the risk while preserving conversational context.
+3. A spatial specialist renders the hotspot map so the user can see where the pressure is concentrated.
+4. A graph specialist renders the supplier dependency chain so the user can see why the risk exists.
+5. A Deep Research or external-intel step layers on weather, geopolitics, or other outside factors that may worsen or reduce the risk.
+6. A final multi-agent action step proposes an inventory move, such as shifting units from one warehouse to another, and turns insight into an operational recommendation.
+
+## Recommended Java Orchestration
+
+The best use of the Java ADK pieces here is as an orchestrator around the existing specialist agents, not as a replacement for the deterministic graph renderer.
+
+Recommended shape:
+
+- Keep the current A2A specialists focused and deterministic. The Python spatial agent should keep owning map rendering, and the Java runtime should keep owning graph rendering and any Java-heavy business logic.
+- Add a Java ADK coordinator for the final action stage. Use an `LlmAgent` for intent interpretation and recommendation synthesis, `ParallelAgent` for concurrent evidence gathering, `SequentialAgent` for the overall decision pipeline, and `FunctionTool` wrappers for policy checks and action execution.
+- Treat the existing specialist agents as downstream tools or A2A calls. The coordinator should gather risk rows, map output, graph output, and external research, then write normalized fields into shared session state before making a recommendation.
+- Put the actual inventory move behind a human or policy gate. The right last step for the demo is not immediate execution; it is proposal, validation, approval, and only then execution.
+
+A good final-stage pipeline would be:
+
+1. Intake agent: convert the live conversation into a structured inventory case with SKU, affected warehouses, service-level risk, and business impact.
+2. Parallel evidence step: fan out to graph, spatial, and external-intel specialists and collect their outputs.
+3. Decision agent: rank options such as transfer, expedite, substitute, or hold based on cost, coverage days, and operational risk.
+4. Policy or approval tool: check business rules, thresholds, and whether a human approval is required.
+5. Execution tool: create the transfer or replenishment action in the target system only after the approval result is positive.
+
+That is the point where ADK Java becomes especially appropriate: it gives us a clean way to maintain shared state across the conversation, compose specialized agents, and add a human-in-the-loop approval stage for the "what should we do about inventory?" moment.

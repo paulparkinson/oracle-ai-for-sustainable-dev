@@ -1,19 +1,21 @@
-# Oracle Graph Agent for Gemini Enterprise
+# Oracle Java Agent Runtime for Gemini Enterprise
 
-This is the Java/Spring Boot A2A agent for graph and dependency workflows.
+This directory now holds the shared Java/Spring Boot A2A runtime for the Oracle demo's Java-served agent experiences.
 
-The current Java implementation uses a deterministic A2A executor that calls the local graph tool directly and returns a rendered `image/png` artifact plus a short text summary.
+Today, the live implementation is still graph-first: it uses a deterministic A2A executor that calls the local graph tool directly and returns a rendered `image/png` artifact plus a short text summary. The same process can also serve multiple public agent cards so we can experiment with separate Gemini Enterprise imports before we split the runtime further.
 
 ## Related Files
 
-- [`sql/supply_chain_graph_model.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/sql/supply_chain_graph_model.sql): example Oracle tables, property-graph definition, and query pattern for replacing the current seeded demo data with real database results.
-- [`sql/setup_supply_chain_graph_schema.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/sql/setup_supply_chain_graph_schema.sql): idempotent setup DDL for creating the graph demo tables and property graph in Oracle Database.
-- [`sql/run_supply_chain_graph_setup.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/sql/run_supply_chain_graph_setup.sh): SQLcl-based wrapper that logs precheck, setup, and postcheck output into a timestamped `sql/logs/` run directory.
-- [`sql/seed_supply_chain_graph_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/sql/seed_supply_chain_graph_data.sql): idempotent sample data seed for three supply-chain paths, including `SKU-500`.
-- [`sql/run_supply_chain_graph_seed.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/sql/run_supply_chain_graph_seed.sh): SQLcl-based wrapper that logs row counts and runs verification queries after seeding.
-- [`GRAPH_DATA_MODES.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/GRAPH_DATA_MODES.md): how `GRAPH_DATA_MODE=database|payload|auto` works, the supported JSON contract, and the validation rules for multi-agent flows.
-- [`MULTI_AGENT_GRAPH_FLOW.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/MULTI_AGENT_GRAPH_FLOW.md): architecture notes for direct DB lookup vs upstream-agent payload handoff, including provenance, validation, and recommended `auto` behavior.
-- [`HTTPS_SETUP.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
+- [`sql/supply_chain_graph_model.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/supply_chain_graph_model.sql): example Oracle tables, property-graph definition, and query pattern for replacing the current seeded demo data with real database results.
+- [`sql/setup_supply_chain_graph_schema.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_supply_chain_graph_schema.sql): idempotent setup DDL for creating the graph demo tables and property graph in Oracle Database.
+- [`sql/run_supply_chain_graph_setup.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_setup.sh): SQLcl-based wrapper that logs precheck, setup, and postcheck output into a timestamped `sql/logs/` run directory.
+- [`sql/seed_supply_chain_graph_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_supply_chain_graph_data.sql): idempotent sample data seed for three supply-chain paths, including `SKU-500`.
+- [`sql/run_supply_chain_graph_seed.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_seed.sh): SQLcl-based wrapper that logs row counts and runs verification queries after seeding.
+- [`GRAPH_DATA_MODES.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/GRAPH_DATA_MODES.md): how `GRAPH_DATA_MODE=database|payload|auto` works, the supported JSON contract, and the validation rules for multi-agent flows.
+- [`MULTI_AGENT_GRAPH_FLOW.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/MULTI_AGENT_GRAPH_FLOW.md): architecture notes for direct DB lookup vs upstream-agent payload handoff, including provenance, validation, and recommended `auto` behavior.
+- [`HTTPS_SETUP.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
+- [`agent-card-graph.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-graph.json): saved snapshot of the primary graph card.
+- [`agent-card-spatial.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial alias card served by the same Java process.
 
 ## Setup Instructions
 
@@ -68,7 +70,11 @@ The current Java implementation uses a deterministic A2A executor that calls the
 
    Current tested import URLs:
    - standard HTTPS: `https://34.48.146.146/.well-known/agent-card.json`
+   - graph alias card on the same Java process: `https://34.48.146.146/agent-card-graph.json`
+   - spatial alias card on the same Java process: `https://34.48.146.146/agent-card-spatial.json`
    - direct HTTPS on 8080: `https://34.48.146.146:8080/.well-known/agent-card.json`
+
+   The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial card is currently an import alias for Gemini Enterprise experiments, not a separate spatial implementation yet.
 
    On the GCP VM, a reliable way to keep the `443` deployment alive after SSH exits is to
    start it as a transient `systemd` service instead of a background shell job:

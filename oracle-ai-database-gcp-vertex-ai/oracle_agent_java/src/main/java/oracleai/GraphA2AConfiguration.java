@@ -40,6 +40,30 @@ public class GraphA2AConfiguration {
 
     @Bean
     AgentCard agentCard(Environment environment) {
+        return buildGraphAgentCard(environment);
+    }
+
+    static AgentCard buildGraphAgentCard(Environment environment) {
+        return buildAgentCard(
+                environment,
+                "oracle_graph_agent",
+                "Specialist in Oracle Graph dependency analysis and supply chain visualization."
+        );
+    }
+
+    static AgentCard buildSpatialAliasCard(Environment environment) {
+        return buildAgentCard(
+                environment,
+                "oracle_spatial_agent",
+                "Spatial import alias served by the shared Oracle Java agent runtime. Current behavior still routes to the graph-oriented implementation."
+        );
+    }
+
+    private static AgentCard buildAgentCard(
+            Environment environment,
+            String agentName,
+            String description
+    ) {
         String publicProtocol = valueOrDefault(environment, "PUBLIC_PROTOCOL", "http");
         String publicHost = valueOrDefault(environment, "PUBLIC_HOST", "localhost");
         String graphPort = valueOrDefault(
@@ -54,8 +78,8 @@ public class GraphA2AConfiguration {
         );
 
         return new AgentCard(
-                "oracle_graph_agent",
-                "Specialist in Oracle Graph dependency analysis and supply chain visualization.",
+                agentName,
+                description,
                 graphUrl,
                 null,
                 "0.0.1",

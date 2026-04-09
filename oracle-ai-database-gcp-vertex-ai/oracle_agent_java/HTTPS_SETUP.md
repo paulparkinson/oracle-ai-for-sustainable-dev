@@ -1,6 +1,6 @@
 # HTTPS Setup for Gemini Enterprise
 
-This note captures the full setup we used to expose the Java graph agent over trusted HTTPS from a GCP Compute Engine VM with only a public IPv4 address.
+This note captures the full setup we used to expose the shared Java agent runtime over trusted HTTPS from a GCP Compute Engine VM with only a public IPv4 address.
 
 ## Why This Was Needed
 
@@ -8,10 +8,12 @@ Gemini Enterprise rejects `http://` agent URLs and expects `https://`.
 
 For this project, a self-signed certificate is not a good fit because the caller is Google-managed and needs to trust the certificate chain. We therefore used a publicly trusted Let's Encrypt IP certificate for the VM's public address.
 
-Current tested public endpoint:
+Current tested public endpoints:
 
 - Agent base URL: `https://34.48.146.146`
 - Agent card URL: `https://34.48.146.146/.well-known/agent-card.json`
+- Graph alias card URL: `https://34.48.146.146/agent-card-graph.json`
+- Spatial alias card URL: `https://34.48.146.146/agent-card-spatial.json`
 
 ## Prerequisites
 
@@ -41,7 +43,7 @@ This matches the layout we used on the GCP VM:
 
 ## Issue the IP Certificate
 
-From [`oracle_graph_agent_java`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_graph_agent_java), run:
+From [`oracle_agent_java`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java), run:
 
 ```bash
 PUBLIC_HOST="34.48.146.146" \
@@ -131,6 +133,8 @@ Use the public agent card and the local test harness:
 
 ```bash
 curl -sS https://34.48.146.146/.well-known/agent-card.json | python3 -m json.tool
+curl -sS https://34.48.146.146/agent-card-graph.json | python3 -m json.tool
+curl -sS https://34.48.146.146/agent-card-spatial.json | python3 -m json.tool
 GRAPH_AGENT_URL="https://34.48.146.146" ./test.sh
 ```
 
