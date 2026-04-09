@@ -96,6 +96,7 @@ and send the graph as structured JSON in the chat prompt. The parser accepts:
 - a raw JSON object as the whole prompt
 - a fenced JSON block inside a normal natural-language prompt
 - a normal natural-language prompt followed by a raw JSON object pasted below it, even without code fences
+- markdown-style escaped brackets such as `\[` and `\]` if the Gemini UI inserts them during paste
 - either the payload root itself or `{ "graphPayload": { ... } }`
 
 Recommended Gemini Enterprise prompt:

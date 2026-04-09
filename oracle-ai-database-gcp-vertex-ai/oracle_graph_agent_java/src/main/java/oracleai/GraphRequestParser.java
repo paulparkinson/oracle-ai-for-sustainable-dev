@@ -32,7 +32,7 @@ public class GraphRequestParser {
         }
 
         try {
-            JsonNode root = objectMapper.readTree(jsonCandidate);
+            JsonNode root = parsePayloadJson(jsonCandidate);
             JsonNode payloadNode = unwrapPayloadNode(root);
 
             if (!payloadNode.isObject()) {
@@ -142,6 +142,26 @@ public class GraphRequestParser {
         }
 
         return null;
+    }
+
+    private JsonNode parsePayloadJson(String jsonCandidate) throws Exception {
+        try {
+            return objectMapper.readTree(jsonCandidate);
+        } catch (Exception firstFailure) {
+            String normalized = normalizeMarkdownEscapes(jsonCandidate);
+            if (normalized.equals(jsonCandidate)) {
+                throw firstFailure;
+            }
+            return objectMapper.readTree(normalized);
+        }
+    }
+
+    private static String normalizeMarkdownEscapes(String input) {
+        return input
+                .replace("\\[", "[")
+                .replace("\\]", "]")
+                .replace("\\{", "{")
+                .replace("\\}", "}");
     }
 
     private static String balancedJsonObject(String text, int start) {
