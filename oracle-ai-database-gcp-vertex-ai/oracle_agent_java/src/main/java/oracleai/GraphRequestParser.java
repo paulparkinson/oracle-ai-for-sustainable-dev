@@ -24,8 +24,12 @@ public class GraphRequestParser {
 
     public GraphTools.GraphRequest parse(String userInput) {
         String safeInput = userInput == null ? "" : userInput;
+        String normalizedInput = normalizeMarkdownEscapes(safeInput);
         String textProductId = extractProductId(safeInput);
         String jsonCandidate = extractJsonCandidate(safeInput);
+        if (jsonCandidate == null && !normalizedInput.equals(safeInput)) {
+            jsonCandidate = extractJsonCandidate(normalizedInput);
+        }
 
         if (jsonCandidate == null) {
             return new GraphTools.GraphRequest(textProductId, null, false, null);
@@ -101,17 +105,17 @@ public class GraphRequestParser {
     }
 
     private static String extractJsonCandidate(String userInput) {
-        String trimmed = userInput.trim();
+        String trimmed = normalizeMarkdownEscapes(userInput).trim();
         if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
             return trimmed;
         }
 
-        Matcher fenceMatcher = JSON_FENCE_PATTERN.matcher(userInput);
+        Matcher fenceMatcher = JSON_FENCE_PATTERN.matcher(trimmed);
         if (fenceMatcher.find()) {
             return fenceMatcher.group(1);
         }
 
-        return extractEmbeddedJsonObject(userInput);
+        return extractEmbeddedJsonObject(trimmed);
     }
 
     private static String extractEmbeddedJsonObject(String userInput) {

@@ -12,9 +12,14 @@ import org.springframework.stereotype.Component;
 public class InventoryActionTools {
 
     private final Function<GraphTools.GraphRequest, GraphTools.GraphResponse> getSupplyChainDependencies;
+    private final SpatialTools spatialTools;
 
-    public InventoryActionTools(Function<GraphTools.GraphRequest, GraphTools.GraphResponse> getSupplyChainDependencies) {
+    public InventoryActionTools(
+            Function<GraphTools.GraphRequest, GraphTools.GraphResponse> getSupplyChainDependencies,
+            SpatialTools spatialTools
+    ) {
         this.getSupplyChainDependencies = getSupplyChainDependencies;
+        this.spatialTools = spatialTools;
     }
 
     @Schema(
@@ -63,18 +68,7 @@ public class InventoryActionTools {
             String productId
     ) {
         String normalizedProductId = normalizeProductId(productId);
-        SpatialSignal signal = spatialSignalFor(normalizedProductId);
-        Map<String, Object> result = orderedMap();
-        result.put("status", "ok");
-        result.put("productId", normalizedProductId);
-        result.put("hotspotRegion", signal.hotspotRegion());
-        result.put("hotspotSummary", signal.hotspotSummary());
-        result.put("recommendedSourceWarehouse", signal.recommendedSourceWarehouse());
-        result.put("recommendedDestinationWarehouse", signal.recommendedDestinationWarehouse());
-        result.put("suggestedTransferUnits", signal.suggestedTransferUnits());
-        result.put("coverageRiskDays", signal.coverageRiskDays());
-        result.put("sourceDetail", "Seeded spatial hotspot summary");
-        return result;
+        return spatialTools.spatialEvidenceFor(normalizedProductId);
     }
 
     @Schema(
@@ -203,35 +197,6 @@ public class InventoryActionTools {
         return value.trim();
     }
 
-    private static SpatialSignal spatialSignalFor(String productId) {
-        return switch (productId) {
-            case "SKU-600" -> new SpatialSignal(
-                    "Upper Midwest",
-                    "Demand pressure is concentrated around Chicago and Milwaukee, with Atlanta carrying buffer capacity.",
-                    "Warehouse: Atlanta Relief Hub",
-                    "Warehouse: Chicago Priority Hub",
-                    320,
-                    5
-            );
-            case "SKU-700" -> new SpatialSignal(
-                    "Northeast corridor",
-                    "Boston and Newark show simultaneous pressure, but Columbus still has transferable coverage.",
-                    "Warehouse: Columbus Overflow Hub",
-                    "Warehouse: Boston Priority Hub",
-                    280,
-                    6
-            );
-            default -> new SpatialSignal(
-                    "Northeast corridor",
-                    "Newark is the primary hotspot and can be stabilized with inventory rebalancing from Columbus.",
-                    "Warehouse: Columbus Final Pack",
-                    "Warehouse: Newark Inventory Hub",
-                    500,
-                    4
-            );
-        };
-    }
-
     private static ExternalSignal externalSignalFor(String productId) {
         return switch (productId) {
             case "SKU-600" -> new ExternalSignal(
@@ -254,15 +219,6 @@ public class InventoryActionTools {
             );
         };
     }
-
-    private record SpatialSignal(
-            String hotspotRegion,
-            String hotspotSummary,
-            String recommendedSourceWarehouse,
-            String recommendedDestinationWarehouse,
-            int suggestedTransferUnits,
-            int coverageRiskDays
-    ) {}
 
     private record ExternalSignal(
             String signalName,

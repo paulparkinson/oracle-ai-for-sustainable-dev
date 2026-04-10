@@ -1,7 +1,6 @@
 package oracleai;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import org.springframework.context.annotation.Bean;
@@ -234,64 +232,8 @@ public class GraphTools {
 
     private static GraphResponse resolveDatabaseGraph(Environment environment, GraphRequest request) {
         String productId = resolveRequestedProductId(request);
-        String username = requiredProperty(environment, "DB_USERNAME");
-        String password = requiredProperty(environment, "DB_PASSWORD");
-        String dsn = requiredProperty(environment, "DB_DSN");
-        String walletPassword = valueOrFallback(environment.getProperty("DB_WALLET_PASSWORD"), "");
-        String tnsAdmin = firstNonBlank(
-                environment.getProperty("TNS_ADMIN"),
-                environment.getProperty("DB_WALLET_DIR")
-        );
-
-        if (tnsAdmin.isBlank()) {
-            throw new IllegalArgumentException("TNS_ADMIN or DB_WALLET_DIR must be configured for database mode.");
-        }
-
-        try {
-            Class.forName("oracle.jdbc.OracleDriver");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Oracle JDBC driver is not available.", e);
-        }
-
-        Properties connectionProperties = new Properties();
-        connectionProperties.setProperty("user", username);
-        connectionProperties.setProperty("password", password);
-        connectionProperties.setProperty("oracle.net.tns_admin", tnsAdmin);
-        connectionProperties.setProperty("TNS_ADMIN", tnsAdmin);
-        connectionProperties.setProperty("oracle.net.ssl_server_dn_match", "false");
-
-        System.setProperty("oracle.net.tns_admin", tnsAdmin);
-        System.setProperty("TNS_ADMIN", tnsAdmin);
-        System.setProperty("oracle.net.ssl_server_dn_match", "false");
-
-        if (walletPassword.isBlank()) {
-            String walletLocation =
-                    "(SOURCE=(METHOD=FILE)(METHOD_DATA=(DIRECTORY=" + tnsAdmin + ")))";
-            connectionProperties.setProperty("oracle.net.wallet_location", walletLocation);
-            System.setProperty("oracle.net.wallet_location", walletLocation);
-        } else {
-            String trustStore = tnsAdmin + "/truststore.jks";
-            String keyStore = tnsAdmin + "/keystore.jks";
-
-            connectionProperties.setProperty("javax.net.ssl.trustStore", trustStore);
-            connectionProperties.setProperty("javax.net.ssl.trustStoreType", "JKS");
-            connectionProperties.setProperty("javax.net.ssl.trustStorePassword", walletPassword);
-            connectionProperties.setProperty("javax.net.ssl.keyStore", keyStore);
-            connectionProperties.setProperty("javax.net.ssl.keyStoreType", "JKS");
-            connectionProperties.setProperty("javax.net.ssl.keyStorePassword", walletPassword);
-
-            System.setProperty("javax.net.ssl.trustStore", trustStore);
-            System.setProperty("javax.net.ssl.trustStoreType", "JKS");
-            System.setProperty("javax.net.ssl.trustStorePassword", walletPassword);
-            System.setProperty("javax.net.ssl.keyStore", keyStore);
-            System.setProperty("javax.net.ssl.keyStoreType", "JKS");
-            System.setProperty("javax.net.ssl.keyStorePassword", walletPassword);
-        }
-
-        String jdbcUrl = "jdbc:oracle:thin:@" + dsn + "?TNS_ADMIN=" + tnsAdmin;
-
         try (
-                Connection connection = DriverManager.getConnection(jdbcUrl, connectionProperties);
+                Connection connection = OracleJdbcSupport.openConnection(environment);
                 PreparedStatement statement = connection.prepareStatement(DATABASE_GRAPH_QUERY)
         ) {
             statement.setString(1, productId);
@@ -493,14 +435,6 @@ public class GraphTools {
         }
 
         return firstNonBlank(payloadProductId, textProductId, DEFAULT_PRODUCT_ID);
-    }
-
-    private static String requiredProperty(Environment environment, String key) {
-        String value = environment.getProperty(key);
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(key + " must be configured for database mode.");
-        }
-        return value;
     }
 
     private static String requiredValue(String value, String fieldName) {

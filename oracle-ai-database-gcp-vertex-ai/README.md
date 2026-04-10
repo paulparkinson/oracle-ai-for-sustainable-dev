@@ -30,12 +30,14 @@ Without Gemini API or Vertex AI credentials, a model-driven flow fails before to
 
 If you build a purely deterministic agent endpoint that directly calls local code without an LLM reasoning step, then that endpoint would not need Gemini/Vertex model credentials.
 
-The current sample agents in this repo are now both deterministic and image-first:
+The current sample agents in this repo are now mostly deterministic and image-first:
 
-- the Python spatial agent returns a PNG map artifact
 - the Java graph agent returns a PNG graph artifact
+- the Java spatial agent returns a PNG hotspot-map artifact
+- the Java Select AI agent can answer in deterministic SQL-fallback mode until a real `DBMS_CLOUD_AI` profile is configured
+- the Java inventory-action agent tries ADK first and falls back cleanly when host ADC is stale
 
-So the current local demo does not require Vertex AI or Gemini API auth to answer requests. The shared Vertex settings are still useful repo infrastructure if you add a model-driven agent later.
+So the current local demo does not require live Vertex AI or Gemini API auth for the graph, spatial, or Select AI fallback paths. The shared Vertex settings are still useful repo infrastructure for the ADK-backed action stage and for future model-driven agents.
 
 ## Shared Repo Configuration
 
@@ -120,14 +122,15 @@ Inference from Google's docs: the Vertex AI ADC path is the better fit for this 
 
 ## Agent Directories
 
-- [oracle_spatial_agent_python](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_spatial_agent_python/README.md): Python A2A agent for warehouse map / spatial workflows. The current version is deterministic and returns a PNG artifact.
-- [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md): shared Java/Spring Boot A2A runtime. The current implementation is graph-first, but the same process now serves multiple agent cards and is the natural home for future Java-side orchestration.
+- [oracle_spatial_agent_python](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_spatial_agent_python/README.md): earlier Python A2A agent for warehouse map workflows. It is now mostly a reference implementation.
+- [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md): shared Java/Spring Boot A2A runtime serving the graph agent, spatial agent, Select AI agent, and inventory-action coordinator from one process.
+- [GEMINI_ENTERPRISE_AGENT_SETUP.md](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md): current Gemini Enterprise import URLs, which four agents to create, test prompts, expected behavior, payload-path notes, and the ADC caveat for the ADK action coordinator.
 
 ## Demo Flow
 
 The current demo storyboard is:
 
-1. Gemini Enterprise calls an Oracle AI Database agent to identify inventory risk, such as likely stockouts next quarter.
+1. Gemini Enterprise calls a Select AI-style Oracle inventory analyst to identify inventory risk, such as likely stockouts next quarter.
 2. The same conversation drills into which warehouses, counties, or regions are driving the risk while preserving conversational context.
 3. A spatial specialist renders the hotspot map so the user can see where the pressure is concentrated.
 4. A graph specialist renders the supplier dependency chain so the user can see why the risk exists.
@@ -140,7 +143,7 @@ The best use of the Java ADK pieces here is as an orchestrator around the existi
 
 Recommended shape:
 
-- Keep the current A2A specialists focused and deterministic. The Python spatial agent should keep owning map rendering, and the Java runtime should keep owning graph rendering and any Java-heavy business logic.
+- Keep the current A2A specialists focused and deterministic. The Java runtime can own graph rendering, hotspot-map rendering, and Java-heavy business logic, while the Python spatial sample remains a useful reference.
 - Add a Java ADK coordinator for the final action stage. Use an `LlmAgent` for intent interpretation and recommendation synthesis, `ParallelAgent` for concurrent evidence gathering, `SequentialAgent` for the overall decision pipeline, and `FunctionTool` wrappers for policy checks and action execution.
 - Treat the existing specialist agents as downstream tools or A2A calls. The coordinator should gather risk rows, map output, graph output, and external research, then write normalized fields into shared session state before making a recommendation.
 - Put the actual inventory move behind a human or policy gate. The right last step for the demo is not immediate execution; it is proposal, validation, approval, and only then execution.
@@ -165,11 +168,54 @@ What is implemented today:
 - a separate action card import URL at `https://34.48.146.146/agent-card-action.json`
 - a Google ADK Java coordinator that uses a `ParallelAgent` for evidence gathering and a final `LlmAgent` for recommendation synthesis
 - tool-backed graph evidence from the live Oracle graph path
-- seeded spatial and external evidence tools so we can demonstrate the full multi-agent arc without splitting the runtime yet
+- a real in-process spatial hotspot tool plus seeded external evidence so we can demonstrate the full multi-agent arc without splitting the runtime yet
 - a policy check and draft transfer tool so the final answer can explicitly say whether approval is required
 
 What still comes next:
 
-- swap the seeded spatial and external tools for real downstream A2A or MCP-backed calls
+- swap the seeded external-intel tool for a real downstream A2A or MCP-backed call
 - persist richer shared state across multi-turn conversations
 - optionally separate the action coordinator into its own runtime once the demo shape settles
+
+## Gemini Enterprise Right Now
+
+If you want the current Gemini Enterprise setup, create these four agents:
+
+1. Graph agent
+   `https://34.48.146.146/agent-card-graph.json`
+
+2. Spatial agent
+   `https://34.48.146.146/agent-card-spatial.json`
+
+3. Select AI agent
+   `https://34.48.146.146/agent-card-select-ai.json`
+
+4. Inventory action agent
+   `https://34.48.146.146/agent-card-action.json`
+
+Current status:
+
+- the graph agent is the main production-demo path and is working against the Oracle graph database
+- the graph renderer still uses custom Java2D layout and image generation
+- the spatial agent is now a real in-process spatial implementation that uses the JTS Topology Suite for geometry work and Java2D for the rendered PNG
+- the Select AI agent is live in the same Java process and currently answers through deterministic SQL fallback until a `DBMS_CLOUD_AI` profile is configured
+- the inventory action agent is live and working, but it currently returns deterministic fallback recommendations because the VM-side ADC refresh is stale for the ADK model path
+
+Quick Gemini Enterprise test prompts:
+
+- Select AI:
+  `Which products are at risk of stockouts next quarter, and which regions are driving that risk?`
+
+- Spatial:
+  `Show that on a map for SKU-500 and highlight the warehouse hotspots plus the best relief route.`
+
+- Graph:
+  `Use the Oracle Database property graph to show supply chain dependencies for SKU-500 and render the graph as an image.`
+
+- Graph payload:
+  `Render this supply-chain dependency graph exactly from the structured payload below. Do not query the database. Use the payload as the authoritative graph input.`
+
+- Inventory action:
+  `What inventory action should we take for SKU-500 given the current supply risk? Gather graph, spatial, and external evidence first, then recommend the safest next move and say whether approval is required.`
+
+The full import and test runbook is in [GEMINI_ENTERPRISE_AGENT_SETUP.md](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md).

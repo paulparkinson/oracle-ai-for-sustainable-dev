@@ -196,18 +196,33 @@ public class InventoryActionAdkService {
         String approvalLine = Boolean.TRUE.equals(policyResult.get("requiresApproval"))
                 ? "Approval is required before execution."
                 : "Only standard review is required before execution.";
+        String dependencyPath = stringValue(graphEvidence.get("dependencyPath"));
+        String activeAlert = stringValue(graphEvidence.get("activeAlert"));
+        String hotspotSummary = stringValue(spatialEvidence.get("hotspotSummary"));
+        String signalSummary = stringValue(externalSignals.get("signalSummary"));
+
+        List<String> rationaleParts = new ArrayList<>();
+        if (!dependencyPath.isBlank()) {
+            rationaleParts.add(toSentence(dependencyPath));
+        }
+        if (!activeAlert.isBlank()) {
+            rationaleParts.add(toSentence(activeAlert));
+        }
+        if (!hotspotSummary.isBlank()) {
+            rationaleParts.add(toSentence(hotspotSummary));
+        }
+        if (!signalSummary.isBlank()) {
+            rationaleParts.add(toSentence(signalSummary));
+        }
 
         String responseText = "Fallback recommendation for " + productId + ": transfer "
                 + units + " units from " + sourceWarehouse + " to " + destinationWarehouse + ". "
-                + "Why: " + stringValue(graphEvidence.get("dependencyPath")) + ". "
-                + stringValue(graphEvidence.get("activeAlert")) + ". "
-                + stringValue(spatialEvidence.get("hotspotSummary")) + ". "
-                + stringValue(externalSignals.get("signalSummary")) + ". "
-                + approvalLine + " Draft action id: "
+                + "Why: " + String.join(" ", rationaleParts) + " "
+                + toSentence(approvalLine) + " Draft action id: "
                 + stringValue(draftResult.get("draftActionId")) + ". "
-                + "Policy check: " + stringValue(policyResult.get("policySummary")) + ". "
+                + "Policy check: " + toSentence(stringValue(policyResult.get("policySummary"))) + " "
                 + "The ADK model path was unavailable, so this response used deterministic local orchestration instead ("
-                + exception.getMessage() + ").";
+                + toParenthetical(exception.getMessage()) + ").";
 
         List<String> trace = List.of(
                 "graphEvidence=" + graphEvidence,
@@ -264,6 +279,28 @@ public class InventoryActionAdkService {
         } catch (NumberFormatException exception) {
             return defaultValue;
         }
+    }
+
+    private static String toSentence(String value) {
+        String normalized = stringValue(value).trim();
+        if (normalized.isBlank()) {
+            return "";
+        }
+        while (normalized.endsWith(".") || normalized.endsWith("!") || normalized.endsWith("?")) {
+            normalized = normalized.substring(0, normalized.length() - 1).trim();
+        }
+        return normalized + ".";
+    }
+
+    private static String toParenthetical(String value) {
+        String normalized = stringValue(value).trim();
+        if (normalized.isBlank()) {
+            return "unknown error";
+        }
+        while (normalized.endsWith(".") || normalized.endsWith("!") || normalized.endsWith("?")) {
+            normalized = normalized.substring(0, normalized.length() - 1).trim();
+        }
+        return normalized;
     }
 
     public record InventoryActionResult(String responseText, List<String> trace, String orchestrationMode) {}

@@ -32,7 +32,7 @@ public class AdditionalAgentCardController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     AgentCard spatialAgentCard() {
-        return GraphA2AConfiguration.buildSpatialAliasCard(environment);
+        return SpatialAgentCardFactory.buildSpatialAgentCard(environment);
     }
 
     @GetMapping(
@@ -44,5 +44,17 @@ public class AdditionalAgentCardController {
     )
     AgentCard actionAgentCard() {
         return InventoryActionCardFactory.buildInventoryActionAgentCard(environment);
+    }
+
+    @GetMapping(
+            value = {
+                    "/agent-card-select-ai.json",
+                    "/select-ai-agent-card.json",
+                    "/oracle-ai-database-agent-card.json"
+            },
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    AgentCard selectAiAgentCard() {
+        return SelectAiCardFactory.buildSelectAiAgentCard(environment);
     }
 }

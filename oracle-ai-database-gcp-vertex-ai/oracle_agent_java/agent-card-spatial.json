@@ -1,7 +1,7 @@
 {
   "name": "oracle_spatial_agent",
-  "description": "Spatial import alias served by the shared Oracle Java agent runtime. Current behavior still routes to the graph-oriented implementation.",
-  "url": "https://34.48.146.146",
+  "description": "Spatial hotspot specialist for Oracle inventory risk workflows. It renders a PNG map from warehouse hotspot data, highlighting the primary pressure point and suggested relief route.",
+  "url": "https://34.48.146.146/spatial",
   "version": "0.0.1",
   "capabilities": {
     "streaming": false,
@@ -18,11 +18,12 @@
   ],
   "skills": [
     {
-      "id": "oracle_graph_agent",
-      "name": "model",
-      "description": "Specialist in Oracle Graph dependency analysis. When a user asks for supply chain dependencies or graph relationships, use the getSupplyChainDependencies tool.",
+      "id": "oracle_spatial_agent",
+      "name": "spatial-hotspot-renderer",
+      "description": "Specialist in Oracle spatial hotspot visualizations for warehouse and inventory pressure.",
       "tags": [
-        "llm"
+        "llm",
+        "spatial"
       ],
       "examples": [],
       "inputModes": [
@@ -34,14 +35,18 @@
       ]
     },
     {
-      "id": "oracle_graph_agent-getSupplyChainDependencies",
-      "name": "getSupplyChainDependencies",
-      "description": "Fetches supply chain dependencies from Oracle Property Graph for a specific product ID.",
+      "id": "oracle_spatial_agent-renderHotspotMap",
+      "name": "renderHotspotMap",
+      "description": "Render a PNG hotspot map for a product such as SKU-500, using Oracle-backed warehouse risk data when available.",
       "tags": [
         "llm",
-        "tools"
+        "tools",
+        "map"
       ],
       "examples": [],
+      "inputModes": [
+        "text/plain"
+      ],
       "outputModes": [
         "image/png"
       ]

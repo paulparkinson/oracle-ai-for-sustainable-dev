@@ -2,7 +2,14 @@
 
 This directory now holds the shared Java/Spring Boot A2A runtime for the Oracle demo's Java-served agent experiences.
 
-Today, the live implementation is still graph-first: it uses a deterministic A2A executor that calls the local graph tool directly and returns a rendered `image/png` artifact plus a short text summary. The same process can also serve multiple public agent cards so we can experiment with separate Gemini Enterprise imports before we split the runtime further.
+Today, the same Java process serves four agent surfaces:
+
+- graph agent at the root `/`
+- spatial hotspot agent at `/spatial`
+- Select AI-style inventory analyst at `/select-ai`
+- inventory-action coordinator at `/inventory-action`
+
+The graph renderer still uses deterministic application logic plus custom Java2D image generation. The spatial agent now uses JTS for geometry work and Java2D for the rendered PNG. The action agent uses Google ADK Java when credentials are available and falls back cleanly when they are not.
 
 ## Related Files
 
@@ -11,11 +18,15 @@ Today, the live implementation is still graph-first: it uses a deterministic A2A
 - [`sql/run_supply_chain_graph_setup.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_setup.sh): SQLcl-based wrapper that logs precheck, setup, and postcheck output into a timestamped `sql/logs/` run directory.
 - [`sql/seed_supply_chain_graph_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_supply_chain_graph_data.sql): idempotent sample data seed for three supply-chain paths, including `SKU-500`.
 - [`sql/run_supply_chain_graph_seed.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_seed.sh): SQLcl-based wrapper that logs row counts and runs verification queries after seeding.
+- [`sql/setup_inventory_risk_demo_schema.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_inventory_risk_demo_schema.sql): idempotent setup DDL for the inventory-risk summary, warehouse-geo, and hotspot tables used by the spatial and Select AI flows.
+- [`sql/seed_inventory_risk_demo_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_inventory_risk_demo_data.sql): idempotent sample data seed for the spatial and Select AI demo tables.
+- [`sql/configure_select_ai_openai_profile.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql): example database-side setup for a demo `DBMS_CLOUD_AI` profile using an external provider such as OpenAI.
 - [`GRAPH_DATA_MODES.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/GRAPH_DATA_MODES.md): how `GRAPH_DATA_MODE=database|payload|auto` works, the supported JSON contract, and the validation rules for multi-agent flows.
 - [`MULTI_AGENT_GRAPH_FLOW.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/MULTI_AGENT_GRAPH_FLOW.md): architecture notes for direct DB lookup vs upstream-agent payload handoff, including provenance, validation, and recommended `auto` behavior.
 - [`HTTPS_SETUP.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
 - [`agent-card-graph.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-graph.json): saved snapshot of the primary graph card.
-- [`agent-card-spatial.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial alias card served by the same Java process.
+- [`agent-card-spatial.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial hotspot card served by the same Java process.
+- [`agent-card-select-ai.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-select-ai.json): saved snapshot of the Select AI-style inventory analyst card.
 - [`agent-card-action.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-action.json): saved snapshot of the inventory-action coordinator card.
 
 ## Setup Instructions
@@ -70,14 +81,17 @@ Today, the live implementation is still graph-first: it uses a deterministic A2A
    private directory so the non-root Java process can use HTTPS safely.
 
    Current tested import URLs:
-   - standard HTTPS: `https://34.48.146.146/.well-known/agent-card.json`
    - graph alias card on the same Java process: `https://34.48.146.146/agent-card-graph.json`
-   - spatial alias card on the same Java process: `https://34.48.146.146/agent-card-spatial.json`
+   - spatial hotspot card on the same Java process: `https://34.48.146.146/agent-card-spatial.json`
+   - Select AI card on the same Java process: `https://34.48.146.146/agent-card-select-ai.json`
    - inventory-action card on the same Java process: `https://34.48.146.146/agent-card-action.json`
+   - graph default card path: `https://34.48.146.146/.well-known/agent-card.json`
+   - dedicated spatial A2A card path: `https://34.48.146.146/spatial/.well-known/agent-card.json`
+   - dedicated Select AI A2A card path: `https://34.48.146.146/select-ai/.well-known/agent-card.json`
    - dedicated inventory-action A2A card path: `https://34.48.146.146/inventory-action/.well-known/agent-card.json`
    - direct HTTPS on 8080: `https://34.48.146.146:8080/.well-known/agent-card.json`
 
-   The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial card is currently an import alias for Gemini Enterprise experiments, not a separate spatial implementation yet. The inventory-action card is a real additional agent surface in the same Spring Boot process, served at `/inventory-action`.
+   For Gemini Enterprise imports, prefer the four matching alias URLs: `agent-card-graph.json`, `agent-card-spatial.json`, `agent-card-select-ai.json`, and `agent-card-action.json`. The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial, Select AI, and inventory-action cards are real additional agent surfaces in the same Spring Boot process.
 
    On the GCP VM, a reliable way to keep the `443` deployment alive after SSH exits is to
    start it as a transient `systemd` service instead of a background shell job:
@@ -203,10 +217,63 @@ This coordinator is the first cut of the final-stage action flow described in th
 Current tool coverage inside the coordinator:
 
 - `getGraphEvidence`: calls the Oracle graph tool directly and summarizes the dependency path
-- `getSpatialEvidence`: returns the current seeded hotspot view and a suggested transfer direction
+- `getSpatialEvidence`: calls the in-process spatial tool and returns a hotspot summary plus a suggested transfer direction
 - `getExternalSignals`: returns seeded weather or lane-risk context
 - `checkTransferPolicy`: decides whether approval is required
 - `draftInventoryTransferAction`: creates a draft, not an execution
+
+## Spatial Agent
+
+The same Java process now also serves a dedicated spatial hotspot agent at:
+
+- card alias: `https://34.48.146.146/agent-card-spatial.json`
+- dedicated card path: `https://34.48.146.146/spatial/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://34.48.146.146/spatial`
+
+What it does today:
+
+- looks up hotspot rows from `sc_inventory_risk_summary`, `sc_warehouse_risk_snapshot`, and `sc_warehouse_geo` when those tables are present
+- falls back to seeded hotspot data for `SKU-500`, `SKU-700`, and `SKU-900` when the tables are not yet available
+- uses JTS Topology Suite for geometry work such as envelopes, hulls, and route lines
+- renders the final `image/png` artifact with Java2D so the output stays self-contained in the existing JVM
+
+Recommended Gemini Enterprise prompt:
+
+```text
+Show that on a map for SKU-500 and highlight the warehouse hotspots plus the best relief route.
+```
+
+Expected response shape:
+
+- PNG artifact named `warehouse-hotspot-map.png`
+- text summary identifying the main hotspot warehouse and the likely relief source
+- metadata showing `sourceMode=database` or `sourceMode=seeded`
+
+## Select AI Agent
+
+The same Java process now also serves a Select AI-style analyst at:
+
+- card alias: `https://34.48.146.146/agent-card-select-ai.json`
+- dedicated card path: `https://34.48.146.146/select-ai/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://34.48.146.146/select-ai`
+
+What it does today:
+
+- if `SELECT_AI_PROFILE` or `DBMS_CLOUD_AI_PROFILE` is configured, it calls `DBMS_CLOUD_AI.GENERATE`
+- otherwise it answers honestly through deterministic SQL summaries over the demo tables
+- it supports question styles such as `narrate`, `showsql`, and `explainsql`
+
+Recommended Gemini Enterprise prompt:
+
+```text
+Which products are at risk of stockouts next quarter, and which regions are driving that risk?
+```
+
+Current expected response shape:
+
+- plain-text summary of the highest-risk products
+- plain-text regional-driver detail for the requested or inferred SKU
+- metadata showing `executionMode=direct-sql-fallback` until a live Select AI profile is configured
 
 Recommended Gemini Enterprise prompt:
 
@@ -292,8 +359,10 @@ If you move this agent under another repo:
 - The JSON-RPC test uses the standard A2A `message/send` method at the root `/` endpoint and summarizes returned artifacts without printing the embedded base64 PNG.
 - The current response model is: PNG artifact first, text summary second.
 - The graph agent now supports `GRAPH_DATA_MODE=database|payload|auto`. In `database` mode it queries the seeded Oracle Property Graph directly; in `payload` mode it renders a validated upstream JSON payload; in `auto` mode it prefers payload and falls back to the database.
+- The graph agent still renders its output with custom Java2D code, not a separate graph-visualization library.
+- The spatial agent uses JTS for geometry handling and Java2D for final rendering.
 - `GraphTools.getSupplyChainDependencies()` now owns both the Oracle query path and the validated payload path.
-- The inventory-action coordinator uses Google ADK Java in-process. It currently mixes one live Oracle graph tool with seeded spatial and external evidence tools while we keep the overall demo in a single convenient JVM.
+- The inventory-action coordinator uses Google ADK Java in-process. It currently mixes one live Oracle graph tool, one live in-process spatial tool, and seeded external evidence while we keep the overall demo in a single convenient JVM.
 - The inventory-action coordinator is ADK-first, but it now has a deterministic fallback so the demo still returns a recommendation when remote Vertex credentials are missing or expired.
 - For wallet-backed Oracle Database access, the Maven config now imports Oracle's `ojdbc-bom`, pins Spring Boot's managed Oracle version to `23.3.0.23.09`, and includes `oraclepki` alongside `ojdbc11`. Older 19c/21c examples in this repo use `osdt_core` and `osdt_cert`, but Oracle's 23ai guidance says wallet support on 23ai only requires `oraclepki`, and the `23.3.0.23.09` `osdt_*` artifacts are not published on Maven Central.
 - Self-signed certificates are a poor fit for Gemini Enterprise because the Google-managed caller must trust the certificate chain. Use a publicly trusted certificate instead.
