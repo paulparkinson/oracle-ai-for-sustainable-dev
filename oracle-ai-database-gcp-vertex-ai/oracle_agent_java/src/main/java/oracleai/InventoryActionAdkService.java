@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +25,13 @@ import org.springframework.stereotype.Service;
 public class InventoryActionAdkService {
 
     private static final String APP_NAME = "oracle-inventory-action";
+    private static final Pattern PRODUCT_ID_PATTERN = Pattern.compile("\\b([A-Z]{2,}-\\d+)\\b");
 
     private final InMemoryRunner runner;
+    private final InventoryActionTools inventoryActionTools;
 
     public InventoryActionAdkService(Environment environment, InventoryActionTools tools) {
+        this.inventoryActionTools = tools;
         String modelName = firstNonBlank(
                 environment.getProperty("ACTION_COORDINATOR_MODEL"),
                 environment.getProperty("MODEL_NAME"),
@@ -116,6 +121,14 @@ public class InventoryActionAdkService {
         String normalizedInput = userInput == null || userInput.isBlank()
                 ? "Recommend an inventory action for SKU-500."
                 : userInput.trim();
+        try {
+            return runAdk(normalizedInput, contextId);
+        } catch (Exception exception) {
+            return runDeterministicFallback(normalizedInput, exception);
+        }
+    }
+
+    private InventoryActionResult runAdk(String normalizedInput, String contextId) {
         String userId = firstNonBlank(contextId, "inventory-action-user");
         String sessionId = firstNonBlank(contextId, "inventory-action-session");
         Session session = ensureSession(userId, sessionId);
@@ -147,7 +160,64 @@ public class InventoryActionAdkService {
                         "The inventory action coordinator did not return a final recommendation."
                 );
 
-        return new InventoryActionResult(resolvedText, trace);
+        return new InventoryActionResult(resolvedText, trace, "adk");
+    }
+
+    private InventoryActionResult runDeterministicFallback(String userInput, Exception exception) {
+        String productId = extractProductId(userInput);
+        Map<String, Object> graphEvidence = inventoryActionTools.getGraphEvidence(productId);
+        Map<String, Object> spatialEvidence = inventoryActionTools.getSpatialEvidence(productId);
+        Map<String, Object> externalSignals = inventoryActionTools.getExternalSignals(productId);
+
+        String sourceWarehouse = stringValue(spatialEvidence.get("recommendedSourceWarehouse"));
+        String destinationWarehouse = stringValue(spatialEvidence.get("recommendedDestinationWarehouse"));
+        int units = intValue(spatialEvidence.get("suggestedTransferUnits"), 250);
+
+        String combinedReason = "Graph: "
+                + stringValue(graphEvidence.get("activeAlert"))
+                + ". External: "
+                + stringValue(externalSignals.get("signalSummary"));
+
+        Map<String, Object> policyResult = inventoryActionTools.checkTransferPolicy(
+                productId,
+                sourceWarehouse,
+                destinationWarehouse,
+                units,
+                combinedReason
+        );
+        Map<String, Object> draftResult = inventoryActionTools.draftInventoryTransferAction(
+                productId,
+                sourceWarehouse,
+                destinationWarehouse,
+                units,
+                combinedReason
+        );
+
+        String approvalLine = Boolean.TRUE.equals(policyResult.get("requiresApproval"))
+                ? "Approval is required before execution."
+                : "Only standard review is required before execution.";
+
+        String responseText = "Fallback recommendation for " + productId + ": transfer "
+                + units + " units from " + sourceWarehouse + " to " + destinationWarehouse + ". "
+                + "Why: " + stringValue(graphEvidence.get("dependencyPath")) + ". "
+                + stringValue(graphEvidence.get("activeAlert")) + ". "
+                + stringValue(spatialEvidence.get("hotspotSummary")) + ". "
+                + stringValue(externalSignals.get("signalSummary")) + ". "
+                + approvalLine + " Draft action id: "
+                + stringValue(draftResult.get("draftActionId")) + ". "
+                + "Policy check: " + stringValue(policyResult.get("policySummary")) + ". "
+                + "The ADK model path was unavailable, so this response used deterministic local orchestration instead ("
+                + exception.getMessage() + ").";
+
+        List<String> trace = List.of(
+                "graphEvidence=" + graphEvidence,
+                "spatialEvidence=" + spatialEvidence,
+                "externalSignals=" + externalSignals,
+                "policyResult=" + policyResult,
+                "draftResult=" + draftResult
+        );
+
+        return new InventoryActionResult(responseText, trace, "deterministic-fallback");
     }
 
     private Session ensureSession(String userId, String sessionId) {
@@ -173,5 +243,28 @@ public class InventoryActionAdkService {
         return "";
     }
 
-    public record InventoryActionResult(String responseText, List<String> trace) {}
+    private static String extractProductId(String userInput) {
+        Matcher matcher = PRODUCT_ID_PATTERN.matcher(userInput == null ? "" : userInput.toUpperCase());
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "SKU-500";
+    }
+
+    private static String stringValue(Object value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private static int intValue(Object value, int defaultValue) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        try {
+            return Integer.parseInt(stringValue(value));
+        } catch (NumberFormatException exception) {
+            return defaultValue;
+        }
+    }
+
+    public record InventoryActionResult(String responseText, List<String> trace, String orchestrationMode) {}
 }

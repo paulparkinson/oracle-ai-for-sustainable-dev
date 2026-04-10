@@ -123,7 +123,7 @@ public class InventoryActionA2AController {
                             updater.newAgentMessage(
                                     List.of(new TextPart(result.responseText())),
                                     Map.of(
-                                            "coordinator", "adk",
+                                            "coordinator", result.orchestrationMode(),
                                             "traceCount", result.trace().size()
                                     )
                             )

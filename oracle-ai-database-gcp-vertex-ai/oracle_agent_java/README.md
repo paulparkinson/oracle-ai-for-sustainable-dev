@@ -198,6 +198,7 @@ This coordinator is the first cut of the final-stage action flow described in th
 - it runs a `ParallelAgent` for graph, spatial, and external evidence gathering
 - it follows that with an `LlmAgent` decision step that checks policy and drafts a transfer recommendation
 - it does not execute the move; it only recommends and drafts, with approval handling called out in the response
+- if the ADK model path is unavailable because Vertex credentials are not refreshed on the host, it falls back to deterministic local orchestration instead of returning a hard failure
 
 Current tool coverage inside the coordinator:
 
@@ -293,5 +294,6 @@ If you move this agent under another repo:
 - The graph agent now supports `GRAPH_DATA_MODE=database|payload|auto`. In `database` mode it queries the seeded Oracle Property Graph directly; in `payload` mode it renders a validated upstream JSON payload; in `auto` mode it prefers payload and falls back to the database.
 - `GraphTools.getSupplyChainDependencies()` now owns both the Oracle query path and the validated payload path.
 - The inventory-action coordinator uses Google ADK Java in-process. It currently mixes one live Oracle graph tool with seeded spatial and external evidence tools while we keep the overall demo in a single convenient JVM.
+- The inventory-action coordinator is ADK-first, but it now has a deterministic fallback so the demo still returns a recommendation when remote Vertex credentials are missing or expired.
 - For wallet-backed Oracle Database access, the Maven config now imports Oracle's `ojdbc-bom`, pins Spring Boot's managed Oracle version to `23.3.0.23.09`, and includes `oraclepki` alongside `ojdbc11`. Older 19c/21c examples in this repo use `osdt_core` and `osdt_cert`, but Oracle's 23ai guidance says wallet support on 23ai only requires `oraclepki`, and the `23.3.0.23.09` `osdt_*` artifacts are not published on Maven Central.
 - Self-signed certificates are a poor fit for Gemini Enterprise because the Google-managed caller must trust the certificate chain. Use a publicly trusted certificate instead.
