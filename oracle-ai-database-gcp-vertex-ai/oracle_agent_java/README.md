@@ -237,6 +237,7 @@ What it does today:
 - looks up hotspot rows from `sc_inventory_risk_summary`, `sc_warehouse_risk_snapshot`, and `sc_warehouse_geo` when those tables are present
 - falls back to seeded hotspot data for `SKU-500`, `SKU-700`, and `SKU-900` when the tables are not yet available
 - uses JTS Topology Suite for geometry work such as envelopes, hulls, and route lines
+- overlays bundled GeoJSON basemap layers for US state boundaries, major rivers, and lakes so the map reads more like a real regional view
 - renders the final `image/png` artifact with Java2D so the output stays self-contained in the existing JVM
 
 Recommended Gemini Enterprise prompt:

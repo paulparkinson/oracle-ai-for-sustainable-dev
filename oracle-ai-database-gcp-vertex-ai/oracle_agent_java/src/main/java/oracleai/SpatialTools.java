@@ -1,5 +1,7 @@
 package oracleai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -12,6 +14,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -81,10 +84,12 @@ public class SpatialTools {
 
     private final Environment environment;
     private final GeometryFactory geometryFactory;
+    private final BasemapLayers basemapLayers;
 
-    public SpatialTools(Environment environment) {
+    public SpatialTools(Environment environment, ObjectMapper objectMapper) {
         this.environment = environment;
         this.geometryFactory = new GeometryFactory();
+        this.basemapLayers = loadBasemapLayers(objectMapper);
     }
 
     public SpatialResponse resolveSpatialResponse(String userInput) {
@@ -283,9 +288,9 @@ public class SpatialTools {
     }
 
     private void drawMapPanel(Graphics2D graphics, SpatialResponse response, int left, int top, int width, int height) {
-        graphics.setColor(new Color(0xF8FAFC));
+        graphics.setColor(new Color(0xDDECF7));
         graphics.fill(new RoundRectangle2D.Double(left, top, width, height, 30, 30));
-        graphics.setColor(new Color(0xC7D2FE));
+        graphics.setColor(new Color(0xAEC4D6));
         graphics.setStroke(new BasicStroke(2f));
         graphics.draw(new RoundRectangle2D.Double(left, top, width, height, 30, 30));
 
@@ -296,9 +301,24 @@ public class SpatialTools {
         Geometry hull = multiPoint.convexHull();
         Envelope envelope = expandEnvelope(multiPoint.getEnvelopeInternal());
 
+        drawStatePolygons(graphics, basemapLayers.statePolygons(), envelope, left, top, width, height);
+        drawLakePolygons(graphics, basemapLayers.lakePolygons(), envelope, left, top, width, height);
         drawLongitudeLatitudeGrid(graphics, left, top, width, height);
+        drawRiverLines(graphics, basemapLayers.riverLines(), envelope, left, top, width, height);
+
         if (hull instanceof Polygon polygon) {
-            drawPolygon(graphics, polygon, envelope, left, top, width, height, new Color(0xCDE7DE), new Color(0x5B8A72));
+            drawPolygon(
+                    graphics,
+                    polygon,
+                    envelope,
+                    left,
+                    top,
+                    width,
+                    height,
+                    new Color(0xBFE2D1, true),
+                    new Color(0x5B8A72),
+                    2.4f
+            );
         }
 
         WarehouseHotspot source = response.hotspots().stream()
@@ -429,13 +449,88 @@ public class SpatialTools {
     }
 
     private static void drawLongitudeLatitudeGrid(Graphics2D graphics, int left, int top, int width, int height) {
-        graphics.setColor(new Color(0xD9E5EC));
+        graphics.setColor(new Color(0xD2DCE4));
         graphics.setStroke(new BasicStroke(1f));
         for (int x = left + 60; x < left + width; x += 120) {
             graphics.drawLine(x, top + 56, x, top + height - 34);
         }
         for (int y = top + 76; y < top + height; y += 100) {
             graphics.drawLine(left + 34, y, left + width - 34, y);
+        }
+    }
+
+    private void drawStatePolygons(
+            Graphics2D graphics,
+            List<Geometry> polygons,
+            Envelope envelope,
+            int left,
+            int top,
+            int width,
+            int height
+    ) {
+        for (Geometry geometry : polygons) {
+            if (!geometry.getEnvelopeInternal().intersects(envelope)) {
+                continue;
+            }
+            drawGeometry(
+                    graphics,
+                    geometry,
+                    envelope,
+                    left,
+                    top,
+                    width,
+                    height,
+                    new Color(0xF6F2E8),
+                    new Color(0x9BA9B4),
+                    1.2f
+            );
+        }
+    }
+
+    private void drawLakePolygons(
+            Graphics2D graphics,
+            List<Geometry> polygons,
+            Envelope envelope,
+            int left,
+            int top,
+            int width,
+            int height
+    ) {
+        for (Geometry geometry : polygons) {
+            if (!geometry.getEnvelopeInternal().intersects(envelope)) {
+                continue;
+            }
+            drawGeometry(
+                    graphics,
+                    geometry,
+                    envelope,
+                    left,
+                    top,
+                    width,
+                    height,
+                    new Color(0xDDECF7),
+                    new Color(0x7AA7C7),
+                    1.0f
+            );
+        }
+    }
+
+    private void drawRiverLines(
+            Graphics2D graphics,
+            List<Geometry> lineGeometries,
+            Envelope envelope,
+            int left,
+            int top,
+            int width,
+            int height
+    ) {
+        graphics.setColor(new Color(0x5B9BC8));
+        graphics.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        for (Geometry geometry : lineGeometries) {
+            if (!geometry.getEnvelopeInternal().intersects(envelope)) {
+                continue;
+            }
+            drawLineGeometry(graphics, geometry, envelope, left, top, width, height);
         }
     }
 
@@ -448,7 +543,8 @@ public class SpatialTools {
             int width,
             int height,
             Color fillColor,
-            Color borderColor
+            Color borderColor,
+            float strokeWidth
     ) {
         Path2D path = new Path2D.Double();
         Coordinate[] coordinates = polygon.getExteriorRing().getCoordinates();
@@ -465,8 +561,32 @@ public class SpatialTools {
         graphics.setColor(fillColor);
         graphics.fill(path);
         graphics.setColor(borderColor);
-        graphics.setStroke(new BasicStroke(2.4f));
+        graphics.setStroke(new BasicStroke(strokeWidth));
         graphics.draw(path);
+    }
+
+    private void drawGeometry(
+            Graphics2D graphics,
+            Geometry geometry,
+            Envelope envelope,
+            int left,
+            int top,
+            int width,
+            int height,
+            Color fillColor,
+            Color borderColor,
+            float strokeWidth
+    ) {
+        if (geometry instanceof Polygon polygon) {
+            drawPolygon(graphics, polygon, envelope, left, top, width, height, fillColor, borderColor, strokeWidth);
+            return;
+        }
+        for (int index = 0; index < geometry.getNumGeometries(); index++) {
+            Geometry child = geometry.getGeometryN(index);
+            if (child instanceof Polygon polygon) {
+                drawPolygon(graphics, polygon, envelope, left, top, width, height, fillColor, borderColor, strokeWidth);
+            }
+        }
     }
 
     private void drawLineString(
@@ -487,6 +607,27 @@ public class SpatialTools {
             ScreenPoint start = toScreen(coordinates[index], envelope, left, top, width, height);
             ScreenPoint end = toScreen(coordinates[index + 1], envelope, left, top, width, height);
             graphics.drawLine((int) start.x(), (int) start.y(), (int) end.x(), (int) end.y());
+        }
+    }
+
+    private void drawLineGeometry(
+            Graphics2D graphics,
+            Geometry geometry,
+            Envelope envelope,
+            int left,
+            int top,
+            int width,
+            int height
+    ) {
+        if (geometry instanceof LineString lineString) {
+            drawLineString(graphics, lineString, envelope, left, top, width, height, new Color(0x5B9BC8), 1.6f);
+            return;
+        }
+        for (int index = 0; index < geometry.getNumGeometries(); index++) {
+            Geometry child = geometry.getGeometryN(index);
+            if (child instanceof LineString lineString) {
+                drawLineString(graphics, lineString, envelope, left, top, width, height, new Color(0x5B9BC8), 1.6f);
+            }
         }
     }
 
@@ -597,6 +738,93 @@ public class SpatialTools {
         return String.format("%.1f", value);
     }
 
+    private BasemapLayers loadBasemapLayers(ObjectMapper objectMapper) {
+        try {
+            return new BasemapLayers(
+                    loadGeometries(objectMapper, "oracleai/basemap/us-states.geojson"),
+                    loadGeometries(objectMapper, "oracleai/basemap/ne_110m_rivers_lake_centerlines.geojson"),
+                    loadGeometries(objectMapper, "oracleai/basemap/ne_110m_lakes.geojson")
+            );
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to load bundled spatial basemap resources.", exception);
+        }
+    }
+
+    private List<Geometry> loadGeometries(ObjectMapper objectMapper, String resourcePath) throws Exception {
+        try (InputStream inputStream = SpatialTools.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new IllegalArgumentException("Missing basemap resource: " + resourcePath);
+            }
+
+            JsonNode root = objectMapper.readTree(inputStream);
+            List<Geometry> geometries = new ArrayList<>();
+            for (JsonNode feature : root.path("features")) {
+                JsonNode geometryNode = feature.path("geometry");
+                if (geometryNode.isMissingNode() || geometryNode.isNull()) {
+                    continue;
+                }
+                Geometry geometry = parseGeometry(geometryNode);
+                if (geometry != null) {
+                    geometries.add(geometry);
+                }
+            }
+            return geometries;
+        }
+    }
+
+    private Geometry parseGeometry(JsonNode geometryNode) {
+        String type = geometryNode.path("type").asText("");
+        JsonNode coordinates = geometryNode.path("coordinates");
+        return switch (type) {
+            case "Polygon" -> geometryFactory.createPolygon(parseLinearRing(coordinates.get(0)));
+            case "MultiPolygon" -> geometryFactory.createMultiPolygon(
+                    streamArray(coordinates)
+                            .map(polygon -> geometryFactory.createPolygon(parseLinearRing(polygon.get(0))))
+                            .toArray(Polygon[]::new)
+            );
+            case "LineString" -> geometryFactory.createLineString(parseCoordinates(coordinates));
+            case "MultiLineString" -> geometryFactory.createMultiLineString(
+                    streamArray(coordinates)
+                            .map(this::parseCoordinates)
+                            .map(geometryFactory::createLineString)
+                            .toArray(LineString[]::new)
+            );
+            default -> null;
+        };
+    }
+
+    private Coordinate[] parseLinearRing(JsonNode coordinatesNode) {
+        Coordinate[] coordinates = parseCoordinates(coordinatesNode);
+        if (coordinates.length == 0) {
+            return coordinates;
+        }
+        Coordinate first = coordinates[0];
+        Coordinate last = coordinates[coordinates.length - 1];
+        if (Double.compare(first.x, last.x) != 0 || Double.compare(first.y, last.y) != 0) {
+            Coordinate[] closed = new Coordinate[coordinates.length + 1];
+            System.arraycopy(coordinates, 0, closed, 0, coordinates.length);
+            closed[coordinates.length] = new Coordinate(first.x, first.y);
+            return closed;
+        }
+        return coordinates;
+    }
+
+    private Coordinate[] parseCoordinates(JsonNode coordinatesNode) {
+        List<Coordinate> coordinates = new ArrayList<>();
+        for (JsonNode coordinateNode : streamArray(coordinatesNode).toList()) {
+            if (coordinateNode.size() >= 2) {
+                coordinates.add(new Coordinate(coordinateNode.get(0).asDouble(), coordinateNode.get(1).asDouble()));
+            }
+        }
+        return coordinates.toArray(Coordinate[]::new);
+    }
+
+    private static java.util.stream.Stream<JsonNode> streamArray(JsonNode arrayNode) {
+        List<JsonNode> nodes = new ArrayList<>();
+        arrayNode.forEach(nodes::add);
+        return nodes.stream();
+    }
+
     public record SpatialResponse(
             String productId,
             RiskSummary summary,
@@ -635,6 +863,12 @@ public class SpatialTools {
             double revenueImpactUsd,
             String riskLevel,
             String recommendedRole
+    ) {}
+
+    private record BasemapLayers(
+            List<Geometry> statePolygons,
+            List<Geometry> riverLines,
+            List<Geometry> lakePolygons
     ) {}
 
     private record ScreenPoint(double x, double y) {}
