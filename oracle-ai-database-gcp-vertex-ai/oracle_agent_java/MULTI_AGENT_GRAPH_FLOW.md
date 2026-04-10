@@ -190,7 +190,7 @@ It then:
 3. runs the property-graph query
 4. maps the returned row into the node and edge structure used by the renderer
 
-The sample schema, seed data, and query patterns live under [`sql/`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql).
+The sample schema, seed data, and query patterns live under [`sql/`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql).
 
 ## Upstream Agent Guidance
 
@@ -224,9 +224,9 @@ This is the tradeoff that keeps multi-agent integrations debuggable.
 
 Current public deployment target:
 
-- `https://34.48.146.146/.well-known/agent-card.json`
-- `https://34.48.146.146/agent-card-graph.json`
-- `https://34.48.146.146/agent-card-spatial.json`
+- `https://YOUR_PUBLIC_AGENT_HOST/.well-known/agent-card.json`
+- `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
+- `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
 
 Recommended verification pattern:
 

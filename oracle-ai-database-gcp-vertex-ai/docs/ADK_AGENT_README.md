@@ -68,7 +68,7 @@ Two versions of the Oracle AI Database ADK Agent:
 
 ```bash
 # RAG API Configuration
-export ORACLE_RAG_API_URL="http://34.48.146.146:8501"
+export ORACLE_RAG_API_URL="http://YOUR_PUBLIC_AGENT_HOST:8501"
 
 # GCP Configuration
 export GCP_PROJECT_ID="adb-pm-prod"
@@ -96,7 +96,7 @@ The agent connects to Oracle MCP server using:
 **Database Connection**: `paulparkdb_mcp`
 - Pre-configured in SQLcl using: 
   ```bash
-  conn -save paulparkdb_mcp -savepwd ADMIN/password@paulparkdb_tp
+  conn -save YOUR_DB_CONN_NAME -savepwd YOUR_DB_USERNAME/YOUR_DB_PASSWORD@YOUR_DB_DSN
   ```
 
 ## Installation

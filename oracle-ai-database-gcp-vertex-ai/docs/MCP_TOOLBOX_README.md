@@ -63,7 +63,7 @@ Ensure your `.env` file has Oracle database credentials:
 
 ```bash
 # Oracle Database
-DB_USERNAME=ADMIN
+DB_USERNAME=YOUR_DB_USERNAME
 DB_PASSWORD=your_password
 DB_DSN=aiholodb_high  # TNS alias from tnsnames.ora
 DB_WALLET_PASSWORD=your_wallet_password

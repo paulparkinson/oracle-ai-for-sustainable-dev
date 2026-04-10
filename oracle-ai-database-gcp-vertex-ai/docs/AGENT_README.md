@@ -31,7 +31,7 @@ Add to your `.env` file:
 
 ```bash
 # Oracle RAG API URL (defaults to GCP server if not set)
-ORACLE_RAG_API_URL=http://34.48.146.146:8501
+ORACLE_RAG_API_URL=http://YOUR_PUBLIC_AGENT_HOST:8501
 
 # GCP Configuration (already set for other apps)
 GCP_PROJECT_ID=adb-pm-prod
@@ -71,7 +71,7 @@ python oracle_ai_database_adk_agent.py
 ======================================================================
 Oracle Database AI Agent (powered by Google ADK)
 ======================================================================
-API URL: http://34.48.146.146:8501
+API URL: http://YOUR_PUBLIC_AGENT_HOST:8501
 Project: adb-pm-prod
 Region: us-central1
 
@@ -174,7 +174,7 @@ The agent is configured with these instructions:
 Already set up - just SSH to your VM and run:
 
 ```bash
-cd /home/ssh-key-2025-10-20/vectors/oracle-ai-database-gcp-vertex-ai
+cd /home/YOUR_VM_SSH_USER/vectors/oracle-ai-database-gcp-vertex-ai
 ./run_agent.sh
 ```
 
@@ -272,7 +272,7 @@ gcloud auth application-default login
 
 **Solution**: Upload documents to the RAG API:
 ```bash
-curl -X POST "http://34.48.146.146:8501/upload" -F "file=@document.pdf"
+curl -X POST "http://YOUR_PUBLIC_AGENT_HOST:8501/upload" -F "file=@document.pdf"
 ```
 
 ## Performance Tips

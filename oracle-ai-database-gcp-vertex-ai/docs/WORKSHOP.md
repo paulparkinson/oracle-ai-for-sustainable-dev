@@ -37,7 +37,7 @@ This workshop demonstrates building a production-ready RAG (Retrieval Augmented 
 │  oracle_ai_database_rag.py (port 8501)                          │
 │  - OpenAPI 3.0.3 specification                                  │
 │  - Vertex AI embeddings + Gemini LLM                            │
-│  - Internal VPC: http://10.150.0.8:8501                         │
+│  - Internal VPC: http://YOUR_INTERNAL_API_HOST:8501                         │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
         ┌─────────────────────┴─────────────────────┐
@@ -145,9 +145,9 @@ Create `.env` file:
 
 ```bash
 # Oracle Database
-DB_USERNAME=ADMIN
+DB_USERNAME=YOUR_DB_USERNAME
 DB_PASSWORD=your_password
-DB_DSN=paulparkdb_tp_high
+DB_DSN=YOUR_DB_DSN_HIGH
 DB_WALLET_PASSWORD=your_wallet_password
 DB_WALLET_DIR=./Wallet_PAULPARKDB
 
@@ -156,7 +156,7 @@ GCP_PROJECT_ID=adb-pm-prod
 GCP_REGION=us-central1
 
 # API Configuration
-ORACLE_RAG_API_URL=http://10.150.0.8:8501
+ORACLE_RAG_API_URL=http://YOUR_INTERNAL_API_HOST:8501
 API_PORT=8501
 STREAMLIT_PORT=8502
 ```
@@ -319,10 +319,10 @@ User → GCP Agent → OpenAPI Tool → FastAPI → Oracle DB
 2. **Import OpenAPI Spec**:
    ```
    Method: OpenAPI URL
-   URL: http://10.150.0.8:8501/openapi.json
+   URL: http://YOUR_INTERNAL_API_HOST:8501/openapi.json
    ```
    
-   **Important**: Use internal VPC IP (10.150.0.8), not external IP
+   **Important**: Use internal VPC IP (YOUR_INTERNAL_API_HOST), not external IP
 
 3. **Configure Authentication**:
    - Type: No auth (API accepts tokens without validation)
@@ -387,7 +387,7 @@ User → GCP Agent → OpenAPI Tool → FastAPI → Oracle DB
 **Solutions Applied**:
 - Removed security definitions from OpenAPI
 - Filtered content types to `application/json`
-- Used internal VPC address (10.150.0.8)
+- Used internal VPC address (YOUR_INTERNAL_API_HOST)
 - Excluded `/upload` endpoint from schema
 
 ---
@@ -740,7 +740,7 @@ pool = oracledb.create_pool(
 **Issue**: GCP Agent returns authentication error
 ```bash
 # Solution: Use internal VPC IP, not external
-URL: http://10.150.0.8:8501 (not 34.48.146.146)
+URL: http://YOUR_INTERNAL_API_HOST:8501 (not YOUR_PUBLIC_AGENT_HOST)
 ```
 
 **Issue**: Port 8501 already in use

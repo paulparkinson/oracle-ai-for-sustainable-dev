@@ -37,9 +37,9 @@ pip install -r requirements-api.txt
 Ensure your `.env` file contains:
 
 ```bash
-DB_USERNAME=ADMIN
+DB_USERNAME=YOUR_DB_USERNAME
 DB_PASSWORD=your_password
-DB_DSN=paulparkdb_tp
+DB_DSN=YOUR_DB_DSN
 DB_WALLET_PASSWORD=your_wallet_password
 DB_WALLET_DIR=/path/to/wallet
 GCP_PROJECT_ID=adb-pm-prod

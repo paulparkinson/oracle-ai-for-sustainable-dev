@@ -58,7 +58,7 @@ pip install -r requirements-adk.txt
 Create `.env` file or export variables:
 
 ```bash
-export ORACLE_RAG_API_URL="http://34.48.146.146:8501"
+export ORACLE_RAG_API_URL="http://YOUR_PUBLIC_AGENT_HOST:8501"
 export GCP_PROJECT_ID="adb-pm-prod"
 export GCP_REGION="us-central1"
 export SQLCL_PATH="/opt/sqlcl/bin/sql"

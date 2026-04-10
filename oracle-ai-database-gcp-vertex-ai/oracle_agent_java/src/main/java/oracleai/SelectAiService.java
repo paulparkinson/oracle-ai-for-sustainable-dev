@@ -74,53 +74,8 @@ public class SelectAiService {
     }
 
     private SelectAiResult runSelectAi(String prompt, String productId, String action, String profileName) throws Exception {
-        if ("showsql".equals(action) || "explainsql".equals(action)) {
-            return new SelectAiResult(
-                    runSelectAiPrompt(prompt, action, profileName),
-                    "select-ai",
-                    action,
-                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
-            );
-        }
-
-        String lower = prompt.toLowerCase(Locale.ROOT);
-        boolean wantsRiskSummary = lower.contains("product")
-                || lower.contains("stockout")
-                || lower.contains("next quarter")
-                || lower.contains("risk");
-        boolean wantsRegionDrivers = asksForRegions(lower);
-
-        if (wantsRiskSummary && wantsRegionDrivers) {
-            String summaryText = runSelectAiPrompt(buildRiskSummaryPrompt(), action, profileName);
-            String regionText = runSelectAiPrompt(buildRegionDriverPrompt(productId), action, profileName);
-            return new SelectAiResult(
-                    summaryText + "\n\n" + regionText,
-                    "select-ai",
-                    action,
-                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
-            );
-        }
-
-        if (wantsRegionDrivers) {
-            return new SelectAiResult(
-                    runSelectAiPrompt(buildRegionDriverPrompt(productId), action, profileName),
-                    "select-ai",
-                    action,
-                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
-            );
-        }
-
-        if (wantsRiskSummary) {
-            return new SelectAiResult(
-                    runSelectAiPrompt(buildRiskSummaryPrompt(), action, profileName),
-                    "select-ai",
-                    action,
-                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
-            );
-        }
-
         return new SelectAiResult(
-                runSelectAiPrompt(prompt, action, profileName),
+                runSelectAiPrompt(buildProfileAwarePrompt(prompt, productId, action), action, profileName),
                 "select-ai",
                 action,
                 "DBMS_CLOUD_AI.GENERATE via profile " + profileName
@@ -150,36 +105,35 @@ public class SelectAiService {
         }
     }
 
-    private String buildRiskSummaryPrompt() {
-        String quarterLabel = resolveQuarterLabel();
-        return "Using ADMIN.SC_INVENTORY_RISK_SUMMARY joined to ADMIN.SC_PRODUCTS, summarize the products at highest "
-                + "stockout risk for quarter label " + quarterLabel + ". Include product_id, product_name, risk_level, "
-                + "stockout_probability, projected_revenue_impact_usd, and primary_region.";
-    }
+    private String buildProfileAwarePrompt(String userPrompt, String productId, String action) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("You are answering questions over an Oracle demo inventory-risk dataset. ");
 
-    private String buildRegionDriverPrompt(String productId) {
-        return "Using ADMIN.SC_INVENTORY_RISK_DEMO_V, explain which warehouses, counties, states, hotspot scores, "
-                + "and coverage days are driving the risk for product " + productId + ".";
-    }
-
-    private String resolveQuarterLabel() {
-        try (
-                Connection connection = OracleJdbcSupport.openConnection(environment);
-                PreparedStatement statement = connection.prepareStatement(
-                        "SELECT quarter_label FROM sc_inventory_risk_summary WHERE active_flag = 'Y' FETCH FIRST 1 ROWS ONLY"
-                );
-                ResultSet resultSet = statement.executeQuery()
-        ) {
-            if (resultSet.next()) {
-                String quarterLabel = resultSet.getString(1);
-                if (quarterLabel != null && !quarterLabel.isBlank()) {
-                    return quarterLabel.trim();
-                }
-            }
-        } catch (Exception ignored) {
-            // Fall back to the seeded demo label below.
+        if ("showsql".equals(action)) {
+            builder.append("Return only the SQL needed to answer the user's question. ");
+        } else if ("explainsql".equals(action)) {
+            builder.append("Explain the SQL or query approach needed to answer the user's question. ");
+        } else {
+            builder.append("Answer in concise business language using only the data available in the listed Oracle objects. ");
+            builder.append("If the question cannot be answered from these objects, say so clearly. ");
         }
-        return DemoInventoryData.topSummaries().get(0).quarterLabel();
+
+        if (productId != null && !productId.isBlank()) {
+            builder.append("If the request references product ").append(productId).append(", keep the answer focused on that product when appropriate. ");
+        }
+
+        builder.append("Available Oracle objects and their purpose:\n");
+        builder.append("- ADMIN.SC_PRODUCTS(product_id, product_name): product master for the demo SKUs.\n");
+        builder.append("- ADMIN.SC_WAREHOUSES(warehouse_id, warehouse_name): warehouse master referenced by the hotspot rows.\n");
+        builder.append("- ADMIN.SC_INVENTORY_RISK_SUMMARY(product_id, quarter_label, risk_level, stockout_probability, at_risk_units, projected_revenue_impact_usd, primary_region, recommendation_summary, active_flag): product-level quarterly stockout risk summary.\n");
+        builder.append("- ADMIN.SC_WAREHOUSE_GEO(warehouse_id, warehouse_code, county_name, state_code, region_name, latitude, longitude): warehouse geography and region metadata.\n");
+        builder.append("- ADMIN.SC_WAREHOUSE_RISK_SNAPSHOT(product_id, warehouse_id, hotspot_rank, hotspot_score, coverage_days, backlog_units, service_level_pct, at_risk_units, revenue_impact_usd, risk_level, recommended_role, active_flag): warehouse-level hotspot metrics by product.\n");
+        builder.append("- ADMIN.SC_INVENTORY_RISK_DEMO_V(product_id, product_name, quarter_label, overall_risk_level, stockout_probability, product_at_risk_units, projected_revenue_impact_usd, primary_region, recommendation_summary, warehouse_name, county_name, state_code, region_name, hotspot_rank, hotspot_score, coverage_days, backlog_units, service_level_pct, at_risk_units, revenue_impact_usd, recommended_role): flattened view that combines product risk, warehouse hotspots, and geography.\n");
+        builder.append("Prefer ADMIN.SC_INVENTORY_RISK_DEMO_V for combined product, warehouse, county, state, region, hotspot, and coverage questions. ");
+        builder.append("Use ADMIN.SC_INVENTORY_RISK_SUMMARY for top-risk product and revenue-impact questions. ");
+        builder.append("Use ADMIN.SC_WAREHOUSE_RISK_SNAPSHOT with ADMIN.SC_WAREHOUSE_GEO for warehouse hotspot detail when needed.\n\n");
+        builder.append("User question:\n").append(userPrompt);
+        return builder.toString();
     }
 
     private SelectAiResult fallbackResponse(String prompt, String productId, String action, String reason) {

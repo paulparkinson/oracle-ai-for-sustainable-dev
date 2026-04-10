@@ -10,10 +10,10 @@ For this project, a self-signed certificate is not a good fit because the caller
 
 Current tested public endpoints:
 
-- Agent base URL: `https://34.48.146.146`
-- Agent card URL: `https://34.48.146.146/.well-known/agent-card.json`
-- Graph alias card URL: `https://34.48.146.146/agent-card-graph.json`
-- Spatial alias card URL: `https://34.48.146.146/agent-card-spatial.json`
+- Agent base URL: `https://YOUR_PUBLIC_AGENT_HOST`
+- Agent card URL: `https://YOUR_PUBLIC_AGENT_HOST/.well-known/agent-card.json`
+- Graph alias card URL: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
+- Spatial alias card URL: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
 
 ## Prerequisites
 
@@ -43,10 +43,10 @@ This matches the layout we used on the GCP VM:
 
 ## Issue the IP Certificate
 
-From [`oracle_agent_java`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java), run:
+From [`oracle_agent_java`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java), run:
 
 ```bash
-PUBLIC_HOST="34.48.146.146" \
+PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
 CERTBOT_EMAIL="you@example.com" \
 ./issue_ip_certificate.sh
 ```
@@ -60,12 +60,12 @@ That helper script:
 
 By default the certificate name is:
 
-- `oracle-graph-agent-ip`
+- `YOUR_LE_CERT_NAME`
 
 The resulting files are:
 
-- `/etc/letsencrypt/live/oracle-graph-agent-ip/fullchain.pem`
-- `/etc/letsencrypt/live/oracle-graph-agent-ip/privkey.pem`
+- `/etc/letsencrypt/live/YOUR_LE_CERT_NAME/fullchain.pem`
+- `/etc/letsencrypt/live/YOUR_LE_CERT_NAME/privkey.pem`
 
 ## Optional: Copy the Certificate for a Non-Root Process
 
@@ -77,8 +77,8 @@ If you want to run the Java process as a regular user instead of root, copy the 
 
 By default that creates:
 
-- `$HOME/.config/oracle-graph-agent-certs/oracle-graph-agent-ip/fullchain.pem`
-- `$HOME/.config/oracle-graph-agent-certs/oracle-graph-agent-ip/privkey.pem`
+- `$HOME/.config/oracle-graph-agent-certs/YOUR_LE_CERT_NAME/fullchain.pem`
+- `$HOME/.config/oracle-graph-agent-certs/YOUR_LE_CERT_NAME/privkey.pem`
 
 The helper sets directory mode `700` and file mode `600`.
 
@@ -87,7 +87,7 @@ The helper sets directory mode `700` and file mode `600`.
 For non-root HTTPS on a high port such as `8080`, use:
 
 ```bash
-PUBLIC_HOST="34.48.146.146" \
+PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
 GRAPH_AGENT_PORT="8080" \
 ./run_public_https.sh
 ```
@@ -96,13 +96,13 @@ For Gemini Enterprise, standard `443` proved to be the more reliable path. The c
 
 ```bash
 sudo env \
-  PUBLIC_HOST="34.48.146.146" \
+  PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
   PUBLIC_PROTOCOL="https" \
-  GRAPH_AGENT_URL="https://34.48.146.146" \
+  GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" \
   GRAPH_AGENT_PORT="443" \
   BIND_HOST="0.0.0.0" \
-  SSL_CERTIFICATE="/etc/letsencrypt/live/oracle-graph-agent-ip/fullchain.pem" \
-  SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/oracle-graph-agent-ip/privkey.pem" \
+  SSL_CERTIFICATE="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/fullchain.pem" \
+  SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/privkey.pem" \
   ./run.sh
 ```
 
@@ -115,13 +115,13 @@ sudo systemd-run \
   --unit=oracle-graph-agent \
   --description="Oracle Graph Agent HTTPS service" \
   --working-directory="$PWD" \
-  --setenv=PUBLIC_HOST="34.48.146.146" \
+  --setenv=PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
   --setenv=PUBLIC_PROTOCOL="https" \
-  --setenv=GRAPH_AGENT_URL="https://34.48.146.146" \
+  --setenv=GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" \
   --setenv=GRAPH_AGENT_PORT="443" \
   --setenv=BIND_HOST="0.0.0.0" \
-  --setenv=SSL_CERTIFICATE="/etc/letsencrypt/live/oracle-graph-agent-ip/fullchain.pem" \
-  --setenv=SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/oracle-graph-agent-ip/privkey.pem" \
+  --setenv=SSL_CERTIFICATE="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/fullchain.pem" \
+  --setenv=SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/privkey.pem" \
   "$PWD/run.sh"
 
 sudo systemctl status oracle-graph-agent.service
@@ -132,10 +132,10 @@ sudo systemctl status oracle-graph-agent.service
 Use the public agent card and the local test harness:
 
 ```bash
-curl -sS https://34.48.146.146/.well-known/agent-card.json | python3 -m json.tool
-curl -sS https://34.48.146.146/agent-card-graph.json | python3 -m json.tool
-curl -sS https://34.48.146.146/agent-card-spatial.json | python3 -m json.tool
-GRAPH_AGENT_URL="https://34.48.146.146" ./test.sh
+curl -sS https://YOUR_PUBLIC_AGENT_HOST/.well-known/agent-card.json | python3 -m json.tool
+curl -sS https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json | python3 -m json.tool
+curl -sS https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json | python3 -m json.tool
+GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" ./test.sh
 ```
 
 Expected outcomes:

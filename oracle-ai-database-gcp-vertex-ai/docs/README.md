@@ -178,7 +178,7 @@ Both use similar environment variables:
 
 ```bash
 # Oracle Database
-ORACLE_USERNAME=ADMIN
+ORACLE_USERNAME=YOUR_DB_USERNAME
 ORACLE_PASSWORD=your_password
 ORACLE_DSN=your_connection_string
 ORACLE_WALLET_LOCATION=~/wallet

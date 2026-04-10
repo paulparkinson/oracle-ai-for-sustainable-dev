@@ -1,5 +1,7 @@
 # Oracle Java Agent Runtime for Gemini Enterprise
 
+This README uses placeholders such as `YOUR_PUBLIC_AGENT_HOST`, `YOUR_LE_CERT_NAME`, `YOUR_SELECT_AI_PROFILE_NAME`, and `/path/to/repo-root` instead of live environment values. Replace them with your own values before running the commands here.
+
 This directory now holds the shared Java/Spring Boot A2A runtime for the Oracle demo's Java-served agent experiences.
 
 Today, the same Java process serves four agent surfaces:
@@ -13,21 +15,21 @@ The graph renderer still uses deterministic application logic plus custom Java2D
 
 ## Related Files
 
-- [`sql/supply_chain_graph_model.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/supply_chain_graph_model.sql): example Oracle tables, property-graph definition, and query pattern for replacing the current seeded demo data with real database results.
-- [`sql/setup_supply_chain_graph_schema.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_supply_chain_graph_schema.sql): idempotent setup DDL for creating the graph demo tables and property graph in Oracle Database.
-- [`sql/run_supply_chain_graph_setup.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_setup.sh): SQLcl-based wrapper that logs precheck, setup, and postcheck output into a timestamped `sql/logs/` run directory.
-- [`sql/seed_supply_chain_graph_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_supply_chain_graph_data.sql): idempotent sample data seed for three supply-chain paths, including `SKU-500`.
-- [`sql/run_supply_chain_graph_seed.sh`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_seed.sh): SQLcl-based wrapper that logs row counts and runs verification queries after seeding.
-- [`sql/setup_inventory_risk_demo_schema.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_inventory_risk_demo_schema.sql): idempotent setup DDL for the inventory-risk summary, warehouse-geo, and hotspot tables used by the spatial and Select AI flows.
-- [`sql/seed_inventory_risk_demo_data.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_inventory_risk_demo_data.sql): idempotent sample data seed for the spatial and Select AI demo tables.
-- [`sql/configure_select_ai_openai_profile.sql`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql): example database-side setup for a demo `DBMS_CLOUD_AI` profile using an external provider such as OpenAI.
-- [`GRAPH_DATA_MODES.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/GRAPH_DATA_MODES.md): how `GRAPH_DATA_MODE=database|payload|auto` works, the supported JSON contract, and the validation rules for multi-agent flows.
-- [`MULTI_AGENT_GRAPH_FLOW.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/MULTI_AGENT_GRAPH_FLOW.md): architecture notes for direct DB lookup vs upstream-agent payload handoff, including provenance, validation, and recommended `auto` behavior.
-- [`HTTPS_SETUP.md`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
-- [`agent-card-graph.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-graph.json): saved snapshot of the primary graph card.
-- [`agent-card-spatial.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial hotspot card served by the same Java process.
-- [`agent-card-select-ai.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-select-ai.json): saved snapshot of the Select AI-style inventory analyst card.
-- [`agent-card-action.json`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-action.json): saved snapshot of the inventory-action coordinator card.
+- [`sql/supply_chain_graph_model.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/supply_chain_graph_model.sql): example Oracle tables, property-graph definition, and query pattern for replacing the current seeded demo data with real database results.
+- [`sql/setup_supply_chain_graph_schema.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_supply_chain_graph_schema.sql): idempotent setup DDL for creating the graph demo tables and property graph in Oracle Database.
+- [`sql/run_supply_chain_graph_setup.sh`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_setup.sh): SQLcl-based wrapper that logs precheck, setup, and postcheck output into a timestamped `sql/logs/` run directory.
+- [`sql/seed_supply_chain_graph_data.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_supply_chain_graph_data.sql): idempotent sample data seed for three supply-chain paths, including `SKU-500`.
+- [`sql/run_supply_chain_graph_seed.sh`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/run_supply_chain_graph_seed.sh): SQLcl-based wrapper that logs row counts and runs verification queries after seeding.
+- [`sql/setup_inventory_risk_demo_schema.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/setup_inventory_risk_demo_schema.sql): idempotent setup DDL for the inventory-risk summary, warehouse-geo, and hotspot tables used by the spatial and Select AI flows.
+- [`sql/seed_inventory_risk_demo_data.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/seed_inventory_risk_demo_data.sql): idempotent sample data seed for the spatial and Select AI demo tables.
+- [`sql/configure_select_ai_openai_profile.sql`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql): example database-side setup for a demo `DBMS_CLOUD_AI` profile using an external provider such as OpenAI.
+- [`GRAPH_DATA_MODES.md`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/GRAPH_DATA_MODES.md): how `GRAPH_DATA_MODE=database|payload|auto` works, the supported JSON contract, and the validation rules for multi-agent flows.
+- [`MULTI_AGENT_GRAPH_FLOW.md`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/MULTI_AGENT_GRAPH_FLOW.md): architecture notes for direct DB lookup vs upstream-agent payload handoff, including provenance, validation, and recommended `auto` behavior.
+- [`HTTPS_SETUP.md`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/HTTPS_SETUP.md): step-by-step Let's Encrypt and public HTTPS setup for Gemini Enterprise.
+- [`agent-card-graph.json`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-graph.json): saved snapshot of the primary graph card.
+- [`agent-card-spatial.json`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-spatial.json): saved snapshot of the spatial hotspot card served by the same Java process.
+- [`agent-card-select-ai.json`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-select-ai.json): saved snapshot of the Select AI-style inventory analyst card.
+- [`agent-card-action.json`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/agent-card-action.json): saved snapshot of the inventory-action coordinator card.
 
 ## Setup Instructions
 
@@ -52,23 +54,23 @@ The graph renderer still uses deterministic application logic plus custom Java2D
    For a VM that only has a public IP address, use a publicly trusted IP certificate rather
    than a self-signed certificate:
    ```bash
-   CERTBOT_EMAIL="you@example.com" PUBLIC_HOST="34.48.146.146" ./issue_ip_certificate.sh
+   CERTBOT_EMAIL="you@example.com" PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" ./issue_ip_certificate.sh
    ./sync_ip_certificate.sh
-   PUBLIC_HOST="34.48.146.146" GRAPH_AGENT_PORT="8080" ./run_public_https.sh
-   GRAPH_AGENT_URL="https://34.48.146.146:8080" ./test.sh
+   PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" GRAPH_AGENT_PORT="8080" ./run_public_https.sh
+   GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST:8080" ./test.sh
    ```
 
    If Gemini Enterprise ignores the non-standard `:8080` port for your import path, run the
    same agent on standard HTTPS instead:
    ```bash
    sudo env \
-     PUBLIC_HOST="34.48.146.146" \
+     PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
      PUBLIC_PROTOCOL="https" \
-     GRAPH_AGENT_URL="https://34.48.146.146" \
+     GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" \
      GRAPH_AGENT_PORT="443" \
      BIND_HOST="0.0.0.0" \
-     SSL_CERTIFICATE="/etc/letsencrypt/live/oracle-graph-agent-ip/fullchain.pem" \
-     SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/oracle-graph-agent-ip/privkey.pem" \
+     SSL_CERTIFICATE="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/fullchain.pem" \
+     SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/privkey.pem" \
      ./run.sh
    ```
 
@@ -81,15 +83,15 @@ The graph renderer still uses deterministic application logic plus custom Java2D
    private directory so the non-root Java process can use HTTPS safely.
 
    Current tested import URLs:
-   - graph alias card on the same Java process: `https://34.48.146.146/agent-card-graph.json`
-   - spatial hotspot card on the same Java process: `https://34.48.146.146/agent-card-spatial.json`
-   - Select AI card on the same Java process: `https://34.48.146.146/agent-card-select-ai.json`
-   - inventory-action card on the same Java process: `https://34.48.146.146/agent-card-action.json`
-   - graph default card path: `https://34.48.146.146/.well-known/agent-card.json`
-   - dedicated spatial A2A card path: `https://34.48.146.146/spatial/.well-known/agent-card.json`
-   - dedicated Select AI A2A card path: `https://34.48.146.146/select-ai/.well-known/agent-card.json`
-   - dedicated inventory-action A2A card path: `https://34.48.146.146/inventory-action/.well-known/agent-card.json`
-   - direct HTTPS on 8080: `https://34.48.146.146:8080/.well-known/agent-card.json`
+   - graph alias card on the same Java process: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
+   - spatial hotspot card on the same Java process: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
+   - Select AI card on the same Java process: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
+   - inventory-action card on the same Java process: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
+   - graph default card path: `https://YOUR_PUBLIC_AGENT_HOST/.well-known/agent-card.json`
+   - dedicated spatial A2A card path: `https://YOUR_PUBLIC_AGENT_HOST/spatial/.well-known/agent-card.json`
+   - dedicated Select AI A2A card path: `https://YOUR_PUBLIC_AGENT_HOST/select-ai/.well-known/agent-card.json`
+   - dedicated inventory-action A2A card path: `https://YOUR_PUBLIC_AGENT_HOST/inventory-action/.well-known/agent-card.json`
+   - direct HTTPS on 8080: `https://YOUR_PUBLIC_AGENT_HOST:8080/.well-known/agent-card.json`
 
    For Gemini Enterprise imports, prefer the four matching alias URLs: `agent-card-graph.json`, `agent-card-spatial.json`, `agent-card-select-ai.json`, and `agent-card-action.json`. The primary `/.well-known/agent-card.json` endpoint is still the graph card. The spatial, Select AI, and inventory-action cards are real additional agent surfaces in the same Spring Boot process.
 
@@ -100,13 +102,13 @@ The graph renderer still uses deterministic application logic plus custom Java2D
      --unit=oracle-graph-agent \
      --description="Oracle Graph Agent HTTPS service" \
      --working-directory="$PWD" \
-     --setenv=PUBLIC_HOST="34.48.146.146" \
+     --setenv=PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST" \
      --setenv=PUBLIC_PROTOCOL="https" \
-     --setenv=GRAPH_AGENT_URL="https://34.48.146.146" \
+     --setenv=GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" \
      --setenv=GRAPH_AGENT_PORT="443" \
      --setenv=BIND_HOST="0.0.0.0" \
-     --setenv=SSL_CERTIFICATE="/etc/letsencrypt/live/oracle-graph-agent-ip/fullchain.pem" \
-     --setenv=SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/oracle-graph-agent-ip/privkey.pem" \
+     --setenv=SSL_CERTIFICATE="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/fullchain.pem" \
+     --setenv=SSL_CERTIFICATE_PRIVATE_KEY="/etc/letsencrypt/live/YOUR_LE_CERT_NAME/privkey.pem" \
      "$PWD/run.sh"
    sudo systemctl status oracle-graph-agent.service
    ```
@@ -202,9 +204,9 @@ Expected success signal:
 
 The same Java process now also serves an ADK-backed inventory-action coordinator at:
 
-- card alias: `https://34.48.146.146/agent-card-action.json`
-- dedicated card path: `https://34.48.146.146/inventory-action/.well-known/agent-card.json`
-- JSON-RPC endpoint: `https://34.48.146.146/inventory-action`
+- card alias: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
+- dedicated card path: `https://YOUR_PUBLIC_AGENT_HOST/inventory-action/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://YOUR_PUBLIC_AGENT_HOST/inventory-action`
 
 This coordinator is the first cut of the final-stage action flow described in the root repo README:
 
@@ -226,9 +228,9 @@ Current tool coverage inside the coordinator:
 
 The same Java process now also serves a dedicated spatial hotspot agent at:
 
-- card alias: `https://34.48.146.146/agent-card-spatial.json`
-- dedicated card path: `https://34.48.146.146/spatial/.well-known/agent-card.json`
-- JSON-RPC endpoint: `https://34.48.146.146/spatial`
+- card alias: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
+- dedicated card path: `https://YOUR_PUBLIC_AGENT_HOST/spatial/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://YOUR_PUBLIC_AGENT_HOST/spatial`
 
 What it does today:
 
@@ -253,14 +255,15 @@ Expected response shape:
 
 The same Java process now also serves a Select AI-style analyst at:
 
-- card alias: `https://34.48.146.146/agent-card-select-ai.json`
-- dedicated card path: `https://34.48.146.146/select-ai/.well-known/agent-card.json`
-- JSON-RPC endpoint: `https://34.48.146.146/select-ai`
+- card alias: `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
+- dedicated card path: `https://YOUR_PUBLIC_AGENT_HOST/select-ai/.well-known/agent-card.json`
+- JSON-RPC endpoint: `https://YOUR_PUBLIC_AGENT_HOST/select-ai`
 
 What it does today:
 
-- it now calls `DBMS_CLOUD_AI.GENERATE` through the live `OPENAI_INVENTORY_DEMO` profile on the demo database
+- it now calls `DBMS_CLOUD_AI.GENERATE` through the live `YOUR_SELECT_AI_PROFILE_NAME` profile on the demo database
 - if the profile becomes unavailable, it falls back honestly through deterministic SQL summaries over the demo tables
+- it uses a generic schema-aware prompt over the profiled objects, so it is no longer limited to one stockout-summary question
 - it supports question styles such as `narrate`, `showsql`, and `explainsql`
 
 Recommended Gemini Enterprise prompt:
@@ -269,12 +272,26 @@ Recommended Gemini Enterprise prompt:
 Which products are at risk of stockouts next quarter, and which regions are driving that risk?
 ```
 
+Other example prompts:
+
+```text
+For SKU-700, which warehouse has the lowest coverage days and what hotspot score and revenue impact does it have?
+```
+
+```text
+What is the projected revenue impact for each product in the current quarter?
+```
+
+```text
+Show SQL for the warehouse hotspot metrics for SKU-500.
+```
+
 Current expected response shape:
 
 - plain-text summary of the highest-risk products
 - plain-text regional-driver detail for the requested or inferred SKU
 - metadata showing `executionMode=select-ai`
-- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile OPENAI_INVENTORY_DEMO`
+- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile YOUR_SELECT_AI_PROFILE_NAME`
 
 ## Inventory Action Coordinator
 
@@ -295,7 +312,7 @@ Local test script:
 ```bash
 ./test_inventory_action.sh
 ./test_inventory_action.sh "What inventory action should we take for SKU-500 given the current supply risk?"
-GRAPH_AGENT_URL="https://34.48.146.146" ./test_inventory_action.sh
+GRAPH_AGENT_URL="https://YOUR_PUBLIC_AGENT_HOST" ./test_inventory_action.sh
 ```
 
 Expected response shape:

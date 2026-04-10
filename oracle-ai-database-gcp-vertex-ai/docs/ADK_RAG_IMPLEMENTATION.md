@@ -49,7 +49,7 @@ Response to user
 
 2. **Environment Variables** (.env file):
    ```env
-   DB_USERNAME=ADMIN
+   DB_USERNAME=YOUR_DB_USERNAME
    DB_PASSWORD=YourPassword
    DB_DSN=your_service_name_high
    DB_WALLET_PASSWORD=YourWalletPassword

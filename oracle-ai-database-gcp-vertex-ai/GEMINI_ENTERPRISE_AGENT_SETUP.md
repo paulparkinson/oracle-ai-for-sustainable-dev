@@ -2,13 +2,15 @@
 
 This runbook describes which Oracle demo agents are ready to import into Gemini Enterprise right now, what each one does today, and how to test the end-to-end flow.
 
+Replace placeholder values such as `YOUR_PUBLIC_AGENT_HOST`, `YOUR_VM_SSH_USER`, `YOUR_SELECT_AI_PROFILE_NAME`, and `/path/to/repo-root` with your own environment-specific values before running commands.
+
 ## Current Agent List
 
 There are currently four importable agent cards for the Oracle AI Database demo:
 
 1. Graph agent
    Import URL:
-   `https://34.48.146.146/agent-card-graph.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
 
    What it does:
    - queries the Oracle Database property graph for seeded products such as `SKU-500`
@@ -21,7 +23,7 @@ There are currently four importable agent cards for the Oracle AI Database demo:
 
 2. Spatial agent
    Import URL:
-   `https://34.48.146.146/agent-card-spatial.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
 
    What it does:
    - renders a hotspot PNG map for warehouse pressure and transfer direction
@@ -34,12 +36,13 @@ There are currently four importable agent cards for the Oracle AI Database demo:
 
 3. Select AI agent
    Import URL:
-   `https://34.48.146.146/agent-card-select-ai.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
 
    What it does:
    - answers natural-language inventory questions
-   - uses `DBMS_CLOUD_AI.GENERATE` through the live `OPENAI_INVENTORY_DEMO` profile
+   - uses `DBMS_CLOUD_AI.GENERATE` through the live `YOUR_SELECT_AI_PROFILE_NAME` profile
    - falls back to direct Oracle SQL summaries only if the profile is unavailable
+   - now uses a generic schema-aware prompt, so it is not limited to the stockout-summary demo question
 
    Current live card:
    - `name`: `oracle_select_ai_agent`
@@ -47,7 +50,7 @@ There are currently four importable agent cards for the Oracle AI Database demo:
 
 4. Inventory action agent
    Import URL:
-   `https://34.48.146.146/agent-card-action.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
 
    What it does:
    - coordinates the final action stage
@@ -91,20 +94,20 @@ Current behavior:
 If you want the cleanest current demo setup in Gemini Enterprise, import these four:
 
 1. Graph agent
-   `https://34.48.146.146/agent-card-graph.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
 
 2. Spatial agent
-   `https://34.48.146.146/agent-card-spatial.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
 
 3. Select AI agent
-   `https://34.48.146.146/agent-card-select-ai.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
 
 4. Inventory action agent
-   `https://34.48.146.146/agent-card-action.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
 
 If the graph agent is already imported in Gemini Enterprise and you want the latest runtime behavior, re-import or update it from:
 
-`https://34.48.146.146/agent-card-graph.json`
+`https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
 
 Note:
 - the live cards still report `version: 0.0.1`
@@ -119,10 +122,10 @@ In Gemini Enterprise:
 1. Open `Agents`
 2. Choose `Add agent`
 3. Import each of these four URLs:
-   - `https://34.48.146.146/agent-card-graph.json`
-   - `https://34.48.146.146/agent-card-spatial.json`
-   - `https://34.48.146.146/agent-card-select-ai.json`
-   - `https://34.48.146.146/agent-card-action.json`
+   - `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
+   - `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
+   - `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
+   - `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
 4. Leave auth empty for now because these endpoints are publicly reachable over HTTPS
 
 ### 1a. How To Actually Talk To A Specific Agent
@@ -270,12 +273,26 @@ Use this prompt:
 Which products are at risk of stockouts next quarter, and which regions are driving that risk?
 ```
 
+Other good prompts to try:
+
+```text
+For SKU-700, which warehouse has the lowest coverage days and what hotspot score and revenue impact does it have?
+```
+
+```text
+What is the projected revenue impact for each product in the current quarter?
+```
+
+```text
+Show SQL for the warehouse hotspot metrics for SKU-500.
+```
+
 Expected result today:
 - a completed text response
 - next-quarter risk summary for `SKU-500`, `SKU-700`, and `SKU-900`
 - regional-driver detail for `SKU-500`
 - metadata showing `executionMode=select-ai`
-- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile OPENAI_INVENTORY_DEMO`
+- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile YOUR_SELECT_AI_PROFILE_NAME`
 
 This path is already wired to the live database profile, so the answer should be database-backed rather than fallback.
 
@@ -334,7 +351,7 @@ The default root path `/.well-known/agent-card.json` still exists and still poin
 
 If you want the inventory action agent to use live ADK reasoning instead of fallback mode on the VM, the next step is:
 
-1. SSH to the VM as `ssh-key-2025-10-20`
+1. SSH to the VM as `YOUR_VM_SSH_USER`
 2. Run:
 
 ```bash
@@ -346,8 +363,8 @@ gcloud auth application-default login
 The Select AI agent is already using the live database-side profile:
 
 1. Oracle DB credential and profile created from the pattern in:
-   [configure_select_ai_openai_profile.sql](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql)
-2. Shared environment set to `SELECT_AI_PROFILE=OPENAI_INVENTORY_DEMO`
+   [configure_select_ai_openai_profile.sql](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql)
+2. Shared environment set to `SELECT_AI_PROFILE=YOUR_SELECT_AI_PROFILE_NAME`
 3. Java service restarted on the GCP VM
 
 If you ever need to recreate it, repeat those same three steps.

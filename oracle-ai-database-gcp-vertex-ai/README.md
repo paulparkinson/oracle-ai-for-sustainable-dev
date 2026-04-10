@@ -1,5 +1,7 @@
 # Oracle AI Database GCP Vertex AI Demo
 
+This README now uses placeholders such as `YOUR_PUBLIC_AGENT_HOST`, `YOUR_VM_SSH_USER`, `YOUR_SELECT_AI_PROFILE_NAME`, and `/path/to/repo-root` so it can be shared more safely. Replace them with your environment-specific values when you run the demo.
+
 This repo is set up for multiple A2A-style agents. A common pattern in this repo is:
 
 1. A caller sends a user message to an agent over A2A.
@@ -41,7 +43,7 @@ So the current local demo does not require live Vertex AI or Gemini API auth for
 
 ## Shared Repo Configuration
 
-The repo root has a shared config file at [`.env`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/.env). Agent scripts can source this so we only maintain credentials, ports, model names, and related settings in one place.
+The repo root has a shared config file at [`.env`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/.env). Agent scripts can source this so we only maintain credentials, ports, model names, and related settings in one place.
 
 This repo now defaults to Vertex AI in that file:
 
@@ -105,7 +107,7 @@ Authenticate ADC with the repo helper:
 ./auth.sh
 ```
 
-`auth.sh` sources the repo [`.env`](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/.env), runs `gcloud auth application-default login`, and then runs `gcloud auth application-default set-quota-project` for `GOOGLE_CLOUD_PROJECT`.
+`auth.sh` sources the repo [`.env`](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/.env), runs `gcloud auth application-default login`, and then runs `gcloud auth application-default set-quota-project` for `GOOGLE_CLOUD_PROJECT`.
 
 If you want to use service account impersonation, set:
 
@@ -122,9 +124,9 @@ Inference from Google's docs: the Vertex AI ADC path is the better fit for this 
 
 ## Agent Directories
 
-- [oracle_spatial_agent_python](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_spatial_agent_python/README.md): earlier Python A2A agent for warehouse map workflows. It is now mostly a reference implementation.
-- [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md): shared Java/Spring Boot A2A runtime serving the graph agent, spatial agent, Select AI agent, and inventory-action coordinator from one process.
-- [GEMINI_ENTERPRISE_AGENT_SETUP.md](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md): current Gemini Enterprise import URLs, which four agents to create, test prompts, expected behavior, payload-path notes, and the ADC caveat for the ADK action coordinator.
+- [oracle_spatial_agent_python](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_spatial_agent_python/README.md): earlier Python A2A agent for warehouse map workflows. It is now mostly a reference implementation.
+- [oracle_agent_java](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md): shared Java/Spring Boot A2A runtime serving the graph agent, spatial agent, Select AI agent, and inventory-action coordinator from one process.
+- [GEMINI_ENTERPRISE_AGENT_SETUP.md](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md): current Gemini Enterprise import URLs, which four agents to create, test prompts, expected behavior, payload-path notes, and the ADC caveat for the ADK action coordinator.
 
 ## Demo Flow
 
@@ -160,12 +162,12 @@ That is the point where ADK Java becomes especially appropriate: it gives us a c
 
 ## Current Java ADK Implementation
 
-The first cut of that final-stage action flow now lives in the shared Java runtime at [oracle_agent_java](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md).
+The first cut of that final-stage action flow now lives in the shared Java runtime at [oracle_agent_java](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/README.md).
 
 What is implemented today:
 
 - a dedicated inventory-action A2A agent surface served by the same Spring Boot process at `/inventory-action`
-- a separate action card import URL at `https://34.48.146.146/agent-card-action.json`
+- a separate action card import URL at `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
 - a Google ADK Java coordinator that uses a `ParallelAgent` for evidence gathering and a final `LlmAgent` for recommendation synthesis
 - tool-backed graph evidence from the live Oracle graph path
 - a real in-process spatial hotspot tool plus seeded external evidence so we can demonstrate the full multi-agent arc without splitting the runtime yet
@@ -182,23 +184,23 @@ What still comes next:
 If you want the current Gemini Enterprise setup, create these four agents:
 
 1. Graph agent
-   `https://34.48.146.146/agent-card-graph.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-graph.json`
 
 2. Spatial agent
-   `https://34.48.146.146/agent-card-spatial.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-spatial.json`
 
 3. Select AI agent
-   `https://34.48.146.146/agent-card-select-ai.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-select-ai.json`
 
 4. Inventory action agent
-   `https://34.48.146.146/agent-card-action.json`
+   `https://YOUR_PUBLIC_AGENT_HOST/agent-card-action.json`
 
 Current status:
 
 - the graph agent is the main production-demo path and is working against the Oracle graph database
 - the graph renderer still uses custom Java2D layout and image generation
 - the spatial agent is now a real in-process spatial implementation that uses the JTS Topology Suite for geometry work and Java2D for the rendered PNG
-- the Select AI agent is live in the same Java process and now answers through `DBMS_CLOUD_AI.GENERATE` using the `OPENAI_INVENTORY_DEMO` database profile
+- the Select AI agent is live in the same Java process and now answers through `DBMS_CLOUD_AI.GENERATE` using the `YOUR_SELECT_AI_PROFILE_NAME` database profile
 - the inventory action agent is live and working, but it currently returns deterministic fallback recommendations because the VM-side ADC refresh is stale for the ADK model path
 
 Quick Gemini Enterprise test prompts:
@@ -218,4 +220,4 @@ Quick Gemini Enterprise test prompts:
 - Inventory action:
   `What inventory action should we take for SKU-500 given the current supply risk? Gather graph, spatial, and external evidence first, then recommend the safest next move and say whether approval is required.`
 
-The full import and test runbook is in [GEMINI_ENTERPRISE_AGENT_SETUP.md](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md).
+The full import and test runbook is in [GEMINI_ENTERPRISE_AGENT_SETUP.md](/path/to/repo-root/oracle-ai-database-gcp-vertex-ai/GEMINI_ENTERPRISE_AGENT_SETUP.md).
