@@ -259,8 +259,8 @@ The same Java process now also serves a Select AI-style analyst at:
 
 What it does today:
 
-- if `SELECT_AI_PROFILE` or `DBMS_CLOUD_AI_PROFILE` is configured, it calls `DBMS_CLOUD_AI.GENERATE`
-- otherwise it answers honestly through deterministic SQL summaries over the demo tables
+- it now calls `DBMS_CLOUD_AI.GENERATE` through the live `OPENAI_INVENTORY_DEMO` profile on the demo database
+- if the profile becomes unavailable, it falls back honestly through deterministic SQL summaries over the demo tables
 - it supports question styles such as `narrate`, `showsql`, and `explainsql`
 
 Recommended Gemini Enterprise prompt:
@@ -273,7 +273,10 @@ Current expected response shape:
 
 - plain-text summary of the highest-risk products
 - plain-text regional-driver detail for the requested or inferred SKU
-- metadata showing `executionMode=direct-sql-fallback` until a live Select AI profile is configured
+- metadata showing `executionMode=select-ai`
+- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile OPENAI_INVENTORY_DEMO`
+
+## Inventory Action Coordinator
 
 Recommended Gemini Enterprise prompt:
 

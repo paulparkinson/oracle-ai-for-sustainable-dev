@@ -34,10 +34,10 @@ The current sample agents in this repo are now mostly deterministic and image-fi
 
 - the Java graph agent returns a PNG graph artifact
 - the Java spatial agent returns a PNG hotspot-map artifact
-- the Java Select AI agent can answer in deterministic SQL-fallback mode until a real `DBMS_CLOUD_AI` profile is configured
+- the Java Select AI agent now uses a live Oracle `DBMS_CLOUD_AI` profile for database-side natural-language generation
 - the Java inventory-action agent tries ADK first and falls back cleanly when host ADC is stale
 
-So the current local demo does not require live Vertex AI or Gemini API auth for the graph, spatial, or Select AI fallback paths. The shared Vertex settings are still useful repo infrastructure for the ADK-backed action stage and for future model-driven agents.
+So the current local demo does not require live Vertex AI or Gemini API auth for the graph or spatial paths. The Select AI path now depends on the database-side `DBMS_CLOUD_AI` profile instead of local model credentials. The shared Vertex settings are still useful repo infrastructure for the ADK-backed action stage and for future model-driven agents.
 
 ## Shared Repo Configuration
 
@@ -198,7 +198,7 @@ Current status:
 - the graph agent is the main production-demo path and is working against the Oracle graph database
 - the graph renderer still uses custom Java2D layout and image generation
 - the spatial agent is now a real in-process spatial implementation that uses the JTS Topology Suite for geometry work and Java2D for the rendered PNG
-- the Select AI agent is live in the same Java process and currently answers through deterministic SQL fallback until a `DBMS_CLOUD_AI` profile is configured
+- the Select AI agent is live in the same Java process and now answers through `DBMS_CLOUD_AI.GENERATE` using the `OPENAI_INVENTORY_DEMO` database profile
 - the inventory action agent is live and working, but it currently returns deterministic fallback recommendations because the VM-side ADC refresh is stale for the ADK model path
 
 Quick Gemini Enterprise test prompts:

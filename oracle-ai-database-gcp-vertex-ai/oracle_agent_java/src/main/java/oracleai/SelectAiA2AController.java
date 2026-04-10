@@ -1,28 +1,25 @@
 package oracleai;
 
-import io.a2a.server.agentexecution.AgentExecutor;
-import io.a2a.server.agentexecution.RequestContext;
-import io.a2a.server.events.EventQueue;
-import io.a2a.server.events.QueueManager;
-import io.a2a.server.requesthandlers.DefaultRequestHandler;
-import io.a2a.server.requesthandlers.RequestHandler;
-import io.a2a.server.tasks.PushNotificationConfigStore;
-import io.a2a.server.tasks.PushNotificationSender;
-import io.a2a.server.tasks.TaskStore;
-import io.a2a.server.tasks.TaskUpdater;
 import io.a2a.spec.AgentCard;
 import io.a2a.spec.JSONRPCError;
+import io.a2a.spec.Message;
+import io.a2a.spec.Part;
 import io.a2a.spec.SendMessageRequest;
 import io.a2a.spec.SendMessageResponse;
 import io.a2a.spec.Task;
 import io.a2a.spec.TaskNotCancelableError;
+import io.a2a.spec.TaskNotFoundError;
+import io.a2a.spec.TaskState;
+import io.a2a.spec.TaskStatus;
 import io.a2a.spec.TextPart;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.springaicommunity.a2a.server.controller.AgentCardController;
-import org.springaicommunity.a2a.server.controller.MessageController;
-import org.springaicommunity.a2a.server.controller.TaskController;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,30 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class SelectAiA2AController {
 
     private final AgentCardController agentCardController;
-    private final MessageController messageController;
-    private final TaskController taskController;
+    private final SelectAiService selectAiService;
+    private final ConcurrentMap<String, Task> tasks;
 
-    public SelectAiA2AController(
-            Environment environment,
-            SelectAiService selectAiService,
-            TaskStore taskStore,
-            QueueManager queueManager,
-            PushNotificationConfigStore pushNotificationConfigStore,
-            PushNotificationSender pushNotificationSender
-    ) {
+    public SelectAiA2AController(Environment environment, SelectAiService selectAiService) {
         AgentCard selectAiCard = SelectAiCardFactory.buildSelectAiAgentCard(environment);
-        RequestHandler requestHandler = DefaultRequestHandler.create(
-                buildAgentExecutor(selectAiService),
-                taskStore,
-                queueManager,
-                pushNotificationConfigStore,
-                pushNotificationSender,
-                ForkJoinPool.commonPool()
-        );
-
         this.agentCardController = new AgentCardController(selectAiCard);
-        this.messageController = new MessageController(requestHandler);
-        this.taskController = new TaskController(requestHandler);
+        this.selectAiService = selectAiService;
+        this.tasks = new ConcurrentHashMap<>();
     }
 
     @GetMapping(
@@ -84,7 +65,49 @@ public class SelectAiA2AController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public SendMessageResponse sendMessage(@RequestBody SendMessageRequest request) throws JSONRPCError {
-        return messageController.sendMessage(request);
+        String userInput = extractUserInput(request);
+        SelectAiService.SelectAiResult result = selectAiService.answer(userInput);
+
+        String taskId = UUID.randomUUID().toString();
+        String contextId = UUID.randomUUID().toString();
+
+        Message userMessage = copyMessage(
+                request.getParams() == null ? null : request.getParams().message(),
+                Message.Role.USER,
+                contextId,
+                taskId,
+                Map.of()
+        );
+        Message agentMessage = new Message(
+                Message.Role.AGENT,
+                List.of(new TextPart(result.responseText())),
+                UUID.randomUUID().toString(),
+                contextId,
+                taskId,
+                List.of(),
+                Map.of(
+                        "executionMode", result.executionMode(),
+                        "action", result.action(),
+                        "sourceDetail", result.sourceDetail()
+                ),
+                List.of()
+        );
+
+        Task task = new Task(
+                taskId,
+                contextId,
+                new TaskStatus(TaskState.COMPLETED, agentMessage, OffsetDateTime.now()),
+                List.of(),
+                userMessage == null ? List.of(agentMessage) : List.of(userMessage, agentMessage),
+                Map.of(
+                        "executionMode", result.executionMode(),
+                        "action", result.action(),
+                        "sourceDetail", result.sourceDetail()
+                )
+        );
+        tasks.put(taskId, task);
+
+        return new SendMessageResponse(request.getId(), task);
     }
 
     @GetMapping(
@@ -92,7 +115,11 @@ public class SelectAiA2AController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Task getTask(@PathVariable String taskId) throws JSONRPCError {
-        return taskController.getTask(taskId);
+        Task task = tasks.get(taskId);
+        if (task == null) {
+            throw new TaskNotFoundError();
+        }
+        return task;
     }
 
     @PostMapping(
@@ -100,48 +127,42 @@ public class SelectAiA2AController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Task cancelTask(@PathVariable String taskId) throws JSONRPCError {
-        return taskController.cancelTask(taskId);
+        throw new TaskNotCancelableError();
     }
 
-    private static AgentExecutor buildAgentExecutor(SelectAiService selectAiService) {
-        return new AgentExecutor() {
-            @Override
-            public void execute(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
-                TaskUpdater updater = new TaskUpdater(context, eventQueue);
-                if (context.getTask() == null) {
-                    updater.submit();
-                }
+    private static String extractUserInput(SendMessageRequest request) {
+        if (request == null || request.getParams() == null || request.getParams().message() == null) {
+            return "";
+        }
 
-                updater.startWork();
-
-                try {
-                    String userInput = context.getUserInput("");
-                    SelectAiService.SelectAiResult result = selectAiService.answer(userInput);
-                    updater.complete(
-                            updater.newAgentMessage(
-                                    List.of(new TextPart(result.responseText())),
-                                    Map.of(
-                                            "executionMode", result.executionMode(),
-                                            "action", result.action(),
-                                            "sourceDetail", result.sourceDetail()
-                                    )
-                            )
-                    );
-                } catch (Exception exception) {
-                    updater.fail(
-                            updater.newAgentMessage(
-                                    List.of(new TextPart("Select AI agent failed: " + exception.getMessage())),
-                                    Map.of("error", "select_ai_execution_failed")
-                            )
-                    );
-                    throw new JSONRPCError(-32603, "Select AI agent failed: " + exception.getMessage(), null);
-                }
+        List<String> texts = new ArrayList<>();
+        for (Part<?> part : request.getParams().message().getParts()) {
+            if (part instanceof TextPart textPart && textPart.getText() != null) {
+                texts.add(textPart.getText());
             }
+        }
+        return String.join("\n", texts).trim();
+    }
 
-            @Override
-            public void cancel(RequestContext context, EventQueue eventQueue) throws JSONRPCError {
-                throw new TaskNotCancelableError();
-            }
-        };
+    private static Message copyMessage(
+            Message original,
+            Message.Role fallbackRole,
+            String contextId,
+            String taskId,
+            Map<String, Object> metadata
+    ) {
+        if (original == null) {
+            return null;
+        }
+        return new Message(
+                original.getRole() == null ? fallbackRole : original.getRole(),
+                original.getParts() == null ? List.of() : original.getParts(),
+                original.getMessageId() == null ? UUID.randomUUID().toString() : original.getMessageId(),
+                contextId,
+                taskId,
+                original.getReferenceTaskIds() == null ? List.of() : original.getReferenceTaskIds(),
+                metadata,
+                original.getExtensions() == null ? List.of() : original.getExtensions()
+        );
     }
 }

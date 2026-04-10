@@ -38,8 +38,8 @@ There are currently four importable agent cards for the Oracle AI Database demo:
 
    What it does:
    - answers natural-language inventory questions
-   - uses `DBMS_CLOUD_AI.GENERATE` when a Select AI profile is configured
-   - otherwise falls back to direct Oracle SQL summaries over the demo risk tables
+   - uses `DBMS_CLOUD_AI.GENERATE` through the live `OPENAI_INVENTORY_DEMO` profile
+   - falls back to direct Oracle SQL summaries only if the profile is unavailable
 
    Current live card:
    - `name`: `oracle_select_ai_agent`
@@ -64,7 +64,7 @@ There are currently four importable agent cards for the Oracle AI Database demo:
 - The graph agent is production-demo ready for the current story and is the main path to keep imported.
 - The graph payload path is supported, but Gemini Enterprise may still rewrite pasted JSON in surprising ways. The parser now tolerates inline JSON, fenced JSON, and markdown-style escaped brackets such as `\[` and `\]`.
 - The spatial agent is now a real separate hotspot-map implementation in the shared Java runtime.
-- The Select AI agent is live and useful now, but without a configured Select AI profile it honestly reports `direct-sql-fallback`.
+- The Select AI agent is live and currently configured for real database-side generation through `DBMS_CLOUD_AI.GENERATE`.
 - The inventory action agent is live and working, but the ADK model path on the VM is currently falling back to deterministic local orchestration because the VM-side ADC refresh is stale.
 
 ## ADC Note
@@ -274,9 +274,10 @@ Expected result today:
 - a completed text response
 - next-quarter risk summary for `SKU-500`, `SKU-700`, and `SKU-900`
 - regional-driver detail for `SKU-500`
-- a note that the answer used deterministic SQL fallback until the live Select AI profile is configured
+- metadata showing `executionMode=select-ai`
+- metadata showing `sourceDetail=DBMS_CLOUD_AI.GENERATE via profile OPENAI_INVENTORY_DEMO`
 
-Once the Select AI profile is configured in the database, this same agent can answer through `DBMS_CLOUD_AI.GENERATE`.
+This path is already wired to the live database profile, so the answer should be database-backed rather than fallback.
 
 ### 6. Test The Inventory Action Agent
 
@@ -342,9 +343,11 @@ gcloud auth application-default login
 
 3. Restart the Java service
 
-If you want the Select AI agent to switch from deterministic SQL fallback to real database-side LLM generation, the next step is:
+The Select AI agent is already using the live database-side profile:
 
-1. Configure the database-side credential and profile from:
+1. Oracle DB credential and profile created from the pattern in:
    [configure_select_ai_openai_profile.sql](/Users/pparkins/src/github.com/paulparkinson/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-vertex-ai/oracle_agent_java/sql/configure_select_ai_openai_profile.sql)
-2. Set `SELECT_AI_PROFILE` or `DBMS_CLOUD_AI_PROFILE` in the shared environment
-3. Restart the Java service
+2. Shared environment set to `SELECT_AI_PROFILE=OPENAI_INVENTORY_DEMO`
+3. Java service restarted on the GCP VM
+
+If you ever need to recreate it, repeat those same three steps.

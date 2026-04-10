@@ -64,7 +64,7 @@ public class SelectAiService {
 
         if (!profileName.isBlank()) {
             try {
-                return runSelectAi(normalizedPrompt, action, profileName);
+                return runSelectAi(normalizedPrompt, productId, action, profileName);
             } catch (Exception exception) {
                 return fallbackResponse(normalizedPrompt, productId, action, exception.getMessage());
             }
@@ -73,7 +73,61 @@ public class SelectAiService {
         return fallbackResponse(normalizedPrompt, productId, action, "SELECT_AI_PROFILE is not configured");
     }
 
-    private SelectAiResult runSelectAi(String prompt, String action, String profileName) throws Exception {
+    private SelectAiResult runSelectAi(String prompt, String productId, String action, String profileName) throws Exception {
+        if ("showsql".equals(action) || "explainsql".equals(action)) {
+            return new SelectAiResult(
+                    runSelectAiPrompt(prompt, action, profileName),
+                    "select-ai",
+                    action,
+                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
+            );
+        }
+
+        String lower = prompt.toLowerCase(Locale.ROOT);
+        boolean wantsRiskSummary = lower.contains("product")
+                || lower.contains("stockout")
+                || lower.contains("next quarter")
+                || lower.contains("risk");
+        boolean wantsRegionDrivers = asksForRegions(lower);
+
+        if (wantsRiskSummary && wantsRegionDrivers) {
+            String summaryText = runSelectAiPrompt(buildRiskSummaryPrompt(), action, profileName);
+            String regionText = runSelectAiPrompt(buildRegionDriverPrompt(productId), action, profileName);
+            return new SelectAiResult(
+                    summaryText + "\n\n" + regionText,
+                    "select-ai",
+                    action,
+                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
+            );
+        }
+
+        if (wantsRegionDrivers) {
+            return new SelectAiResult(
+                    runSelectAiPrompt(buildRegionDriverPrompt(productId), action, profileName),
+                    "select-ai",
+                    action,
+                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
+            );
+        }
+
+        if (wantsRiskSummary) {
+            return new SelectAiResult(
+                    runSelectAiPrompt(buildRiskSummaryPrompt(), action, profileName),
+                    "select-ai",
+                    action,
+                    "DBMS_CLOUD_AI.GENERATE via profile " + profileName
+            );
+        }
+
+        return new SelectAiResult(
+                runSelectAiPrompt(prompt, action, profileName),
+                "select-ai",
+                action,
+                "DBMS_CLOUD_AI.GENERATE via profile " + profileName
+        );
+    }
+
+    private String runSelectAiPrompt(String prompt, String action, String profileName) throws Exception {
         try (
                 Connection connection = OracleJdbcSupport.openConnection(environment);
                 PreparedStatement statement = connection.prepareStatement(GENERATE_SQL)
@@ -91,15 +145,41 @@ public class SelectAiService {
                 if (content == null || content.isBlank()) {
                     throw new IllegalStateException("DBMS_CLOUD_AI.GENERATE returned an empty response.");
                 }
-
-                return new SelectAiResult(
-                        content.trim(),
-                        "select-ai",
-                        action,
-                        "DBMS_CLOUD_AI.GENERATE via profile " + profileName
-                );
+                return content.trim();
             }
         }
+    }
+
+    private String buildRiskSummaryPrompt() {
+        String quarterLabel = resolveQuarterLabel();
+        return "Using ADMIN.SC_INVENTORY_RISK_SUMMARY joined to ADMIN.SC_PRODUCTS, summarize the products at highest "
+                + "stockout risk for quarter label " + quarterLabel + ". Include product_id, product_name, risk_level, "
+                + "stockout_probability, projected_revenue_impact_usd, and primary_region.";
+    }
+
+    private String buildRegionDriverPrompt(String productId) {
+        return "Using ADMIN.SC_INVENTORY_RISK_DEMO_V, explain which warehouses, counties, states, hotspot scores, "
+                + "and coverage days are driving the risk for product " + productId + ".";
+    }
+
+    private String resolveQuarterLabel() {
+        try (
+                Connection connection = OracleJdbcSupport.openConnection(environment);
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT quarter_label FROM sc_inventory_risk_summary WHERE active_flag = 'Y' FETCH FIRST 1 ROWS ONLY"
+                );
+                ResultSet resultSet = statement.executeQuery()
+        ) {
+            if (resultSet.next()) {
+                String quarterLabel = resultSet.getString(1);
+                if (quarterLabel != null && !quarterLabel.isBlank()) {
+                    return quarterLabel.trim();
+                }
+            }
+        } catch (Exception ignored) {
+            // Fall back to the seeded demo label below.
+        }
+        return DemoInventoryData.topSummaries().get(0).quarterLabel();
     }
 
     private SelectAiResult fallbackResponse(String prompt, String productId, String action, String reason) {
