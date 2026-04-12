@@ -1,7 +1,7 @@
 {
   "name": "oracle_select_ai_agent",
   "description": "Select AI-style inventory analysis agent. It can answer natural-language questions over the demo risk tables using DBMS_CLOUD_AI when a profile is configured, and otherwise falls back to direct Oracle SQL summaries.",
-  "url": "https://34.186.79.96/select-ai",
+  "url": "https://YOUR_PUBLIC_AGENT_HOST/select-ai",
   "version": "0.0.1",
   "capabilities": {
     "streaming": false,

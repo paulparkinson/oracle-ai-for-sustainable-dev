@@ -1,7 +1,7 @@
 {
   "name": "oracle_spatial_agent",
   "description": "Spatial hotspot specialist for Oracle inventory risk workflows. It renders a PNG map from warehouse hotspot data, highlighting the primary pressure point and suggested relief route.",
-  "url": "https://34.186.79.96/spatial",
+  "url": "https://YOUR_PUBLIC_AGENT_HOST/spatial",
   "version": "0.0.1",
   "capabilities": {
     "streaming": false,
