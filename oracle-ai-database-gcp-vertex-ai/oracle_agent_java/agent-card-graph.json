@@ -1,7 +1,7 @@
 {
   "name": "oracle_graph_agent",
   "description": "Specialist in Oracle Graph dependency analysis and supply chain visualization.",
-  "url": "https://34.48.146.146",
+  "url": "https://34.186.79.96",
   "version": "0.0.1",
   "capabilities": {
     "streaming": false,
