@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, and Oracle AI Database</title>
+  <meta name="description" content="Build an account-risk assistant with Oracle AI Database, the Oracle Database MCP Java Toolkit, AG-UI streaming, A2UI native controls, and an optional MCP App dashboard.">
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; color: #1f2933; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
+    main { max-width: 980px; margin: 0 auto; padding: 38px 22px 72px; }
+    h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 6vw, 3.8rem); line-height: 1.04; letter-spacing: -.035em; }
+    h2 { margin-top: 46px; line-height: 1.2; }
+    h3 { margin-top: 30px; line-height: 1.25; }
+    .eyebrow { margin: 0 0 10px; color: #c74634; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .subtitle { margin: 0 0 28px; color: #4b5563; font-size: 1.3rem; }
+    .callout { padding: 15px 17px; border-left: 4px solid #c74634; background: #fff6f2; }
+    .note { padding: 15px 17px; border-left: 4px solid #54738f; background: #f3f7fa; }
+    figure { margin: 32px 0; }
+    figure img { display: block; max-width: 100%; height: auto; border: 1px solid #d6dce3; border-radius: 8px; }
+    figure.cover img { border: 0; border-radius: 0; }
+    figcaption { margin-top: 8px; color: #5c6673; font-size: .95rem; }
+    code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
+    code { overflow-wrap: anywhere; }
+    pre { overflow-x: auto; padding: 15px; border: 1px solid #dde3ea; border-radius: 7px; background: #f5f7f9; white-space: pre; }
+    table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+    th, td { min-width: 150px; padding: 10px; border: 1px solid #d6dce3; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; }
+    li + li { margin-top: 7px; }
+    a { color: #075eaa; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Oracle AI Database · MCP · Agent-to-UI protocols</p>
+  <h1>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, and Oracle AI Database</h1>
+  <p class="subtitle">A reference account-risk assistant that streams agent work, renders safe native controls, offers an optional embedded dashboard, and keeps data and transactions in Oracle AI Database.</p>
+
+  <p>Text is enough for many agent answers. It is not enough when a person must explore governed data, understand why an account is risky, select one record, enter notes, and explicitly approve a transactional follow-up. That workflow needs progress, state, controls, validation, and a clear security boundary.</p>
+  <p>This reference project combines four technologies without blending their responsibilities. <a href="https://docs.ag-ui.com/">AG-UI</a> streams agent activity. <a href="https://a2ui.org/">A2UI</a> describes a native interface. <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> supplies an optional rich dashboard inside a compatible host. The <a href="https://github.com/oracle/mcp/tree/main/src/oracle-db-mcp-java-toolkit">Oracle Database MCP Java Toolkit</a> exposes deliberately narrow tools backed by Oracle AI Database.</p>
+  <p>All source code, SQL, YAML, security notes, and the verified implementation plan are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
+
+  <figure class="cover">
+    <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI with a Java agent service, an optional sandboxed MCP App, narrow Oracle Database MCP Java Toolkit tools, and Oracle AI Database as the governed system of record.">
+    <figcaption>AG-UI, A2UI, and MCP Apps solve different interaction problems; Oracle AI Database remains the authoritative data and transaction layer.</figcaption>
+  </figure>
+
+  <section id="key-takeaways">
+    <h2>Key Takeaways</h2>
+    <ul>
+      <li>AG-UI is the event and state stream between the frontend and agent; A2UI is a declarative UI payload that can travel over that stream.</li>
+      <li>MCP Apps are optional sandboxed HTML experiences for dashboards and complex interactions inside MCP-compatible hosts, not a replacement for a custom web frontend.</li>
+      <li>The Oracle Database MCP Java Toolkit should expose purpose-built business tools instead of unrestricted SQL, especially for model-initiated workflows.</li>
+      <li>Approval belongs in the application policy layer, while the resulting business write belongs in a stored procedure and caller-controlled database transaction.</li>
+    </ul>
+  </section>
+
+  <section id="why-text-only-is-insufficient">
+    <h2>Why a Text-Only Agent Is Insufficient</h2>
+    <p>Consider the request: “Show me high-risk customer accounts, explain the main risk factors, and let me approve a follow-up action.” A useful experience must expose more than an answer:</p>
+    <ul>
+      <li>the current run status and database tool being invoked;</li>
+      <li>a bounded, selectable result set rather than a prose dump;</li>
+      <li>risk levels, account values, ownership, and supporting events;</li>
+      <li>an action type and notes field with validation;</li>
+      <li>an explicit confirmation boundary before a write; and</li>
+      <li>a final action ID and auditable completion state.</li>
+    </ul>
+    <p>The model may help decide what to retrieve and how to explain it. It should not decide whether a human approved a write, invent executable UI code, or receive unrestricted database privileges.</p>
+  </section>
+
+  <section id="what-each-layer-solves">
+    <h2>What AG-UI, A2UI, MCP Apps, and MCP Each Solve</h2>
+    <table>
+      <tr><th>Layer</th><th>Primary job</th><th>In this demo</th></tr>
+      <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, assistant text, MCP tool activity, state, and recoverable errors over SSE.</td></tr>
+      <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders its own trusted components.</td><td>Describes the account review surface, form controls, and actions using v0.9.1 envelopes.</td></tr>
+      <tr><td>MCP Apps</td><td>Render rich sandboxed HTML interfaces inside an MCP host and communicate through the host bridge.</td><td>Displays risk metrics, distributions, account cards, and a “send selection to conversation” action.</td></tr>
+      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose Oracle Database capabilities through MCP, including custom YAML tools and database-backed operations.</td><td>Hosts two YAML read tools and a narrowly scoped transactional write extension contract.</td></tr>
+      <tr><td>Oracle AI Database</td><td>Remain the trusted system of record and execution layer.</td><td>Stores accounts, risk events, and actions; applies views, validation, transactions, authorization, and auditing.</td></tr>
+    </table>
+    <p class="callout"><strong>The important design decision:</strong> do not place all AG-UI and A2UI implementation inside the database MCP toolkit. The toolkit is database-facing. Orchestration and approval belong in the agent service; rendering belongs in the frontend.</p>
+  </section>
+
+  <section id="overlap">
+    <h2>Where the Protocols Overlap</h2>
+    <p>A2UI does not mandate one transport. Its v0.9.1 specification explicitly allows AG-UI to carry A2UI messages. The project uses AG-UI’s standard <code>CUSTOM</code> event, named <code>a2ui.message</code>, whose value is an A2UI envelope. That preserves both contracts instead of inventing an event such as <code>A2UI_RENDER</code>.</p>
+    <p>A2UI and MCP Apps can both make an interaction visual, but their trust and rendering models differ. A2UI sends declarative components that the host maps to its native design system. MCP Apps sends an HTML resource rendered in a sandboxed iframe. Use A2UI when restricted, host-native controls are the goal. Use an MCP App when the user needs a chart, canvas, dashboard, or workflow that exceeds the native catalog.</p>
+    <p>AG-UI and MCP also carry tool activity, but in different relationships. MCP connects the agent or host to tools. AG-UI connects the agent to its end-user frontend. One tool call can therefore be an MCP request downstream and a sequence of AG-UI <code>TOOL_CALL_START</code>, <code>TOOL_CALL_ARGS</code>, <code>TOOL_CALL_END</code>, and <code>TOOL_CALL_RESULT</code> events upstream.</p>
+  </section>
+
+  <section id="database">
+    <h2>Start with the Oracle AI Database Model</h2>
+    <p>The schema contains 20 deterministic customer accounts, two risk events per account, and an action table. Read-only views give the tools a stable application contract. The full scripts are in <code>database/</code>.</p>
+    <pre><code>CREATE TABLE customer_actions (
+    action_id      NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer_id    NUMBER NOT NULL,
+    action_type    VARCHAR2(100) NOT NULL,
+    action_notes   VARCHAR2(2000) NOT NULL,
+    requested_by   VARCHAR2(200) NOT NULL,
+    action_status  VARCHAR2(30) NOT NULL,
+    created_at     TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
+    completed_at   TIMESTAMP,
+    CONSTRAINT fk_action_customer FOREIGN KEY (customer_id)
+        REFERENCES customer_accounts(customer_id)
+);</code></pre>
+    <p>The model never receives a general-purpose write tool. An approved action calls one stored procedure that validates the action type and notes, locks the selected account, inserts the action, and updates the account status.</p>
+    <pre><code>CREATE OR REPLACE PROCEDURE create_customer_follow_up (
+    p_customer_id  IN NUMBER,
+    p_action_type  IN VARCHAR2,
+    p_action_notes IN VARCHAR2,
+    p_requested_by IN VARCHAR2,
+    p_action_id    OUT NUMBER
+) AS
+BEGIN
+    -- validate, lock the account, insert the action, update status
+    -- no COMMIT: the calling MCP tool owns commit or rollback
+END;
+/</code></pre>
+    <p>Keeping the transaction boundary outside the procedure matters. The MCP write tool can roll back if the call, result conversion, audit step, or surrounding workflow fails.</p>
+  </section>
+
+  <section id="mcp-tools">
+    <h2>Define Narrow Oracle Database MCP Tools</h2>
+    <p>The current Oracle Database MCP Java Toolkit supports custom tools in YAML, Streamable HTTP and stdio transports, JDBC/UCP pooling, TLS, development bearer tokens, and OAuth 2.0. It also includes broad database operator tools. Those broad tools are intentionally not enabled here.</p>
+    <p>The bounded risk query is declarative. All user values are binds, and an outer <code>ROWNUM</code> predicate avoids depending on a bind inside <code>FETCH FIRST</code>.</p>
+    <pre><code>tools:
+  find-at-risk-customers:
+    description: Returns governed accounts at or above a risk score.
+    parameters:
+      - name: minimumRisk
+        type: number
+        required: true
+      - name: maximumRows
+        type: integer
+        required: true
+    statement: &gt;-
+      SELECT * FROM (
+        SELECT customer_id, customer_name, account_value,
+               risk_score, risk_level, risk_summary, owner_name
+          FROM account_risk_summary_v
+         WHERE risk_score &gt;= :minimumRisk
+         ORDER BY risk_score DESC
+      ) WHERE ROWNUM &lt;= :maximumRows</code></pre>
+    <p>There is a real compatibility boundary in the write tool. The current YAML parameter shape does not declare callable OUT parameters. Because the procedure must return <code>p_action_id</code> and the caller must control commit or rollback, the project records <code>create-customer-follow-up</code> as a narrow Java extension contract instead of pretending it works in YAML. That extension should use a JDBC <code>CallableStatement</code>, register the numeric OUT parameter, commit after success, and roll back on every exception.</p>
+  </section>
+
+  <section id="ag-ui">
+    <h2>Stream the Workflow with AG-UI</h2>
+    <p>The Java service emits official AG-UI event names. Approval is represented in a <code>STATE_SNAPSHOT</code>, not as an invented protocol event:</p>
+    <pre><code>RUN_STARTED
+STEP_STARTED
+TEXT_MESSAGE_START
+TEXT_MESSAGE_CONTENT
+TOOL_CALL_START
+TOOL_CALL_ARGS
+TOOL_CALL_END
+TOOL_CALL_RESULT
+STEP_FINISHED
+STATE_SNAPSHOT        status = AWAITING_APPROVAL
+CUSTOM                name = a2ui.message
+TEXT_MESSAGE_END
+RUN_FINISHED</code></pre>
+    <p>The UI can show progress before the complete result arrives, correlate tool arguments and results with one <code>toolCallId</code>, and recover cleanly from a <code>RUN_ERROR</code>. A production adapter should also propagate timeouts and cancellation from the browser through the MCP request.</p>
+  </section>
+
+  <section id="a2ui">
+    <h2>Render Native Controls with A2UI</h2>
+    <p>A2UI v0.9.1 is the current production release at the time of writing. Its server stream uses exactly four envelope types: <code>createSurface</code>, <code>updateComponents</code>, <code>updateDataModel</code>, and <code>deleteSurface</code>. This demo creates one account-risk surface, supplies an adjacency-list component tree, and then supplies the data separately.</p>
+    <pre><code>{
+  "version": "v0.9.1",
+  "createSurface": {
+    "surfaceId": "account-risk-review",
+    "catalogId": "https://a2ui.org/specification/v0_9_1/catalogs/basic/catalog.json",
+    "sendDataModel": true
+  }
+}</code></pre>
+    <p>The development renderer accepts only <code>Column</code>, <code>Row</code>, <code>List</code>, <code>Card</code>, <code>Text</code>, <code>Button</code>, <code>TextField</code>, and <code>ChoicePicker</code>. It rejects unexpected versions, catalogs, surface IDs, envelope shapes, and component names. Generated values enter the DOM through <code>textContent</code>; no A2UI payload can provide JavaScript.</p>
+    <p>That is the security value of a declarative protocol. The agent can choose from capabilities the application already trusts, but it cannot create a new executable capability.</p>
+  </section>
+
+  <section id="mcp-app">
+    <h2>Add a Rich Dashboard with MCP Apps</h2>
+    <p>The optional dashboard is a separate TypeScript package. Its tool metadata references <code>ui://oracle-account-risk/dashboard-v1</code>. The server returns the resource using <code>text/html;profile=mcp-app</code>, and an MCP Apps-compatible host renders it in a sandboxed iframe.</p>
+    <pre><code>registerAppTool(server, "show-account-risk-dashboard", {
+  title: "Show account risk dashboard",
+  inputSchema: {},
+  _meta: { ui: { resourceUri, visibility: ["model", "app"] } }
+}, async () =&gt; ({
+  content: [{ type: "text", text: "Account risk dashboard ready." }],
+  structuredContent: { accounts }
+}));</code></pre>
+    <p>The app reads <code>structuredContent</code>; it does not parse prose and never connects to Oracle Database. When the user selects an account, <code>updateModelContext</code> sends that structured choice back through the host bridge. The app remains optional because MCP Apps support varies by host.</p>
+  </section>
+
+  <section id="approval">
+    <h2>Implement Approval Before the Transactional Write</h2>
+    <p>When the read completes, the agent service issues a short-lived approval ID bound to the authenticated actor and the exact account IDs returned by the governed query. The user must select one of those accounts and confirm an allowlisted action type. The server consumes the approval ID once before invoking the write.</p>
+    <p>Canceling removes the pending approval and makes no write call. Reusing an approval, switching actors, selecting an account outside the result set, or submitting invalid notes fails validation. For a production deployment, store hashed approval and idempotency records durably rather than in process memory.</p>
+  </section>
+
+  <section id="run">
+    <h2>Run the Reference Application</h2>
+    <p>The base streaming experience has a dependency-free development mode, so you can inspect the protocol flow before configuring Oracle credentials:</p>
+    <pre><code>cd a2ui_agui_mcpapps_mcptoolkit/agent-service
+./test.sh
+./run.sh
+
+# open http://127.0.0.1:8080</code></pre>
+    <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes.</p>
+    <p>For the live Oracle path, run the four database setup scripts, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, and enable only <code>account-risk-read</code>. Then implement the recorded write contract as a minimal toolkit extension and replace the development repository with an MCP client adapter.</p>
+    <p class="note"><strong>Current status:</strong> the repository foundation, UI, protocol stream, SQL, YAML reads, write contract, tests, security design, and MCP App source are implemented. Live Oracle integration remains an explicit second phase because it requires a reachable database, credentials, and validation against the exact toolkit commit being deployed.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security and Governance Checklist</h2>
+    <ul>
+      <li>Use a least-privileged database principal with only the required view and procedure grants.</li>
+      <li>Use TLS and OAuth 2.0 for remote MCP; the toolkit’s generated bearer token mode is development-only.</li>
+      <li>Enable only purpose-built tools. Do not use <code>-Dtools=*</code> or unrestricted <code>write-query</code> in the production-style demo.</li>
+      <li>Validate inputs at the agent service, MCP tool, and database procedure boundaries.</li>
+      <li>Bind every user value and enforce score, row-count, text-length, and timeout limits.</li>
+      <li>Bind approval to actor, scope, expiry, and a single use; add durable idempotency for production.</li>
+      <li>Log tool name, actor, timestamp, input classification, approval, and status without logging secrets or full sensitive rows.</li>
+      <li>Allowlist A2UI catalogs and components; treat MCP App content as untrusted and apply sandbox, CSP, and permission controls.</li>
+      <li>Keep wallets, passwords, tokens, and client secrets out of the browser and repository.</li>
+    </ul>
+  </section>
+
+  <section id="decision-guide">
+    <h2>Decision Guide</h2>
+    <table>
+      <tr><th>Use</th><th>When</th></tr>
+      <tr><td>AG-UI</td><td>You own a custom agent frontend and need streamed messages, tool activity, progress, and synchronized state.</td></tr>
+      <tr><td>A2UI</td><td>The agent should compose native, accessible controls from a restricted catalog without sending executable code.</td></tr>
+      <tr><td>MCP Apps</td><td>A compatible conversational host needs a sandboxed dashboard, chart, canvas, or complex embedded workflow.</td></tr>
+      <tr><td>Oracle Database MCP Java Toolkit</td><td>Oracle data, vector search, transactions, or stored business operations must be exposed as MCP tools.</td></tr>
+      <tr><td>All four</td><td>Each layer adds distinct value to the same end-to-end interaction. Do not combine them merely for novelty.</td></tr>
+    </table>
+  </section>
+
+  <section id="limitations">
+    <h2>Limitations and Next Steps</h2>
+    <p>The Java AG-UI SDK is community-maintained and evolving, so the foundation uses the official wire event contract without a hard dependency on a volatile artifact. A2UI v1.0 is still a candidate; adopting it will require its new action response and surface-property changes. MCP Apps host support and capabilities vary.</p>
+    <p>The next implementation milestone is live integration: a minimal Oracle toolkit write extension, an MCP client adapter in the agent service, Oracle integration tests for successful reads and transactional rollback, and screenshots from an MCP Apps-compatible host. After that, add real identity, database authorization policies, durable approvals, vector-supported risk explanations, and centralized audit export.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently Asked Questions</h2>
+    <h3>Does A2UI replace AG-UI?</h3>
+    <p>No. A2UI describes UI surfaces and data; AG-UI carries agent events and state. A2UI messages can travel inside AG-UI custom events.</p>
+    <h3>Does an MCP App replace the web client?</h3>
+    <p>No. An MCP App is useful inside compatible conversational hosts. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
+    <h3>Why not give the model the toolkit’s write-query tool?</h3>
+    <p>An unrestricted write tool dramatically increases scope and injection risk. A narrow procedure-backed tool makes the allowed operation, validation, privileges, transaction, and audit result explicit.</p>
+    <h3>Where should approval be enforced?</h3>
+    <p>The application binds approval to the authenticated actor and selected data. The MCP tool revalidates its input, and Oracle AI Database executes the business write transactionally. Each boundary has a distinct responsibility.</p>
+  </section>
+</main>
+</body>
+</html>

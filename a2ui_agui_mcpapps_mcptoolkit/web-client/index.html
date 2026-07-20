@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oracle Account-Risk Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Oracle AI Database · AG-UI · A2UI</p>
+    <h1>Account-Risk Assistant</h1>
+    <p class="lede">Review governed account-risk data and explicitly approve a narrowly scoped follow-up action.</p>
+  </header>
+
+  <section class="request-panel" aria-labelledby="request-heading">
+    <div>
+      <h2 id="request-heading">Find accounts</h2>
+      <p>“Show me high-risk customer accounts, explain the risk factors, and let me approve a follow-up action.”</p>
+    </div>
+    <form id="run-form">
+      <label>Minimum risk <input id="minimum-risk" name="minimumRisk" type="number" min="0" max="100" value="75" required></label>
+      <label>Maximum rows <input id="maximum-rows" name="maximumRows" type="number" min="1" max="50" value="10" required></label>
+      <button type="submit">Run review</button>
+    </form>
+  </section>
+
+  <div class="layout">
+    <section aria-labelledby="results-heading">
+      <div class="section-title">
+        <div><p class="kicker">A2UI surface</p><h2 id="results-heading">Governed results</h2></div>
+        <span id="status" class="status">Ready</span>
+      </div>
+      <p id="assistant-message" class="assistant" aria-live="polite">Submit the request to begin.</p>
+      <div id="a2ui-surface" aria-live="polite"></div>
+    </section>
+
+    <aside aria-labelledby="events-heading">
+      <p class="kicker">AG-UI stream</p>
+      <h2 id="events-heading">Run events</h2>
+      <ol id="events" class="events"></ol>
+    </aside>
+  </div>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

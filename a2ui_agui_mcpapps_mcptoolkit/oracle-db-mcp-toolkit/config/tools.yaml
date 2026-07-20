@@ -1,0 +1,43 @@
+# Compatible with the current Oracle Database MCP Java Toolkit YAML shape.
+# Credentials are intentionally supplied with -Ddb.* properties, not stored here.
+tools:
+  find-at-risk-customers:
+    description: Returns a bounded list of governed customer accounts at or above the requested risk score.
+    parameters:
+      - name: minimumRisk
+        type: number
+        description: Minimum risk score from 0 through 100.
+        required: true
+      - name: maximumRows
+        type: integer
+        description: Maximum number of rows from 1 through 50; validated by the agent service.
+        required: true
+    statement: >-
+      SELECT * FROM (
+        SELECT customer_id, customer_name, industry, account_value,
+               risk_score, risk_level, risk_summary, owner_name,
+               follow_up_status
+          FROM account_risk_summary_v
+         WHERE risk_score >= :minimumRisk
+         ORDER BY risk_score DESC
+      ) WHERE ROWNUM <= :maximumRows
+
+  get-customer-risk-details:
+    description: Returns one governed account and its recent risk events.
+    parameters:
+      - name: customerId
+        type: integer
+        description: Customer account identifier.
+        required: true
+    statement: >-
+      SELECT a.customer_id, a.customer_name, a.industry, a.account_value,
+             a.risk_score, a.risk_level, a.risk_summary, a.owner_name,
+             a.follow_up_status, e.event_id, e.event_type,
+             e.event_description, e.event_date, e.severity
+        FROM account_risk_summary_v a
+        LEFT JOIN account_risk_event_v e ON e.customer_id = a.customer_id
+       WHERE a.customer_id = :customerId
+       ORDER BY e.event_date DESC
+
+toolsets:
+  account-risk-read: [find-at-risk-customers, get-customer-risk-details]

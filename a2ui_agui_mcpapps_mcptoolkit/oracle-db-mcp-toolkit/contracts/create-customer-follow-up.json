@@ -1,0 +1,16 @@
+{
+  "name": "create-customer-follow-up",
+  "description": "Creates one approved follow-up action after application-level user approval.",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["customerId", "actionType", "actionNotes", "requestedBy", "approvalId"],
+    "properties": {
+      "customerId": { "type": "integer", "minimum": 1 },
+      "actionType": { "type": "string", "enum": ["REVIEW", "CONTACT_OWNER", "FREEZE_CHANGES"] },
+      "actionNotes": { "type": "string", "minLength": 3, "maxLength": 2000 },
+      "requestedBy": { "type": "string", "minLength": 3, "maxLength": 200 },
+      "approvalId": { "type": "string", "minLength": 16, "description": "Single-use approval nonce issued by the agent service." }
+    }
+  }
+}
