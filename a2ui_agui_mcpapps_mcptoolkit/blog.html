@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, and Oracle AI Database</title>
+  <title>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, the Oracle Database MCP Java Toolkit, and Oracle AI Database</title>
   <meta name="description" content="Build an account-risk assistant with Oracle AI Database, the Oracle Database MCP Java Toolkit, AG-UI streaming, A2UI native controls, and an optional MCP App dashboard.">
   <style>
     :root { color-scheme: light; }
@@ -34,15 +34,15 @@
 <body>
 <main>
   <p class="eyebrow">Oracle AI Database · MCP · Agent-to-UI protocols</p>
-  <h1>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, and Oracle AI Database</h1>
+  <h1>Build Interactive, Governed AI Apps with A2UI, AG-UI, MCP Apps, the Oracle Database MCP Java Toolkit, and Oracle AI Database</h1>
   <p class="subtitle">A reference account-risk assistant that streams agent work, renders safe native controls, offers an optional embedded dashboard, and keeps data and transactions in Oracle AI Database.</p>
 
   <p>Text is enough for many agent answers. It is not enough when a person must explore governed data, understand why an account is risky, select one record, enter notes, and explicitly approve a transactional follow-up. That workflow needs progress, state, controls, validation, and a clear security boundary.</p>
-  <p>This reference project combines four technologies without blending their responsibilities. <a href="https://docs.ag-ui.com/">AG-UI</a> streams agent activity. <a href="https://a2ui.org/">A2UI</a> describes a native interface. <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> supplies an optional rich dashboard inside a compatible host. The <a href="https://github.com/oracle/mcp/tree/main/src/oracle-db-mcp-java-toolkit">Oracle Database MCP Java Toolkit</a> exposes deliberately narrow tools backed by Oracle AI Database.</p>
+  <p>This reference project combines four technologies without blending their responsibilities. <a href="https://docs.ag-ui.com/">AG-UI</a> streams agent activity. <a href="https://a2ui.org/">A2UI</a> describes a native interface. <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> supplies an optional rich dashboard inside a compatible host. The <a href="https://github.com/oracle/mcp/tree/main/src/oracle-db-mcp-java-toolkit">Oracle Database MCP Java Toolkit</a> exposes purpose-built, bounded tools backed by Oracle AI Database.</p>
   <p>All source code, SQL, YAML, security notes, and the verified implementation plan are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
 
   <figure class="cover">
-    <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI with a Java agent service, an optional sandboxed MCP App, narrow Oracle Database MCP Java Toolkit tools, and Oracle AI Database as the governed system of record.">
+    <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI with a Java agent service, an optional sandboxed MCP App, purpose-built Oracle Database MCP Java Toolkit tools, and Oracle AI Database as the governed system of record.">
     <figcaption>AG-UI, A2UI, and MCP Apps solve different interaction problems; Oracle AI Database remains the authoritative data and transaction layer.</figcaption>
   </figure>
 
@@ -87,8 +87,8 @@
       <tr><th>Layer</th><th>Primary job</th><th>In this demo</th></tr>
       <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, assistant text, MCP tool activity, state, and recoverable errors over SSE.</td></tr>
       <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders its own trusted components.</td><td>Describes the account review surface, form controls, and actions using v0.9.1 envelopes.</td></tr>
-      <tr><td>MCP Apps</td><td>Render rich sandboxed HTML interfaces inside an MCP host and communicate through the host bridge.</td><td>Displays risk metrics, distributions, account cards, and a “send selection to conversation” action.</td></tr>
-      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose Oracle Database capabilities through MCP, including custom YAML tools and database-backed operations.</td><td>Hosts two YAML read tools and a narrowly scoped transactional write extension contract.</td></tr>
+      <tr><td>MCP Apps</td><td>Render rich HTML interfaces inside a host-controlled sandboxed iframe and communicate through the host bridge.</td><td>Displays risk metrics, distributions, account cards, and a “send selection to conversation” action.</td></tr>
+      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose Oracle Database capabilities through MCP, including custom YAML tools and database-backed operations.</td><td>Hosts two bounded YAML read tools and a single-purpose transactional write extension contract.</td></tr>
       <tr><td>Oracle AI Database</td><td>Remain the trusted system of record and execution layer.</td><td>Stores accounts, risk events, and actions; applies views, validation, transactions, authorization, and auditing.</td></tr>
     </table>
     <p class="callout"><strong>The important design decision:</strong> do not place all AG-UI and A2UI implementation inside the database MCP toolkit. The toolkit is database-facing. Orchestration and approval belong in the agent service; rendering belongs in the frontend.</p>
@@ -133,8 +133,9 @@ END;
   </section>
 
   <section id="mcp-tools">
-    <h2>Define Narrow Oracle Database MCP Tools</h2>
+    <h2>Define Safer, Purpose-Built Oracle Database MCP Tools</h2>
     <p>The current Oracle Database MCP Java Toolkit supports custom tools in YAML, Streamable HTTP and stdio transports, JDBC/UCP pooling, TLS, development bearer tokens, and OAuth 2.0. It also includes broad database operator tools. Those broad tools are intentionally not enabled here.</p>
+    <p class="note"><strong>Terminology:</strong> “narrow tool” is descriptive shorthand in this article, not a formal MCP or Oracle Toolkit tool category. Here it means a purpose-built, allowlisted operation with bounded inputs and outputs, explicit validation, and least-privileged database access. Those constraints make behavior more predictable, auditable, and safer than exposing unrestricted SQL; they do not make any tool inherently or absolutely safe.</p>
     <p>The bounded risk query is declarative. All user values are binds, and an outer <code>ROWNUM</code> predicate avoids depending on a bind inside <code>FETCH FIRST</code>.</p>
     <pre><code>tools:
   find-at-risk-customers:
@@ -154,7 +155,7 @@ END;
          WHERE risk_score &gt;= :minimumRisk
          ORDER BY risk_score DESC
       ) WHERE ROWNUM &lt;= :maximumRows</code></pre>
-    <p>There is a real compatibility boundary in the write tool. The current YAML parameter shape does not declare callable OUT parameters. Because the procedure must return <code>p_action_id</code> and the caller must control commit or rollback, the project records <code>create-customer-follow-up</code> as a narrow Java extension contract instead of pretending it works in YAML. That extension should use a JDBC <code>CallableStatement</code>, register the numeric OUT parameter, commit after success, and roll back on every exception.</p>
+    <p>There is a real compatibility boundary in the write tool. The current YAML parameter shape does not declare callable OUT parameters. Because the procedure must return <code>p_action_id</code> and the caller must control commit or rollback, the project records <code>create-customer-follow-up</code> as a single-purpose Java extension contract instead of pretending it works in YAML. That extension should use a JDBC <code>CallableStatement</code>, register the numeric OUT parameter, commit after success, and roll back on every exception.</p>
   </section>
 
   <section id="ag-ui">
@@ -194,6 +195,7 @@ RUN_FINISHED</code></pre>
   <section id="mcp-app">
     <h2>Add a Rich Dashboard with MCP Apps</h2>
     <p>The optional dashboard is a separate TypeScript package. Its tool metadata references <code>ui://oracle-account-risk/dashboard-v1</code>. The server returns the resource using <code>text/html;profile=mcp-app</code>, and an MCP Apps-compatible host renders it in a sandboxed iframe.</p>
+    <p class="note"><strong>The sandbox is an <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps security characteristic</a>, not a demo-only choice.</strong> The host controls the iframe, isolates the app from the parent DOM, cookies, and storage, and mediates communication through <code>postMessage</code>. The app can request declared capabilities and external origins through permissions and CSP metadata, but the host remains the enforcement point. Host support varies because MCP Apps is an extension to core MCP.</p>
     <pre><code>registerAppTool(server, "show-account-risk-dashboard", {
   title: "Show account risk dashboard",
   inputSchema: {},
@@ -228,7 +230,7 @@ cd agent-service
     <p>The guarded JDBC setup runner creates and seeds the objects only when no account-risk core objects exist. It refuses partial or populated state, never drops objects, and becomes a no-op after a successful installation. If SQLcl is available, <code>database/setup.sql</code> remains an equivalent option.</p>
     <p>UCP reads the governed <code>ACCOUNT_RISK_SUMMARY_V</code> with bounded, bound SQL. An approved follow-up invokes <code>CREATE_CUSTOMER_FOLLOW_UP</code> through a <code>CallableStatement</code>, registers the numeric OUT parameter, commits on success, and rolls back on failure. The pool validates borrowed connections and applies bounded wait, size, inactivity, and row-prefetch settings.</p>
     <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes. To run only the UI and protocol flow without database credentials, start with <code>APP_DATA_MODE=demo ./run.sh</code>.</p>
-    <p>Direct JDBC/UCP provides the immediately runnable database-backed path. For the target MCP deployment, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, enable only <code>account-risk-read</code>, implement the recorded narrow write extension, and replace the UCP repository with an MCP client adapter.</p>
+    <p>Direct JDBC/UCP provides the immediately runnable database-backed path. For the target MCP deployment, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, enable only <code>account-risk-read</code>, implement the recorded single-purpose write extension, and replace the UCP repository with an MCP client adapter.</p>
     <p class="note"><strong>Current status:</strong> the repository foundation, Oracle UCP datasource, database reads and transactional writes, UI, protocol stream, SQL, YAML reads, write contract, tests, security design, and MCP App source are implemented. The direct database path requires a reachable database, the financial wallet, and a locally supplied password; secrets are not committed.</p>
   </section>
 
@@ -272,7 +274,7 @@ cd agent-service
     <h3>Does an MCP App replace the web client?</h3>
     <p>No. An MCP App is useful inside compatible conversational hosts. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
     <h3>Why not give the model the toolkit’s write-query tool?</h3>
-    <p>An unrestricted write tool dramatically increases scope and injection risk. A narrow procedure-backed tool makes the allowed operation, validation, privileges, transaction, and audit result explicit.</p>
+    <p>An unrestricted write tool dramatically increases scope and injection risk. A purpose-built procedure-backed tool makes the allowed operation, validation, privileges, transaction, and audit result explicit.</p>
     <h3>Where should approval be enforced?</h3>
     <p>The application binds approval to the authenticated actor and selected data. The MCP tool revalidates its input, and Oracle AI Database executes the business write transactionally. Each boundary has a distinct responsibility.</p>
   </section>
