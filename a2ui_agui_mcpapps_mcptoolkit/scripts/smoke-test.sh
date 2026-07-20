@@ -12,11 +12,13 @@ curl --fail --silent --show-error -X POST "$base_url/api/runs" \
   --data 'minimumRisk=90&maximumRows=2' > "$run_file"
 grep -q '"type":"RUN_FINISHED"' "$run_file"
 approval_id="$(sed -n 's/.*"approvalId":"\([^"]*\)".*/\1/p' "$run_file" | head -1)"
+customer_id="$(sed -n 's/.*\\"customerId\\":\([0-9][0-9]*\).*/\1/p' "$run_file" | head -1)"
 test -n "$approval_id"
+test -n "$customer_id"
 curl --fail --silent --show-error -X POST "$base_url/api/approve" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode "approvalId=$approval_id" \
-  --data-urlencode 'customerId=1' \
+  --data-urlencode "customerId=$customer_id" \
   --data-urlencode 'actionType=REVIEW' \
   --data-urlencode 'actionNotes=Review current risk evidence' | grep -q '"status":"APPROVED"'
 

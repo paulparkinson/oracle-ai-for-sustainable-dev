@@ -207,14 +207,13 @@ cp .env.example .env
 # Edit .env and set TNS_ADMIN and DB_PASSWORD.
 # DB_URL is optional; it defaults to the financialdb_high alias.
 
-# Connect with SQLcl as FINANCIAL to financialdb_high, then run:
-@database/setup.sql
-
 cd agent-service
+./setup-database.sh
 ./test.sh
 ./run.sh
 
 # open http://127.0.0.1:8080</code></pre>
+    <p>The guarded JDBC setup runner creates and seeds the objects only when no account-risk core objects exist. It refuses partial or populated state, never drops objects, and becomes a no-op after a successful installation. If SQLcl is available, <code>database/setup.sql</code> remains an equivalent option.</p>
     <p>UCP reads the governed <code>ACCOUNT_RISK_SUMMARY_V</code> with bounded, bound SQL. An approved follow-up invokes <code>CREATE_CUSTOMER_FOLLOW_UP</code> through a <code>CallableStatement</code>, registers the numeric OUT parameter, commits on success, and rolls back on failure. The pool validates borrowed connections and applies bounded wait, size, inactivity, and row-prefetch settings.</p>
     <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes. To run only the UI and protocol flow without database credentials, start with <code>APP_DATA_MODE=demo ./run.sh</code>.</p>
     <p>Direct JDBC/UCP provides the immediately runnable database-backed path. For the target MCP deployment, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, enable only <code>account-risk-read</code>, implement the recorded narrow write extension, and replace the UCP repository with an MCP client adapter.</p>
@@ -251,7 +250,7 @@ cd agent-service
   <section id="limitations">
     <h2>Limitations and Next Steps</h2>
     <p>The Java AG-UI SDK is community-maintained and evolving, so the foundation uses the official wire event contract without a hard dependency on a volatile artifact. A2UI v1.0 is still a candidate; adopting it will require its new action response and surface-property changes. MCP Apps host support and capabilities vary.</p>
-    <p>The next implementation milestone is live integration: a minimal Oracle toolkit write extension, an MCP client adapter in the agent service, Oracle integration tests for successful reads and transactional rollback, and screenshots from an MCP Apps-compatible host. After that, add real identity, database authorization policies, durable approvals, vector-supported risk explanations, and centralized audit export.</p>
+    <p>The direct UCP path is now live-tested against the financial database. The next implementation milestone is MCP integration: a minimal Oracle toolkit write extension, an MCP client adapter in the agent service, transactional rollback integration tests, and screenshots from an MCP Apps-compatible host. After that, add real identity, database authorization policies, durable approvals, vector-supported risk explanations, and centralized audit export.</p>
   </section>
 
   <section id="faq">

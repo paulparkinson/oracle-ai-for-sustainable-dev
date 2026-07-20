@@ -13,6 +13,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class ReferenceTests {
     @Test
+    void sqlSetupSplitterPreservesSemicolonsInsideText() {
+        List<String> statements = DatabaseSetup.splitStatements(
+                "INSERT INTO notes VALUES ('First; still first'); SELECT 1 FROM dual;");
+        assertEquals(2, statements.size());
+        assertTrue(statements.getFirst().contains("First; still first"));
+    }
+
+    @Test
     void ucpConfigurationUsesFinancialDatabaseDefaults() throws Exception {
         var dataSource = UcpDataSourceConfiguration.fromEnvironment(Map.of(
                 "TNS_ADMIN", "/tmp/Wallet_financialdb",

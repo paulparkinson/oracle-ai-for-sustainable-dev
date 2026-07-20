@@ -18,15 +18,15 @@ The agent service now uses Oracle UCP and the same `financialdb_high` database a
 cp .env.example .env
 # Edit .env: set the wallet path and DB_PASSWORD.
 
-# In SQLcl, connect as FINANCIAL to financialdb_high, then run:
-@database/setup.sql
-
 cd agent-service
+./setup-database.sh
 ./test.sh
 ./run.sh
 ```
 
 Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. UCP reads `ACCOUNT_RISK_SUMMARY_V`; approval calls `CREATE_CUSTOMER_FOLLOW_UP`, commits the transaction, and returns the generated action ID. On this workstation the wallet is auto-detected at `~/Downloads/Wallet_financialdb`, but `DB_PASSWORD` is always required.
+
+The ignored `financial/setup/.env` is reused automatically when it is present, so this repository does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The setup runner refuses partial or populated schemas and never drops objects; rerunning it after a successful installation makes no changes. SQLcl users can alternatively run `database/setup.sql`.
 
 To inspect the UI without Oracle credentials, select the explicit in-memory fallback:
 
@@ -46,7 +46,7 @@ The Oracle artifacts are not mocked:
 
 The runnable service uses direct JDBC/UCP so the database-backed application can be exercised independently. The target MCP architecture keeps the database credentials in the Oracle Database MCP Java Toolkit instead:
 
-1. Create the schema with `database/setup.sql`.
+1. Create the schema with `agent-service/setup-database.sh` or `database/setup.sql` from SQLcl.
 2. Build the toolkit from a sibling checkout of `oracle/mcp/src/oracle-db-mcp-java-toolkit`.
 3. Run it with Streamable HTTP, TLS/authentication, this project's `tools.yaml`, and `-Dtools=account-risk-read`.
 4. Implement the write contract as a minimal Java toolkit extension using `CallableStatement`, a registered numeric OUT parameter, explicit commit, and rollback on error.

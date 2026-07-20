@@ -16,4 +16,6 @@ else
 fi
 
 "$maven_command" -q -DskipTests package
-java -Dweb.root=../web-client -jar target/interactive-ai-agent-service-0.1.0-SNAPSHOT.jar
+java -Ddatabase.root=../database \
+  -cp target/interactive-ai-agent-service-0.1.0-SNAPSHOT.jar \
+  com.oracle.demo.interactiveai.DatabaseSetup
