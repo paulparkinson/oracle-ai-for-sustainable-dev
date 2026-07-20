@@ -1,0 +1,1 @@
+The agent service emits standard A G U I run, text, tool-call, and state events over server-sent events. Database failures become a run error. A two U I envelopes travel inside a standard custom event named a two U I message.

@@ -1,0 +1,1 @@
+The Oracle Database M C P Java Toolkit configuration exposes bounded business reads, not unrestricted SQL. Every user value is a bind, and only the account-risk toolset should be enabled. The transactional write is represented by a narrow extension contract.

@@ -1,0 +1,1 @@
+For compatible conversational hosts, the optional M C P App registers a sandboxed dashboard resource. Structured account data crosses the host bridge, while the dashboard never receives database credentials and never connects directly to Oracle.

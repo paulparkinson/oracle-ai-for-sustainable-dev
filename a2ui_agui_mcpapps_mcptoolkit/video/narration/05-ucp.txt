@@ -1,0 +1,1 @@
+The runnable path uses Oracle Universal Connection Pool against the financial database. It validates connections on borrow, bounds the pool and wait time, binds the minimum risk score, and limits rows before returning governed account data.

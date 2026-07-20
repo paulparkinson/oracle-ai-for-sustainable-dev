@@ -1,0 +1,1 @@
+In the live application, the user sets a risk threshold and row limit. The A G U I event rail shows the run and database tool activity, while A two U I renders selectable account cards, risk explanations, and approval controls.

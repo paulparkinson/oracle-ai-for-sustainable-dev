@@ -1,0 +1,104 @@
+1
+00:00:00,200 --> 00:00:11,717
+This walkthrough builds an interactive account-risk assistant with Oracle AI Database, A G U I, A two U I, the Oracle Database M C P Java Toolkit, and an optional M C P App.
+
+2
+00:00:11,717 --> 00:00:15,443
+The result is a governed workflow, not just a text answer.
+
+3
+00:00:15,843 --> 00:00:20,179
+The browser receives streamed agent events and declarative interface updates.
+
+4
+00:00:20,179 --> 00:00:24,950
+The Java orchestration service owns the run, validation, and human approval.
+
+5
+00:00:24,950 --> 00:00:31,021
+Narrow tools reach Oracle AI Database, which remains the authoritative data and transaction layer.
+
+6
+00:00:31,421 --> 00:00:37,504
+The agent service emits standard A G U I run, text, tool-call, and state events over server-sent events.
+
+7
+00:00:37,504 --> 00:00:39,532
+Database failures become a run error.
+
+8
+00:00:39,532 --> 00:00:45,277
+A two U I envelopes travel inside a standard custom event named a two U I message.
+
+9
+00:00:45,677 --> 00:00:54,804
+The browser accepts only A two U I version zero point nine point one, the expected surface and catalog, and a small component allowlist.
+
+10
+00:00:54,804 --> 00:01:02,030
+Generated values enter the page as text, so an agent cannot inject executable H T M L or JavaScript.
+
+11
+00:01:02,430 --> 00:01:07,206
+The runnable path uses Oracle Universal Connection Pool against the financial database.
+
+12
+00:01:07,206 --> 00:01:16,759
+It validates connections on borrow, bounds the pool and wait time, binds the minimum risk score, and limits rows before returning governed account data.
+
+13
+00:01:17,159 --> 00:01:22,046
+Oracle AI Database stores the accounts, risk evidence, and follow-up actions.
+
+14
+00:01:22,046 --> 00:01:29,599
+The narrow stored procedure validates inputs, locks the selected account, inserts one action, and returns its identifier.
+
+15
+00:01:29,599 --> 00:01:33,154
+The Java caller explicitly commits or rolls back.
+
+16
+00:01:33,554 --> 00:01:39,968
+The Oracle Database M C P Java Toolkit configuration exposes bounded business reads, not unrestricted SQL.
+
+17
+00:01:39,968 --> 00:01:45,580
+Every user value is a bind, and only the account-risk toolset should be enabled.
+
+18
+00:01:45,580 --> 00:01:49,588
+The transactional write is represented by a narrow extension contract.
+
+19
+00:01:49,988 --> 00:01:56,152
+For compatible conversational hosts, the optional M C P App registers a sandboxed dashboard resource.
+
+20
+00:01:56,152 --> 00:02:04,371
+Structured account data crosses the host bridge, while the dashboard never receives database credentials and never connects directly to Oracle.
+
+21
+00:02:04,771 --> 00:02:09,182
+In the live application, the user sets a risk threshold and row limit.
+
+22
+00:02:09,182 --> 00:02:18,683
+The A G U I event rail shows the run and database tool activity, while A two U I renders selectable account cards, risk explanations, and approval controls.
+
+23
+00:02:19,083 --> 00:02:24,809
+Approval is bound to the actor, returned account set, and a short-lived single-use identifier.
+
+24
+00:02:24,809 --> 00:02:28,899
+Approve calls the procedure and displays the committed action identifier.
+
+25
+00:02:28,899 --> 00:02:32,580
+Cancel consumes the approval without creating a database action.
+
+26
+00:02:32,980 --> 00:02:49,999
+Each component keeps one clear responsibility: A G U I streams, A two U I describes trusted controls, M C P Apps add rich sandboxed experiences, narrow M C P tools expose business capabilities, and Oracle AI Database governs the data and transaction.
+

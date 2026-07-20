@@ -1,0 +1,1 @@
+The browser receives streamed agent events and declarative interface updates. The Java orchestration service owns the run, validation, and human approval. Narrow tools reach Oracle AI Database, which remains the authoritative data and transaction layer.

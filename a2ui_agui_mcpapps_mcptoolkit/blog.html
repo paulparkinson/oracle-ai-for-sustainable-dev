@@ -20,6 +20,7 @@
     figure img { display: block; max-width: 100%; height: auto; border: 1px solid #d6dce3; border-radius: 8px; }
     figure.cover img { border: 0; border-radius: 0; }
     figcaption { margin-top: 8px; color: #5c6673; font-size: .95rem; }
+    .walkthrough { display: block; width: 100%; background: #111; border: 1px solid #d6dce3; border-radius: 10px; }
     code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
     code { overflow-wrap: anywhere; }
     pre { overflow-x: auto; padding: 15px; border: 1px solid #dde3ea; border-radius: 7px; background: #f5f7f9; white-space: pre; }
@@ -44,6 +45,17 @@
     <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI with a Java agent service, an optional sandboxed MCP App, narrow Oracle Database MCP Java Toolkit tools, and Oracle AI Database as the governed system of record.">
     <figcaption>AG-UI, A2UI, and MCP Apps solve different interaction problems; Oracle AI Database remains the authoritative data and transaction layer.</figcaption>
   </figure>
+
+  <section id="video-walkthrough">
+    <h2>Video Walkthrough</h2>
+    <p>This narrated walkthrough shows the live-tested account-risk workflow and the source behind each layer: AG-UI streaming, A2UI validation and rendering, Oracle UCP, database views and the transactional procedure, Oracle Database MCP Java Toolkit YAML, and the optional MCP App.</p>
+    <video class="walkthrough" controls preload="metadata" poster="video/interactive-ai-walkthrough-poster.png">
+      <source src="video/interactive-ai-walkthrough.mp4" type="video/mp4">
+      <track kind="captions" src="video/interactive-ai-walkthrough.vtt" srclang="en" label="English" default>
+      Your browser does not support embedded video. <a href="video/interactive-ai-walkthrough.mp4">Open the walkthrough MP4</a>.
+    </video>
+    <p><small>The repository includes the Swift/AVFoundation build source and YouTube-ready SRT subtitles. This local player can be replaced with the eventual YouTube embed without changing the article flow.</small></p>
+  </section>
 
   <section id="key-takeaways">
     <h2>Key Takeaways</h2>

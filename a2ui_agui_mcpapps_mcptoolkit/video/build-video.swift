@@ -1,0 +1,429 @@
+#!/usr/bin/env swift
+
+import AppKit
+import AVFoundation
+import CoreVideo
+import Foundation
+
+let width = 1920
+let height = 1080
+let fps: Int32 = 24
+let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+let build = root.appendingPathComponent(".build")
+let audioDirectory = build.appendingPathComponent("audio")
+let silentVideo = build.appendingPathComponent("silent.mp4")
+let finalVideo = root.appendingPathComponent("interactive-ai-walkthrough.mp4")
+let poster = root.appendingPathComponent("interactive-ai-walkthrough-poster.png")
+let srtFile = root.appendingPathComponent("interactive-ai-walkthrough.srt")
+let vttFile = root.appendingPathComponent("interactive-ai-walkthrough.vtt")
+
+enum VisualKind { case title, architecture, code, application, result }
+
+struct Scene {
+    let narrationFile: String
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let kind: VisualKind
+    let fileLabel: String?
+    let code: String?
+}
+
+struct TimedScene {
+    let scene: Scene
+    let narration: String
+    let audio: URL
+    let start: Double
+    let duration: Double
+}
+
+struct Cue {
+    let start: Double
+    let end: Double
+    let text: String
+    let sceneIndex: Int
+}
+
+let scenes: [Scene] = [
+    Scene(narrationFile: "01-intro.txt", eyebrow: "ORACLE AI DATABASE · INTERACTIVE AI", title: "From agent answer\nto governed action", subtitle: "A2UI · AG-UI · MCP Apps · Oracle Database MCP Java Toolkit", kind: .title, fileLabel: nil, code: nil),
+    Scene(narrationFile: "02-architecture.txt", eyebrow: "REFERENCE ARCHITECTURE", title: "Clear responsibilities,\none continuous experience", subtitle: "The database remains the authoritative data and transaction layer.", kind: .architecture, fileLabel: nil, code: nil),
+    Scene(narrationFile: "03-agui.txt", eyebrow: "AG-UI EVENT STREAM", title: "Stream the run, tool activity,\nand application state", subtitle: "Official lifecycle events plus A2UI carried in a CUSTOM event.", kind: .code, fileLabel: "AguiRunService.java", code: """
+send(output, Map.of("type", "RUN_STARTED", ...));
+send(output, Map.of("type", "TOOL_CALL_START",
+    "toolCallName", "find-at-risk-customers"));
+
+accounts = repository.findAtRisk(minimumRisk, maximumRows);
+
+send(output, Map.of("type", "CUSTOM",
+    "name", "a2ui.message",
+    "value", A2uiPayloads.updateData(...)));
+"""),
+    Scene(narrationFile: "04-a2ui.txt", eyebrow: "A2UI TRUSTED RENDERING", title: "Declarative controls,\nnot executable agent code", subtitle: "The client owns the catalog, validation, design system, and DOM insertion.", kind: .code, fileLabel: "web-client/app.js", code: """
+const allowedComponents = new Set([
+  "Column", "Row", "List", "Card", "Text",
+  "Button", "TextField", "ChoicePicker"
+]);
+
+if (envelope.version !== "v0.9.1")
+  throw new Error("Unsupported A2UI version");
+
+name.textContent = account.customerName;
+"""),
+    Scene(narrationFile: "05-ucp.txt", eyebrow: "ORACLE UCP + JDBC", title: "A real pooled connection\nto the financial database", subtitle: "Bound reads, validated connections, bounded waits, explicit pool sizing.", kind: .code, fileLabel: "OracleUcpRiskRepository.java", code: """
+try (Connection connection = dataSource.getConnection();
+     PreparedStatement statement =
+         connection.prepareStatement(FIND_AT_RISK_SQL)) {
+  statement.setDouble(1, minimumRisk);
+  statement.setMaxRows(maximumRows);
+  statement.setQueryTimeout(15);
+  try (ResultSet rows = statement.executeQuery()) {
+    return mapAccounts(rows);
+  }
+}
+"""),
+    Scene(narrationFile: "06-database.txt", eyebrow: "ORACLE AI DATABASE", title: "Govern data and execute\nthe approved transaction", subtitle: "Views stabilize reads; one procedure owns the allowed business write.", kind: .code, fileLabel: "database/03-procedures.sql", code: """
+SELECT customer_id INTO v_customer_id
+  FROM customer_accounts
+ WHERE customer_id = p_customer_id
+   FOR UPDATE;
+
+INSERT INTO customer_actions (...)
+VALUES (..., 'APPROVED')
+RETURNING action_id INTO p_action_id;
+
+-- The caller owns COMMIT or ROLLBACK.
+"""),
+    Scene(narrationFile: "07-mcp-tools.txt", eyebrow: "ORACLE DATABASE MCP JAVA TOOLKIT", title: "Expose narrow business tools,\nnot unrestricted SQL", subtitle: "YAML-defined bound reads and a narrowly scoped write extension contract.", kind: .code, fileLabel: "oracle-db-mcp-toolkit/config/tools.yaml", code: """
+tools:
+  find-at-risk-customers:
+    parameters:
+      - name: minimumRisk
+        type: number
+        required: true
+      - name: maximumRows
+        type: integer
+        required: true
+    statement: >-
+      SELECT * FROM (...) WHERE ROWNUM <= :maximumRows
+"""),
+    Scene(narrationFile: "08-mcp-app.txt", eyebrow: "OPTIONAL MCP APP", title: "Add a sandboxed dashboard\ninside compatible hosts", subtitle: "Structured content crosses the host bridge; database credentials never do.", kind: .code, fileLabel: "mcp-app/server.ts", code: """
+const resourceUri =
+  "ui://oracle-account-risk/dashboard-v1";
+
+registerAppTool(server, "show-account-risk-dashboard", {
+  title: "Show account risk dashboard",
+  _meta: { ui: { resourceUri,
+    visibility: ["model", "app"] } }
+}, async () => ({
+  structuredContent: { accounts }
+}));
+"""),
+    Scene(narrationFile: "09-application.txt", eyebrow: "LIVE APPLICATION FLOW", title: "Explore governed risk,\nthen choose an action", subtitle: "A2UI results and approval controls alongside the AG-UI event rail.", kind: .application, fileLabel: nil, code: nil),
+    Scene(narrationFile: "10-approval.txt", eyebrow: "HUMAN APPROVAL BOUNDARY", title: "Commit exactly one\naudited follow-up", subtitle: "Actor-bound, result-bound, expiring, and single-use approval state.", kind: .result, fileLabel: "Approval result", code: nil),
+    Scene(narrationFile: "11-recap.txt", eyebrow: "THE RESPONSIBILITY MAP", title: "Interactive AI without\nweakening governance", subtitle: "Stream · Render · Embed · Expose · Govern", kind: .architecture, fileLabel: nil, code: nil)
+]
+
+let fm = FileManager.default
+try fm.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
+for url in [silentVideo, finalVideo, poster, srtFile, vttFile] where fm.fileExists(atPath: url.path) {
+    try fm.removeItem(at: url)
+}
+
+func run(_ executable: String, _ arguments: [String]) throws {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: executable)
+    process.arguments = arguments
+    try process.run()
+    process.waitUntilExit()
+    guard process.terminationStatus == 0 else {
+        throw NSError(domain: "VideoBuild", code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: "Command failed: \(executable)"])
+    }
+}
+
+func assetDuration(_ url: URL) -> Double {
+    CMTimeGetSeconds(AVURLAsset(url: url).duration)
+}
+
+var timedScenes: [TimedScene] = []
+var cursor = 0.0
+for scene in scenes {
+    let narrationURL = root.appendingPathComponent("narration").appendingPathComponent(scene.narrationFile)
+    let narration = try String(contentsOf: narrationURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+    let audioURL = audioDirectory.appendingPathComponent(scene.narrationFile.replacingOccurrences(of: ".txt", with: ".aiff"))
+    if fm.fileExists(atPath: audioURL.path) { try fm.removeItem(at: audioURL) }
+    try run("/usr/bin/say", ["-r", "168", "-o", audioURL.path, narration])
+    let duration = max(8.0, assetDuration(audioURL) + 1.2)
+    timedScenes.append(TimedScene(scene: scene, narration: narration, audio: audioURL, start: cursor, duration: duration))
+    cursor += duration
+}
+let totalDuration = cursor
+
+func sentences(_ text: String) -> [String] {
+    let pattern = "(?<=[.!?])\\s+"
+    let regex = try! NSRegularExpression(pattern: pattern)
+    let range = NSRange(text.startIndex..., in: text)
+    var pieces: [String] = []
+    var last = text.startIndex
+    for match in regex.matches(in: text, range: range) {
+        guard let swiftRange = Range(match.range, in: text) else { continue }
+        let piece = text[last..<swiftRange.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
+        if !piece.isEmpty { pieces.append(piece) }
+        last = swiftRange.upperBound
+    }
+    let tail = text[last...].trimmingCharacters(in: .whitespacesAndNewlines)
+    if !tail.isEmpty { pieces.append(tail) }
+    return pieces.isEmpty ? [text] : pieces
+}
+
+var cues: [Cue] = []
+for (sceneIndex, timed) in timedScenes.enumerated() {
+    let pieces = sentences(timed.narration)
+    let weights = pieces.map { max(1, $0.split(separator: " ").count) }
+    let totalWeight = weights.reduce(0, +)
+    var cueStart = timed.start + 0.2
+    let cueWindow = timed.duration - 0.4
+    for (index, piece) in pieces.enumerated() {
+        let fraction = Double(weights[index]) / Double(totalWeight)
+        let cueEnd = index == pieces.count - 1 ? timed.start + timed.duration - 0.2 : cueStart + cueWindow * fraction
+        cues.append(Cue(start: cueStart, end: cueEnd, text: piece, sceneIndex: sceneIndex))
+        cueStart = cueEnd
+    }
+}
+
+func timestamp(_ seconds: Double, separator: String) -> String {
+    let milliseconds = Int((seconds * 1000).rounded())
+    let hours = milliseconds / 3_600_000
+    let minutes = (milliseconds / 60_000) % 60
+    let secs = (milliseconds / 1000) % 60
+    let millis = milliseconds % 1000
+    return String(format: "%02d:%02d:%02d%@%03d", hours, minutes, secs, separator, millis)
+}
+
+var srt = ""
+var vtt = "WEBVTT\n\n"
+for (index, cue) in cues.enumerated() {
+    srt += "\(index + 1)\n\(timestamp(cue.start, separator: ",")) --> \(timestamp(cue.end, separator: ","))\n\(cue.text)\n\n"
+    vtt += "\(timestamp(cue.start, separator: ".")) --> \(timestamp(cue.end, separator: "."))\n\(cue.text)\n\n"
+}
+try srt.write(to: srtFile, atomically: true, encoding: .utf8)
+try vtt.write(to: vttFile, atomically: true, encoding: .utf8)
+
+let oracleRed = NSColor(calibratedRed: 0.78, green: 0.16, blue: 0.10, alpha: 1)
+let ink = NSColor(calibratedWhite: 0.08, alpha: 1)
+let muted = NSColor(calibratedWhite: 0.65, alpha: 1)
+let cream = NSColor(calibratedRed: 0.98, green: 0.96, blue: 0.92, alpha: 1)
+let panel = NSColor(calibratedWhite: 0.13, alpha: 1)
+let blue = NSColor(calibratedRed: 0.20, green: 0.55, blue: 0.78, alpha: 1)
+let green = NSColor(calibratedRed: 0.23, green: 0.68, blue: 0.48, alpha: 1)
+
+func rounded(_ rect: NSRect, radius: CGFloat, color: NSColor) {
+    color.setFill()
+    NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+}
+
+func text(_ value: String, _ rect: NSRect, font: NSFont, color: NSColor, alignment: NSTextAlignment = .left, lineSpacing: CGFloat = 4) {
+    let paragraph = NSMutableParagraphStyle()
+    paragraph.alignment = alignment
+    paragraph.lineSpacing = lineSpacing
+    paragraph.lineBreakMode = .byWordWrapping
+    value.draw(with: rect, options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [
+        .font: font, .foregroundColor: color, .paragraphStyle: paragraph
+    ])
+}
+
+func badge(_ value: String, x: CGFloat, y: CGFloat, color: NSColor) {
+    let size = (value as NSString).size(withAttributes: [.font: NSFont.boldSystemFont(ofSize: 22)])
+    rounded(NSRect(x: x, y: y, width: size.width + 34, height: 43), radius: 21, color: color.withAlphaComponent(0.22))
+    text(value, NSRect(x: x + 17, y: y + 8, width: size.width, height: 28), font: .boldSystemFont(ofSize: 22), color: color)
+}
+
+func drawArchitecture(y: CGFloat = 345) {
+    let nodes: [(String, String, NSColor)] = [
+        ("Browser", "AG-UI + A2UI", blue),
+        ("Java agent", "Run + approval", oracleRed),
+        ("MCP Toolkit", "Narrow tools", NSColor.systemPurple),
+        ("Oracle AI Database", "Data + transaction", green)
+    ]
+    let nodeWidth: CGFloat = 350
+    let gap: CGFloat = 78
+    let startX: CGFloat = 95
+    for (index, node) in nodes.enumerated() {
+        let x = startX + CGFloat(index) * (nodeWidth + gap)
+        rounded(NSRect(x: x, y: y, width: nodeWidth, height: 152), radius: 22, color: panel)
+        rounded(NSRect(x: x, y: y, width: 9, height: 152), radius: 4, color: node.2)
+        text(node.0, NSRect(x: x + 30, y: y + 32, width: nodeWidth - 55, height: 42), font: .boldSystemFont(ofSize: 31), color: .white)
+        text(node.1, NSRect(x: x + 30, y: y + 82, width: nodeWidth - 55, height: 30), font: .systemFont(ofSize: 22), color: muted)
+        if index < nodes.count - 1 {
+            text("→", NSRect(x: x + nodeWidth + 18, y: y + 49, width: 45, height: 50), font: .boldSystemFont(ofSize: 42), color: muted, alignment: .center)
+        }
+    }
+    rounded(NSRect(x: 527, y: y + 203, width: 860, height: 72), radius: 36, color: NSColor(calibratedWhite: 0.17, alpha: 1))
+    text("Optional MCP App · sandboxed dashboard in compatible hosts", NSRect(x: 557, y: y + 222, width: 800, height: 34), font: .boldSystemFont(ofSize: 24), color: NSColor.systemPurple, alignment: .center)
+}
+
+func drawCode(label: String, code: String) {
+    let rect = NSRect(x: 735, y: 228, width: 1085, height: 610)
+    rounded(rect, radius: 22, color: NSColor(calibratedWhite: 0.105, alpha: 1))
+    rounded(NSRect(x: rect.minX, y: rect.minY, width: rect.width, height: 64), radius: 22, color: NSColor(calibratedWhite: 0.16, alpha: 1))
+    for (index, color) in [NSColor.systemRed, .systemYellow, .systemGreen].enumerated() {
+        color.setFill(); NSBezierPath(ovalIn: NSRect(x: rect.minX + 24 + CGFloat(index) * 31, y: rect.minY + 23, width: 16, height: 16)).fill()
+    }
+    text(label, NSRect(x: rect.minX + 125, y: rect.minY + 18, width: rect.width - 155, height: 34), font: .monospacedSystemFont(ofSize: 23, weight: .semibold), color: muted)
+    let numbered = code.split(separator: "\n", omittingEmptySubsequences: false).enumerated().map { String(format: "%2d  %@", $0.offset + 1, String($0.element)) }.joined(separator: "\n")
+    text(numbered, NSRect(x: rect.minX + 34, y: rect.minY + 92, width: rect.width - 68, height: rect.height - 120), font: .monospacedSystemFont(ofSize: 25, weight: .regular), color: NSColor(calibratedRed: 0.84, green: 0.88, blue: 0.92, alpha: 1), lineSpacing: 9)
+}
+
+func drawApplication() {
+    let appRect = NSRect(x: 650, y: 170, width: 1170, height: 690)
+    rounded(appRect, radius: 24, color: cream)
+    text("Oracle Account-Risk Assistant", NSRect(x: 690, y: 202, width: 720, height: 48), font: .boldSystemFont(ofSize: 34), color: ink)
+    rounded(NSRect(x: 690, y: 275, width: 760, height: 80), radius: 16, color: .white)
+    text("Minimum risk  90       Maximum rows  3", NSRect(x: 720, y: 297, width: 540, height: 32), font: .systemFont(ofSize: 23), color: ink)
+    rounded(NSRect(x: 1265, y: 289, width: 155, height: 48), radius: 10, color: oracleRed)
+    text("Run review", NSRect(x: 1280, y: 301, width: 125, height: 28), font: .boldSystemFont(ofSize: 20), color: .white, alignment: .center)
+    let accounts = [("Apex Freight Systems", "CRITICAL · 96", "$4.2M"), ("Blue Mesa Energy", "CRITICAL · 93", "$8.1M"), ("Cobalt Health Partners", "CRITICAL · 91", "$3.65M")]
+    for (index, account) in accounts.enumerated() {
+        let y = 385 + CGFloat(index) * 115
+        rounded(NSRect(x: 690, y: y, width: 760, height: 96), radius: 14, color: .white)
+        text(index == 0 ? "◉  \(account.0)" : "○  \(account.0)", NSRect(x: 715, y: y + 18, width: 430, height: 32), font: .boldSystemFont(ofSize: 23), color: ink)
+        badge(account.1, x: 1160, y: y + 15, color: oracleRed)
+        text("Value \(account.2)  ·  Governed risk evidence", NSRect(x: 755, y: y + 57, width: 520, height: 25), font: .systemFont(ofSize: 18), color: NSColor.darkGray)
+    }
+    rounded(NSRect(x: 1480, y: 275, width: 300, height: 455), radius: 16, color: panel)
+    text("AG-UI stream", NSRect(x: 1510, y: 305, width: 240, height: 35), font: .boldSystemFont(ofSize: 25), color: .white)
+    let events = ["RUN_STARTED", "STEP_STARTED", "TOOL_CALL_START", "TOOL_CALL_RESULT", "STATE_SNAPSHOT", "RUN_FINISHED"]
+    for (index, event) in events.enumerated() {
+        let color = event.contains("TOOL") ? blue : green
+        color.setFill(); NSBezierPath(ovalIn: NSRect(x: 1512, y: 370 + CGFloat(index) * 54, width: 12, height: 12)).fill()
+        text(event, NSRect(x: 1538, y: 361 + CGFloat(index) * 54, width: 215, height: 29), font: .monospacedSystemFont(ofSize: 17, weight: .medium), color: muted)
+    }
+    rounded(NSRect(x: 690, y: 748, width: 760, height: 78), radius: 14, color: NSColor(calibratedRed: 1, green: 0.94, blue: 0.90, alpha: 1))
+    text("Follow-up: Review     Notes: Review current risk evidence", NSRect(x: 715, y: 771, width: 705, height: 30), font: .systemFont(ofSize: 20), color: ink)
+}
+
+func drawResult() {
+    rounded(NSRect(x: 770, y: 285, width: 950, height: 450), radius: 28, color: panel)
+    green.setFill(); NSBezierPath(ovalIn: NSRect(x: 855, y: 390, width: 150, height: 150)).fill()
+    text("✓", NSRect(x: 880, y: 410, width: 100, height: 100), font: .boldSystemFont(ofSize: 86), color: .white, alignment: .center)
+    text("Action committed", NSRect(x: 1060, y: 365, width: 560, height: 65), font: .boldSystemFont(ofSize: 46), color: .white)
+    text("Stored procedure returned action ID  ·  APPROVED", NSRect(x: 1063, y: 447, width: 560, height: 38), font: .systemFont(ofSize: 25), color: muted)
+    text("UCP commit  ·  audited actor  ·  single-use approval", NSRect(x: 1063, y: 507, width: 560, height: 34), font: .monospacedSystemFont(ofSize: 20, weight: .medium), color: green)
+    rounded(NSRect(x: 1060, y: 585, width: 285, height: 62), radius: 12, color: oracleRed)
+    text("APPROVED", NSRect(x: 1085, y: 600, width: 235, height: 36), font: .boldSystemFont(ofSize: 26), color: .white, alignment: .center)
+}
+
+func imageFor(sceneIndex: Int, caption: String) -> NSImage {
+    let timed = timedScenes[sceneIndex]
+    let scene = timed.scene
+    let image = NSImage(size: NSSize(width: width, height: height))
+    image.lockFocusFlipped(true)
+    NSColor(calibratedWhite: 0.055, alpha: 1).setFill()
+    NSBezierPath(rect: NSRect(x: 0, y: 0, width: width, height: height)).fill()
+    rounded(NSRect(x: 0, y: 0, width: 18, height: height), radius: 0, color: oracleRed)
+    text(scene.eyebrow, NSRect(x: 85, y: 62, width: 1100, height: 34), font: .boldSystemFont(ofSize: 22), color: oracleRed)
+    text(scene.title, NSRect(x: 85, y: 117, width: scene.kind == .code || scene.kind == .application ? 570 : 1450, height: 180), font: .boldSystemFont(ofSize: scene.kind == .title ? 75 : 59), color: .white, lineSpacing: 3)
+    text(scene.subtitle, NSRect(x: 90, y: scene.kind == .title ? 350 : 305, width: scene.kind == .code || scene.kind == .application ? 540 : 1540, height: 92), font: .systemFont(ofSize: 27), color: muted, lineSpacing: 6)
+
+    switch scene.kind {
+    case .title:
+        badge("AG-UI", x: 90, y: 505, color: blue)
+        badge("A2UI", x: 230, y: 505, color: oracleRed)
+        badge("MCP Apps", x: 365, y: 505, color: NSColor.systemPurple)
+        badge("Oracle AI Database", x: 570, y: 505, color: green)
+        rounded(NSRect(x: 90, y: 620, width: 1180, height: 125), radius: 24, color: panel)
+        text("Show high-risk accounts · explain the evidence · approve one follow-up", NSRect(x: 132, y: 655, width: 1100, height: 55), font: .boldSystemFont(ofSize: 33), color: .white)
+    case .architecture:
+        drawArchitecture()
+    case .code:
+        drawCode(label: scene.fileLabel ?? "Source", code: scene.code ?? "")
+        badge(sceneIndex == 2 ? "STREAM" : sceneIndex == 3 ? "RENDER" : sceneIndex == 4 ? "CONNECT" : sceneIndex == 5 ? "TRANSACT" : sceneIndex == 6 ? "EXPOSE" : "EMBED", x: 92, y: 525, color: sceneIndex % 2 == 0 ? blue : green)
+    case .application:
+        drawApplication()
+    case .result:
+        drawResult()
+    }
+
+    let captionRect = NSRect(x: 170, y: 914, width: 1580, height: 112)
+    rounded(captionRect, radius: 18, color: NSColor(calibratedWhite: 0.02, alpha: 0.93))
+    text(caption, NSRect(x: 205, y: 934, width: 1510, height: 78), font: .boldSystemFont(ofSize: 28), color: .white, alignment: .center, lineSpacing: 5)
+    text(String(format: "%02d / %02d", sceneIndex + 1, timedScenes.count), NSRect(x: 1710, y: 67, width: 130, height: 28), font: .monospacedSystemFont(ofSize: 18, weight: .medium), color: muted, alignment: .right)
+    image.unlockFocus()
+    return image
+}
+
+func cgImage(_ image: NSImage) -> CGImage {
+    var rect = NSRect(origin: .zero, size: image.size)
+    return image.cgImage(forProposedRect: &rect, context: nil, hints: nil)!
+}
+
+let posterImage = imageFor(sceneIndex: 0, caption: "A governed account-risk workflow from request to audited action.")
+let posterRep = NSBitmapImageRep(cgImage: cgImage(posterImage))
+try posterRep.representation(using: .png, properties: [:])!.write(to: poster)
+
+let writer = try AVAssetWriter(outputURL: silentVideo, fileType: .mp4)
+let videoSettings: [String: Any] = [
+    AVVideoCodecKey: AVVideoCodecType.h264,
+    AVVideoWidthKey: width,
+    AVVideoHeightKey: height,
+    AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 8_000_000, AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel]
+]
+let writerInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+writerInput.expectsMediaDataInRealTime = false
+let attributes: [String: Any] = [
+    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32ARGB,
+    kCVPixelBufferWidthKey as String: width,
+    kCVPixelBufferHeightKey as String: height
+]
+let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: writerInput, sourcePixelBufferAttributes: attributes)
+guard writer.canAdd(writerInput) else { fatalError("Cannot add video input") }
+writer.add(writerInput)
+writer.startWriting()
+writer.startSession(atSourceTime: CMTime.zero)
+
+let colorSpace = CGColorSpaceCreateDeviceRGB()
+var renderedImages: [Int: CGImage] = [:]
+for (index, cue) in cues.enumerated() { renderedImages[index] = cgImage(imageFor(sceneIndex: cue.sceneIndex, caption: cue.text)) }
+let frameCount = Int(ceil(totalDuration * Double(fps)))
+var cueIndex = 0
+for frame in 0..<frameCount {
+    let seconds = Double(frame) / Double(fps)
+    while cueIndex + 1 < cues.count && seconds >= cues[cueIndex].end { cueIndex += 1 }
+    while !writerInput.isReadyForMoreMediaData { Thread.sleep(forTimeInterval: 0.002) }
+    var buffer: CVPixelBuffer?
+    CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32ARGB, attributes as CFDictionary, &buffer)
+    guard let pixelBuffer = buffer else { fatalError("Cannot allocate pixel buffer") }
+    CVPixelBufferLockBaseAddress(pixelBuffer, [])
+    let context = CGContext(data: CVPixelBufferGetBaseAddress(pixelBuffer), width: width, height: height, bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer), space: colorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)!
+    context.draw(renderedImages[cueIndex]!, in: CGRect(x: 0, y: 0, width: width, height: height))
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
+    adaptor.append(pixelBuffer, withPresentationTime: CMTime(value: Int64(frame), timescale: fps))
+}
+writerInput.markAsFinished()
+let writerSemaphore = DispatchSemaphore(value: 0)
+writer.finishWriting { writerSemaphore.signal() }
+writerSemaphore.wait()
+guard writer.status == AVAssetWriter.Status.completed else { throw writer.error ?? NSError(domain: "VideoBuild", code: 2) }
+
+let composition = AVMutableComposition()
+let videoAsset = AVURLAsset(url: silentVideo)
+let compositionVideo = composition.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: kCMPersistentTrackID_Invalid)!
+try compositionVideo.insertTimeRange(CMTimeRange(start: CMTime.zero, duration: videoAsset.duration), of: videoAsset.tracks(withMediaType: AVMediaType.video)[0], at: CMTime.zero)
+let compositionAudio = composition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
+for timed in timedScenes {
+    let audioAsset = AVURLAsset(url: timed.audio)
+    if let audioTrack = audioAsset.tracks(withMediaType: AVMediaType.audio).first {
+        try compositionAudio.insertTimeRange(CMTimeRange(start: CMTime.zero, duration: audioAsset.duration), of: audioTrack, at: CMTime(seconds: timed.start + 0.3, preferredTimescale: 600))
+    }
+}
+
+let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality)!
+exporter.outputURL = finalVideo
+exporter.outputFileType = .mp4
+exporter.shouldOptimizeForNetworkUse = true
+let exportSemaphore = DispatchSemaphore(value: 0)
+exporter.exportAsynchronously { exportSemaphore.signal() }
+exportSemaphore.wait()
+guard exporter.status == AVAssetExportSession.Status.completed else { throw exporter.error ?? NSError(domain: "VideoBuild", code: 3) }
+
+print(String(format: "Created %@ (%.1f seconds)", finalVideo.lastPathComponent, totalDuration))
+print("Created \(poster.lastPathComponent), \(srtFile.lastPathComponent), and \(vttFile.lastPathComponent)")
