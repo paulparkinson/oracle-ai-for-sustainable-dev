@@ -19,6 +19,8 @@
     figure { margin: 30px 0; }
     figure img { display: block; max-width: 100%; height: auto; border: 1px solid #d6dce3; border-radius: 8px; }
     figure.cover img { border: 0; border-radius: 0; }
+    .video-embed { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; background: #202020; }
+    .video-embed iframe { display: block; width: 100%; height: 100%; border: 0; }
     figcaption { margin-top: 8px; color: #5c6673; font-size: .95rem; }
     code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
     code { overflow-wrap: anywhere; }
@@ -52,7 +54,12 @@
 <section id="source-code-and-video">
 <h2>Source code and video</h2>
 <p>All source code for the app is available in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/security">GitHub repo</a>.</p>
-<p>Video walkthrough: <a href="https://youtu.be/WfsqMX9QwPo">Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java</a> (8 minutes).</p>
+<figure>
+  <div class="video-embed">
+    <iframe src="https://www.youtube.com/embed/WfsqMX9QwPo?enablejsapi=1&amp;origin=https%3A%2F%2Fpaulparkinson.github.io&amp;widget_referrer=https%3A%2F%2Fpaulparkinson.github.io%2Foracle-ai-for-sustainable-dev%2Fsecurity%2Fblog.html" title="Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java video walkthrough" loading="lazy" referrerpolicy="origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+  <figcaption>Video walkthrough (8 minutes): <a href="https://www.youtube.com/watch?v=WfsqMX9QwPo">watch directly on YouTube</a> if the embedded player is unavailable.</figcaption>
+</figure>
 </section>
 <section id="why-this-matters">
 <h2>Why This Matters</h2>
@@ -75,9 +82,9 @@
   <li>Runs a normal SQL query against an HR table while Oracle AI Database enforces data grants.</li>
 </ol>
 <p>The repo now includes two aligned demos: an explicit JDBC API version that shows every token and OracleConnection call, and an ojdbc-provider-spring provider/SPI version that lets Oracle JDBC read the current Spring Security context. Both demos use Oracle UCP for pooled JDBC connections.</p>
-<p>The JDBC pieces come from the Oracle AI Database 26ai JDBC Driver and UCP downloads. The demo keeps the JDBC driver and UCP artifacts on the same Oracle release line, and both Spring Boot applications create Oracle UCP PoolDataSource instances explicitly.</p>
+<p>The JDBC pieces come from the Oracle AI Database 26ai JDBC Driver and UCP downloads. The demo keeps the JDBC driver and UCP artifacts on the same Oracle release line. The API application creates its Oracle UCP PoolDataSource explicitly; the provider application lets Spring Boot create and configure UCP from YAML.</p>
 <h3>Oracle UCP Connection Pooling</h3>
-<p>Both demo apps create an Oracle UCP PoolDataSource explicitly. The API version uses the pooled application database user directly; the provider version adds JDBC provider connection properties to the same UCP pool.</p>
+<p>Both demo apps use Oracle UCP. The API version constructs the pool in Java so its token and connection lifecycle remain visible. The provider version uses Spring Boot&#39;s UCP auto-configuration and supplies the JDBC provider properties through <code>spring.datasource.oracleucp.connection-properties</code>, eliminating a dedicated datasource configuration class.</p>
 <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
   &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
@@ -260,9 +267,10 @@ DEEPSEC_SESSION_INIT_SQL=&quot;alter session disable parallel query&quot;</code>
 <pre><code>GRANT CREATE SESSION TO hr_app_user;
 GRANT CREATE END USER SECURITY CONTEXT TO hr_app_user;</code></pre>
 </section>
-<section id="jdbc-thin-and-tnsnames-ora">
-<h2>JDBC Thin and tnsnames.ora</h2>
-<p>The wallet&#39;s tnsnames.ora entry can carry Entra-specific connection metadata. The key additions are token_auth=azure_interactive and azure_db_app_id_uri=api://&lt;DB_APP_CLIENT_ID&gt; inside the security block. A mydb_high alias would look like this:</p>
+<section id="optional-connection-metadata-in-tnsnames-ora">
+<h2>Optional Connection Metadata in tnsnames.ora</h2>
+<p>This section is optional. The provider demo and its Deep Data Security flow do not require Entra metadata in <code>tnsnames.ora</code>; use it when you want direct JDBC Thin interactive Entra sign-in or centrally managed TNS connection metadata.</p>
+<p>A wallet&#39;s tnsnames.ora entry can carry that Entra-specific connection metadata. The key additions are token_auth=azure_interactive and azure_db_app_id_uri=api://&lt;DB_APP_CLIENT_ID&gt; inside the security block. A mydb_high alias would look like this:</p>
 <pre><code>mydb_high =
   (description=
     (retry_count=20)(retry_delay=3)
@@ -333,19 +341,24 @@ finally {
   &lt;version&gt;${ojdbc.provider.version}&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 <h3>Provider configuration</h3>
-<p>The provider version also creates an Oracle UCP PoolDataSource. The important switch is the set of JDBC provider connection properties passed to the Oracle datasource factory. The registrationId value must match the Spring OAuth2 client registration that can obtain a database-access token for Oracle AI Database:</p>
-<pre><code>deepsec:
-  ucp:
-    connection-pool-name: ${DEEPSEC_UCP_POOL_NAME:DeepDataSecurityProviderUcpPool}
-    initial-pool-size: ${DEEPSEC_UCP_INITIAL_POOL_SIZE:1}
-    min-pool-size: ${DEEPSEC_UCP_MIN_POOL_SIZE:1}
-    max-pool-size: ${DEEPSEC_UCP_MAX_POOL_SIZE:4}
-  jdbc-provider:
-    end-user-security-context: ojdbc-provider-spring-end-user-security-context
-    registration-id: entra
-    data-roles: ${DEEPSEC_JDBC_PROVIDER_DATA_ROLES:}
-    end-user-context-attributes: ${DEEPSEC_JDBC_PROVIDER_END_USER_CONTEXT_ATTRIBUTES:}</code></pre>
-<p>That configuration gives the provider the end-user token from Spring Security, the OAuth2 client registration it can use to request a database-access token, and the UCP connection properties Oracle JDBC reads when a pooled connection is borrowed.</p>
+<p>Spring Boot 3.3 creates the Oracle UCP PoolDataSource directly from configuration, so the provider app no longer needs a dedicated <code>UcpDataSourceConfiguration</code> class. Set the datasource type to UCP and put the JDBC provider settings under <code>spring.datasource.oracleucp.connection-properties</code>. The <code>registrationId</code> value must match the Spring OAuth2 client registration that can obtain a database-access token for Oracle AI Database:</p>
+<pre><code>spring:
+  datasource:
+    type: oracle.ucp.jdbc.PoolDataSource
+    url: ${DEEPSEC_JDBC_URL:}
+    username: ${DEEPSEC_USERNAME:}
+    password: ${DEEPSEC_PASSWORD:}
+    driver-class-name: oracle.jdbc.OracleDriver
+    oracleucp:
+      connection-factory-class-name: oracle.jdbc.datasource.impl.OracleDataSource
+      connection-pool-name: ${DEEPSEC_UCP_POOL_NAME:DeepDataSecurityProviderUcpPool}
+      initial-pool-size: ${DEEPSEC_UCP_INITIAL_POOL_SIZE:1}
+      min-pool-size: ${DEEPSEC_UCP_MIN_POOL_SIZE:1}
+      max-pool-size: ${DEEPSEC_POOL_SIZE:4}
+      connection-properties:
+        &quot;oracle.jdbc.provider.endUserSecurityContext&quot;: ojdbc-provider-spring-end-user-security-context
+        &quot;oracle.jdbc.provider.endUserSecurityContext.registrationId&quot;: entra</code></pre>
+<p>Spring Boot binds those settings to UCP, and Oracle JDBC reads the provider properties when a pooled connection is borrowed. The provider then obtains the end-user token from Spring Security and uses the matching OAuth2 client registration to request the database-access token. Optional <code>dataRoles</code> and <code>endUserContextAttributes</code> properties can be added to the same <code>connection-properties</code> map.</p>
 <h3>Resource-server security configuration</h3>
 <p>The provider app keeps /deepsec/query and /deepsec/whoami protected while allowing the browser page and setup endpoints to load. It also trusts both common Entra issuer forms for the configured tenant, which is helpful when one app registration issues v1 access tokens while another flow emits v2 tokens:</p>
 <pre><code>http
@@ -470,6 +483,8 @@ COMMIT;</code></pre>
   <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/security">Demo source code</a></li>
   <li><a href="https://youtu.be/WfsqMX9QwPo">Video walkthrough</a></li>
   <li><a href="https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html">Oracle Database JDBC driver and UCP downloads</a></li>
+  <li><a href="https://blogs.oracle.com/developers/easy-configuration-of-ucp-with-spring-boot">Easy configuration of Oracle UCP with Spring Boot</a></li>
+  <li><a href="https://blogs.oracle.com/developers/ucp-best-practices-for-oracle-database-19c-and-spring-boot">Oracle UCP best practices with Spring Boot</a></li>
   <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/jajdb/oracle/jdbc/OracleConnection.html">OracleConnection API reference, 26ai</a></li>
   <li><a href="https://github.com/oracle/ojdbc-extensions/tree/main/ojdbc-provider-spring">Oracle JDBC Providers for Spring, ojdbc-provider-spring</a></li>
   <li><a href="https://blogs.oracle.com/database/oracle-deep-data-security-is-now-available-in-oracle-ai-database-26ai">Oracle Deep Data Security announcement</a></li>
