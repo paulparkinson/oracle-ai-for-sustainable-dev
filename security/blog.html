@@ -259,14 +259,7 @@ CREATE OR REPLACE DATA ROLE hrapp_managers
   <img src="deepdatasecurity-api-version/images/blog-azure-enterprise-users-groups.png" alt="Azure Portal Enterprise application Users and groups page for the DeepSec Sample Spring Boot App with a user assigned to the EMPLOYEES role.">
   <figcaption>Figure 7. Azure Portal Enterprise application Users and groups page showing a user assigned to the EMPLOYEES role.</figcaption>
 </figure>
-<p>The resulting application configuration looks like this:</p>
-<pre><code>DEEPSEC_ENTRA_TENANT_ID=&quot;your-tenant-id&quot;
-DEEPSEC_ENTRA_CLIENT_ID=&quot;&lt;SPRING_BOOT_APP_CLIENT_ID&gt;&quot;
-DEEPSEC_ENTRA_CLIENT_SECRET=&quot;spring-boot-app-client-secret&quot;
-DEEPSEC_ENTRA_DATABASE_SCOPE=&quot;api://&lt;DB_APP_CLIENT_ID&gt;/user_impersonation&quot;
-DEEPSEC_ENTRA_APPLICATION_SCOPE=&quot;openid,profile,email,api://&lt;SPRING_BOOT_APP_CLIENT_ID&gt;/user_impersonation&quot;</code></pre>
-<p>The provider-version browser UI uses the same application scope and can use the same client ID or a separate public-client app registration:</p>
-<pre><code>DEEPSEC_ENTRA_BROWSER_CLIENT_ID=&quot;&lt;SPRING_BOOT_APP_CLIENT_ID&gt;&quot;</code></pre>
+<p>The Spring Boot YAML in the next section binds these tenant, client, secret, database-scope, application-scope, and browser-client values from environment variables. The provider-version browser UI can use the same client ID or a separate public-client app registration.</p>
 </section>
 <section id="the-spring-boot-code">
 <h2>The Spring Boot Code</h2>
@@ -284,6 +277,34 @@ DEEPSEC_ENTRA_APPLICATION_SCOPE=&quot;openid,profile,email,api://&lt;SPRING_BOOT
 &lt;/dependency&gt;</code></pre>
 <p>The Oracle production dependency POM keeps the JDK 17 JDBC driver, UCP, wallet support, and related companion artifacts on the same release line.</p>
 <h3>Explicit API Version</h3>
+<h4>OAuth2 client and database-token configuration</h4>
+<p>The explicit API application uses Spring Security OAuth2 login for the browser user and a separate <code>deepsec.entra-id</code> block for the on-behalf-of database-token exchange:</p>
+<pre><code>spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          entra:
+            client-id: ${DEEPSEC_ENTRA_CLIENT_ID:}
+            client-secret: ${DEEPSEC_ENTRA_CLIENT_SECRET:}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: ${DEEPSEC_ENTRA_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            scope: ${DEEPSEC_ENTRA_APPLICATION_SCOPE:openid,profile,email}
+        provider:
+          entra:
+            authorization-uri: https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/oauth2/v2.0/authorize
+            token-uri: https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/oauth2/v2.0/token
+            jwk-set-uri: https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/discovery/v2.0/keys
+            user-name-attribute: sub
+
+deepsec:
+  entra-id:
+    tenant-id: ${DEEPSEC_ENTRA_TENANT_ID:}
+    client-id: ${DEEPSEC_ENTRA_CLIENT_ID:}
+    client-secret: ${DEEPSEC_ENTRA_CLIENT_SECRET:}
+    database-scope: ${DEEPSEC_ENTRA_DATABASE_SCOPE:}</code></pre>
+<h4>Explicit security-context lifecycle</h4>
 <p>The service first receives the browser user&#39;s Entra token from Spring Security. Then it requests a database-access token with the OAuth 2.0 on-behalf-of flow:</p>
 <pre><code>MultiValueMap&lt;String, String&gt; form = new LinkedMultiValueMap&lt;&gt;();
 form.add(&quot;grant_type&quot;, &quot;urn:ietf:params:oauth:grant-type:jwt-bearer&quot;);
@@ -337,8 +358,33 @@ finally {
       max-pool-size: ${DEEPSEC_POOL_SIZE:4}
       connection-properties:
         &quot;oracle.jdbc.provider.endUserSecurityContext&quot;: ojdbc-provider-spring-end-user-security-context
-        &quot;oracle.jdbc.provider.endUserSecurityContext.registrationId&quot;: entra</code></pre>
-<p>Spring Boot binds those settings to UCP, and Oracle JDBC reads the provider properties when a pooled connection is borrowed. The provider then obtains the end-user token from Spring Security and uses the matching OAuth2 client registration to request the database-access token. Optional <code>dataRoles</code> and <code>endUserContextAttributes</code> properties can be added to the same <code>connection-properties</code> map.</p>
+        &quot;oracle.jdbc.provider.endUserSecurityContext.registrationId&quot;: entra
+  security:
+    oauth2:
+      client:
+        registration:
+          entra:
+            client-name: entra
+            client-id: ${DEEPSEC_ENTRA_CLIENT_ID:}
+            client-secret: ${DEEPSEC_ENTRA_CLIENT_SECRET:}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: ${DEEPSEC_ENTRA_DATABASE_GRANT_TYPE:client_credentials}
+            scope: ${DEEPSEC_ENTRA_DATABASE_SCOPE:}
+        provider:
+          entra:
+            authorization-uri: https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/oauth2/v2.0/authorize
+            token-uri: https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/oauth2/v2.0/token
+
+deepsec:
+  jwt:
+    trusted-issuers: ${DEEPSEC_ENTRA_JWT_TRUSTED_ISSUERS:https://sts.windows.net/${DEEPSEC_ENTRA_TENANT_ID:}/,https://login.microsoftonline.com/${DEEPSEC_ENTRA_TENANT_ID:}/v2.0}
+  browser:
+    enabled: ${DEEPSEC_BROWSER_ENABLED:true}
+    auth-provider: entraid
+    tenant-id: ${DEEPSEC_ENTRA_TENANT_ID:}
+    client-id: ${DEEPSEC_ENTRA_BROWSER_CLIENT_ID:${DEEPSEC_ENTRA_CLIENT_ID:}}
+    scope: ${DEEPSEC_ENTRA_APPLICATION_SCOPE:}</code></pre>
+<p>Spring Boot binds the datasource portion to UCP and the OAuth2 portion to Spring Security. Oracle JDBC reads the provider properties when a pooled connection is borrowed, and the provider uses the matching OAuth2 client registration to request the database-access token. The <code>deepsec.jwt</code> values configure trusted bearer-token issuers, while <code>deepsec.browser</code> exposes only the non-secret values needed by the sample UI. Optional <code>dataRoles</code> and <code>endUserContextAttributes</code> properties can be added to the same <code>connection-properties</code> map.</p>
 <h4>Resource-server security configuration</h4>
 <p>The provider app keeps /deepsec/query and /deepsec/whoami protected while allowing the browser page and setup endpoints to load. It also trusts both common Entra issuer forms for the configured tenant, which is helpful when one app registration issues v1 access tokens while another flow emits v2 tokens:</p>
 <pre><code>http
