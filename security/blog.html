@@ -81,18 +81,47 @@
   <li>Attaches both tokens to an Oracle JDBC connection with EndUserSecurityContext.</li>
   <li>Runs a normal SQL query against an HR table while Oracle AI Database enforces data grants.</li>
 </ol>
-<p>The repo now includes two aligned demos: an explicit JDBC API version that shows every token and OracleConnection call, and an ojdbc-provider-spring provider/SPI version that lets Oracle JDBC read the current Spring Security context. Both demos use Oracle UCP for pooled JDBC connections.</p>
-<p>The JDBC pieces come from the Oracle AI Database 26ai JDBC Driver and UCP downloads. The demo keeps the JDBC driver and UCP artifacts on the same Oracle release line. The API application creates its Oracle UCP PoolDataSource explicitly; the provider application lets Spring Boot create and configure UCP from YAML.</p>
-<h3>Oracle UCP Connection Pooling</h3>
-<p>Both demo apps use Oracle UCP. The API version constructs the pool in Java so its token and connection lifecycle remain visible. The provider version uses Spring Boot&#39;s UCP auto-configuration and supplies the JDBC provider properties through <code>spring.datasource.oracleucp.connection-properties</code>, eliminating a dedicated datasource configuration class.</p>
+<p>The repo includes two aligned demos, both using Oracle UCP for pooled JDBC connections:</p>
+<ul>
+  <li><strong>Explicit JDBC API version:</strong> application code obtains both tokens and calls <code>OracleConnection.setEndUserSecurityContext(...)</code> and <code>clearEndUserSecurityContext()</code>.</li>
+  <li><strong>ojdbc-provider-spring provider/SPI version:</strong> Oracle JDBC reads the current Spring Security context and supplies the end-user security context through the provider SPI.</li>
+</ul>
+</section>
+<section id="runtime-flow">
+<h2>Runtime Flow</h2>
+<ol>
+  <li>The browser opens GET /deepsec/query.</li>
+  <li>Spring Security redirects the browser to Microsoft Entra ID.</li>
+  <li>The user signs in.</li>
+  <li>Spring Security receives an authorization code and exchanges it for the user&#39;s Entra access token.</li>
+  <li>The backend exchanges that user token for a separate database-access token using OAuth 2.0 on-behalf-of.</li>
+  <li>The app creates an Oracle JDBC EndUserSecurityContext with both tokens.</li>
+  <li>Oracle AI Database validates the context, activates mapped data roles from the Entra roles claim, and enforces data grants while SQL runs.</li>
+  <li>The app clears the context before returning the connection to the pool.</li>
+</ol>
+<p class="callout"><strong>Outcome: </strong>the application remains role-agnostic. Authorization logic is removed from Java code. Oracle AI Database becomes the enforcement point.</p>
+<p>I run the same endpoint twice to make the behavior obvious.</p>
+<h3><strong>Employee result</strong></h3>
+<p>First, the signed-in Entra user has the EMPLOYEES app role, and one sample employee row is mapped to that user&#39;s ORA_END_USER_CONTEXT.username. The app executes the same business SQL and Oracle returns only that employee row:</p>
+<pre><code>{&quot;rows&quot;:[&quot;3:Emma Baker&quot;]}</code></pre>
+<h3><strong>Manager result</strong></h3>
+<p>Then I either sign in as a separate manager Entra user or, for the video, change the same Paul Parkinson Entra user&#39;s database/API enterprise-application assignment so the fresh token carries MANAGERS instead of, or in addition to, EMPLOYEES. For the one-user demo, I map that same real Entra username to the sample manager row so the manager end-user context resolves to the manager employee ID.</p>
+<p>The request is still GET /deepsec/query. The SQL is still the same default query. The connection pool is still the same application pool. The result set changes because Oracle activates HRAPP_MANAGERS from the token role claim and applies the manager data grant, with restricted columns still protected by the database.</p>
+<pre><code>{&quot;rows&quot;:[&quot;3:Emma Baker&quot;,&quot;4:Charlie Davis&quot;,&quot;5:Dana Lee&quot;]}</code></pre>
+</section>
+<section id="oracle-ucp-connection-pooling">
+<h2>Oracle UCP Connection Pooling</h2>
+<p>Both demo apps let Spring Boot create and configure Oracle UCP from <code>spring.datasource</code> properties. The explicit API demo remains explicit only where that distinction matters: its service code sets and clears <code>EndUserSecurityContext</code>. The provider demo instead supplies its additional JDBC provider settings through <code>spring.datasource.oracleucp.connection-properties</code>.</p>
+<p>The Oracle production dependency POM keeps the JDK 17 JDBC driver, UCP, wallet support, and related companion artifacts on the same release line:</p>
 <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
   &lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
   &lt;groupId&gt;com.oracle.database.jdbc&lt;/groupId&gt;
-  &lt;artifactId&gt;ucp&lt;/artifactId&gt;
+  &lt;artifactId&gt;ojdbc17-production&lt;/artifactId&gt;
   &lt;version&gt;${oracle.jdbc.version}&lt;/version&gt;
+  &lt;type&gt;pom&lt;/type&gt;
 &lt;/dependency&gt;</code></pre>
 <p>In the database, Microsoft Entra app roles map to Oracle Deep Data Security data roles:</p>
 <pre><code>CREATE OR REPLACE DATA ROLE hrapp_employees
@@ -133,28 +162,6 @@ CREATE OR REPLACE DATA ROLE hrapp_managers
   <li>One-user path: keep one real demo user, change that user&#39;s database/API Enterprise Application role assignment, get a fresh token, and map the same Entra username to different sample HR rows.</li>
 </ul>
 <p>In the video I use my Paul Parkinson Entra user for the one-user path. In both paths, the user identity and role claims travel together in the security context, and the same endpoint and SQL return different data because Oracle sees different end-user identity and role claims.</p>
-</section>
-<section id="runtime-flow">
-<h2>Runtime Flow</h2>
-<ol>
-  <li>The browser opens GET /deepsec/query.</li>
-  <li>Spring Security redirects the browser to Microsoft Entra ID.</li>
-  <li>The user signs in.</li>
-  <li>Spring Security receives an authorization code and exchanges it for the user&#39;s Entra access token.</li>
-  <li>The backend exchanges that user token for a separate database-access token using OAuth 2.0 on-behalf-of.</li>
-  <li>The app creates an Oracle JDBC EndUserSecurityContext with both tokens.</li>
-  <li>Oracle AI Database validates the context, activates mapped data roles from the Entra roles claim, and enforces data grants while SQL runs.</li>
-  <li>The app clears the context before returning the connection to the pool.</li>
-</ol>
-<p class="callout"><strong>Outcome: </strong>the application remains role-agnostic. Authorization logic is removed from Java code. Oracle AI Database becomes the enforcement point.</p>
-<p>I run the same endpoint twice to make the behavior obvious.</p>
-<h3><strong>Employee result</strong></h3>
-<p>First, the signed-in Entra user has the EMPLOYEES app role, and one sample employee row is mapped to that user&#39;s ORA_END_USER_CONTEXT.username. The app executes the same business SQL and Oracle returns only that employee row:</p>
-<pre><code>{&quot;rows&quot;:[&quot;3:Emma Baker&quot;]}</code></pre>
-<h3><strong>Manager result</strong></h3>
-<p>Then I either sign in as a separate manager Entra user or, for the video, change the same Paul Parkinson Entra user&#39;s database/API enterprise-application assignment so the fresh token carries MANAGERS instead of, or in addition to, EMPLOYEES. For the one-user demo, I map that same real Entra username to the sample manager row so the manager end-user context resolves to the manager employee ID.</p>
-<p>The request is still GET /deepsec/query. The SQL is still the same default query. The connection pool is still the same application pool. The result set changes because Oracle activates HRAPP_MANAGERS from the token role claim and applies the manager data grant, with restricted columns still protected by the database.</p>
-<pre><code>{&quot;rows&quot;:[&quot;3:Emma Baker&quot;,&quot;4:Charlie Davis&quot;,&quot;5:Dana Lee&quot;]}</code></pre>
 </section>
 <section id="create-an-oracle-ai-database-if-you-do-not-have-one">
 <h2>Create an Oracle AI Database if You Do Not Have One</h2>
