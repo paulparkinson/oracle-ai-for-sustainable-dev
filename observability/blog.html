@@ -15,6 +15,8 @@
     figcaption { color: #5c6673; font-size: 0.95rem; margin-top: 8px; }
     img { max-width: 100%; height: auto; border: 1px solid #d6dce3; border-radius: 8px; }
     .cover img { border: 0; border-radius: 0; }
+    .video-embed { position: relative; aspect-ratio: 16 / 9; }
+    .video-embed iframe { width: 100%; height: 100%; border: 0; border-radius: 8px; }
     code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
     pre { background: #f5f7f9; border: 1px solid #dde3ea; padding: 12px; white-space: pre-wrap; }
     table { border-collapse: collapse; width: 100%; }
@@ -56,10 +58,21 @@
     <a href="https://github.com/oracle-devrel/oracle-ai-for-sustainable-dev/tree/main/observability">observability folder on GitHub</a>.
   </p>
 
-  <p>
-    A video walkthrough and summary of the demo can be found here:
-    <a href="https://www.youtube.com/watch?v=Frus_Bw8Qqw">Tracing from Agents into the Oracle AI Database</a>.
-  </p>
+  <figure>
+    <div class="video-embed">
+      <iframe
+        src="https://www.youtube.com/embed/Frus_Bw8Qqw"
+        title="Tracing from Agents into the Oracle AI Database video walkthrough"
+        loading="lazy"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <figcaption>
+      Video walkthrough and summary: <a href="https://www.youtube.com/watch?v=Frus_Bw8Qqw">Tracing from Agents into the Oracle AI Database</a>.
+    </figcaption>
+  </figure>
 
   <figure class="cover">
     <img src="images/oracle-ai-database-otel-trace-cover.svg" alt="Oracle AI Database branded technical diagram showing an AI agent request flowing through Spring Boot, Micrometer, Oracle JDBC OpenTelemetry spans, an Oracle AI Database DB Server span, SQL diagnostics, and an OpenTelemetry-compatible observability backend.">
