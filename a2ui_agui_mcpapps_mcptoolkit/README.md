@@ -10,17 +10,30 @@ This reference project builds an account-risk assistant while keeping each proto
 
 See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/implementation-plan.md`](docs/implementation-plan.md) for verified versions, compatibility risks, and the phased delivery plan.
 
-## What runs now
+## Run against the financial database
 
-The dependency-free development path requires only JDK 21 (JDK 17 also works if virtual-thread executor use is replaced):
+The agent service now uses Oracle UCP and the same `financialdb_high` database alias and `FINANCIAL` schema as the observability demo. It requires JDK 21 and Maven 3.9+.
 
 ```bash
+cp .env.example .env
+# Edit .env: set the wallet path and DB_PASSWORD.
+
+# In SQLcl, connect as FINANCIAL to financialdb_high, then run:
+@database/setup.sql
+
 cd agent-service
 ./test.sh
 ./run.sh
 ```
 
-Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. The development adapter uses deterministic in-memory data so the streaming and approval UX can run without credentials or a database.
+Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. UCP reads `ACCOUNT_RISK_SUMMARY_V`; approval calls `CREATE_CUSTOMER_FOLLOW_UP`, commits the transaction, and returns the generated action ID. On this workstation the wallet is auto-detected at `~/Downloads/Wallet_financialdb`, but `DB_PASSWORD` is always required.
+
+To inspect the UI without Oracle credentials, select the explicit in-memory fallback:
+
+```bash
+cd agent-service
+APP_DATA_MODE=demo ./run.sh
+```
 
 The Oracle artifacts are not mocked:
 
@@ -29,13 +42,15 @@ The Oracle artifacts are not mocked:
 - `oracle-db-mcp-toolkit/contracts/create-customer-follow-up.json` defines the narrow write extension needed because current YAML has no OUT-parameter mode.
 - `mcp-app/` follows the stable MCP Apps `ui://` resource and structured-content pattern.
 
-## Live Oracle path
+## Oracle Database MCP Toolkit path
 
-1. Create the schema with `database/01-schema.sql` through `04-views.sql`.
+The runnable service uses direct JDBC/UCP so the database-backed application can be exercised independently. The target MCP architecture keeps the database credentials in the Oracle Database MCP Java Toolkit instead:
+
+1. Create the schema with `database/setup.sql`.
 2. Build the toolkit from a sibling checkout of `oracle/mcp/src/oracle-db-mcp-java-toolkit`.
 3. Run it with Streamable HTTP, TLS/authentication, this project's `tools.yaml`, and `-Dtools=account-risk-read`.
 4. Implement the write contract as a minimal Java toolkit extension using `CallableStatement`, a registered numeric OUT parameter, explicit commit, and rollback on error.
-5. Replace `DemoRiskRepository` with an MCP client adapter; no database credential belongs in the browser or agent prompts.
+5. Replace `OracleUcpRiskRepository` with an MCP client adapter; no database credential belongs in the browser or agent prompts.
 
 The separation is intentional. The base app works without MCP Apps, and the MCP App never connects directly to Oracle Database.
 

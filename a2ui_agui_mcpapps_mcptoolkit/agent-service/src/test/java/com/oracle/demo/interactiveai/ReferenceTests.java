@@ -1,69 +1,71 @@
 package com.oracle.demo.interactiveai;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
-public final class ReferenceTests {
-    public static void main(String[] args) throws Exception {
-        readIsBoundedAndSorted();
-        invalidInputIsRejected();
-        rejectedApprovalMakesNoWrite();
-        approvedWriteIsSingleUse();
-        streamUsesOfficialEventNamesAndA2uiEnvelope();
-        System.out.println("All reference tests passed.");
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+final class ReferenceTests {
+    @Test
+    void ucpConfigurationUsesFinancialDatabaseDefaults() throws Exception {
+        var dataSource = UcpDataSourceConfiguration.fromEnvironment(Map.of(
+                "TNS_ADMIN", "/tmp/Wallet_financialdb",
+                "DB_PASSWORD", "test-only-placeholder"));
+        assertEquals("FINANCIAL", dataSource.getUser());
+        assertEquals("jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=/tmp/Wallet_financialdb", dataSource.getURL());
+        assertEquals("InteractiveAiFinancialUcpPool", dataSource.getConnectionPoolName());
+        assertEquals(4, dataSource.getMaxPoolSize());
     }
 
-    private static void readIsBoundedAndSorted() {
+    @Test
+    void readIsBoundedAndSorted() {
         var repository = new DemoRiskRepository();
         List<Account> accounts = repository.findAtRisk(80, 3);
-        check(accounts.size() == 3, "maximumRows must be enforced");
-        check(accounts.get(0).riskScore() >= accounts.get(1).riskScore(), "results must be sorted descending");
+        assertEquals(3, accounts.size());
+        assertTrue(accounts.get(0).riskScore() >= accounts.get(1).riskScore());
     }
 
-    private static void invalidInputIsRejected() {
-        expectFailure(() -> new DemoRiskRepository().findAtRisk(101, 10));
-        expectFailure(() -> new DemoRiskRepository().createFollowUp(1, "DROP_TABLE", "bad", "tester@example.com"));
+    @Test
+    void invalidInputIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> new DemoRiskRepository().findAtRisk(101, 10));
+        assertThrows(IllegalArgumentException.class,
+                () -> new DemoRiskRepository().createFollowUp(1, "DROP_TABLE", "bad", "tester@example.com"));
     }
 
-    private static void rejectedApprovalMakesNoWrite() {
+    @Test
+    void rejectedApprovalMakesNoWrite() {
         var repository = new DemoRiskRepository();
         var approvals = new ApprovalService();
         String id = approvals.issue("tester@example.com", repository.findAtRisk(90, 2));
         approvals.reject(id, "tester@example.com");
-        check(repository.actionCount() == 0, "rejection must not write");
+        assertEquals(0, repository.actionCount());
     }
 
-    private static void approvedWriteIsSingleUse() {
+    @Test
+    void approvedWriteIsSingleUse() {
         var repository = new DemoRiskRepository();
         var approvals = new ApprovalService();
         String id = approvals.issue("tester@example.com", repository.findAtRisk(90, 2));
         approvals.consume(id, 1, "tester@example.com");
         repository.createFollowUp(1, "REVIEW", "Review current risk evidence", "tester@example.com");
-        check(repository.actionCount() == 1, "approved write must create one action");
-        expectFailure(() -> approvals.consume(id, 1, "tester@example.com"));
+        assertEquals(1, repository.actionCount());
+        assertThrows(IllegalArgumentException.class, () -> approvals.consume(id, 1, "tester@example.com"));
     }
 
-    private static void streamUsesOfficialEventNamesAndA2uiEnvelope() throws Exception {
+    @Test
+    void streamUsesOfficialEventNamesAndA2uiEnvelope() throws Exception {
         var output = new ByteArrayOutputStream();
         new AguiRunService(new DemoRiskRepository(), new ApprovalService()).stream(output, 90, 2, "tester@example.com");
         String stream = output.toString(StandardCharsets.UTF_8);
-        check(stream.contains("\"type\":\"RUN_STARTED\""), "run event missing");
-        check(stream.contains("\"type\":\"TOOL_CALL_RESULT\""), "tool result missing");
-        check(stream.contains("\"name\":\"a2ui.message\""), "A2UI custom event missing");
-        check(stream.contains("\"version\":\"v0.9.1\""), "A2UI version missing");
-    }
-
-    private static void expectFailure(Runnable action) {
-        try {
-            action.run();
-            throw new AssertionError("Expected failure");
-        } catch (IllegalArgumentException expected) {
-            // expected
-        }
-    }
-
-    private static void check(boolean condition, String message) {
-        if (!condition) throw new AssertionError(message);
+        assertTrue(stream.contains("\"type\":\"RUN_STARTED\""));
+        assertTrue(stream.contains("\"type\":\"TOOL_CALL_RESULT\""));
+        assertTrue(stream.contains("\"name\":\"a2ui.message\""));
+        assertTrue(stream.contains("\"version\":\"v0.9.1\""));
     }
 }

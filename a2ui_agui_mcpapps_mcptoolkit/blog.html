@@ -201,15 +201,24 @@ RUN_FINISHED</code></pre>
 
   <section id="run">
     <h2>Run the Reference Application</h2>
-    <p>The base streaming experience has a dependency-free development mode, so you can inspect the protocol flow before configuring Oracle credentials:</p>
-    <pre><code>cd a2ui_agui_mcpapps_mcptoolkit/agent-service
+    <p>The runnable service uses Oracle UCP and defaults to the same <code>financialdb_high</code> database alias and <code>FINANCIAL</code> schema as the observability demo. Copy the environment template, point it at the wallet, set <code>DB_PASSWORD</code>, and install the account-risk objects:</p>
+    <pre><code>cd a2ui_agui_mcpapps_mcptoolkit
+cp .env.example .env
+# Edit .env and set TNS_ADMIN and DB_PASSWORD.
+# DB_URL is optional; it defaults to the financialdb_high alias.
+
+# Connect with SQLcl as FINANCIAL to financialdb_high, then run:
+@database/setup.sql
+
+cd agent-service
 ./test.sh
 ./run.sh
 
 # open http://127.0.0.1:8080</code></pre>
-    <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes.</p>
-    <p>For the live Oracle path, run the four database setup scripts, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, and enable only <code>account-risk-read</code>. Then implement the recorded write contract as a minimal toolkit extension and replace the development repository with an MCP client adapter.</p>
-    <p class="note"><strong>Current status:</strong> the repository foundation, UI, protocol stream, SQL, YAML reads, write contract, tests, security design, and MCP App source are implemented. Live Oracle integration remains an explicit second phase because it requires a reachable database, credentials, and validation against the exact toolkit commit being deployed.</p>
+    <p>UCP reads the governed <code>ACCOUNT_RISK_SUMMARY_V</code> with bounded, bound SQL. An approved follow-up invokes <code>CREATE_CUSTOMER_FOLLOW_UP</code> through a <code>CallableStatement</code>, registers the numeric OUT parameter, commits on success, and rolls back on failure. The pool validates borrowed connections and applies bounded wait, size, inactivity, and row-prefetch settings.</p>
+    <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes. To run only the UI and protocol flow without database credentials, start with <code>APP_DATA_MODE=demo ./run.sh</code>.</p>
+    <p>Direct JDBC/UCP provides the immediately runnable database-backed path. For the target MCP deployment, build the Oracle toolkit from a sibling checkout, configure Streamable HTTP with TLS and OAuth 2.0, load <code>tools.yaml</code>, enable only <code>account-risk-read</code>, implement the recorded narrow write extension, and replace the UCP repository with an MCP client adapter.</p>
+    <p class="note"><strong>Current status:</strong> the repository foundation, Oracle UCP datasource, database reads and transactional writes, UI, protocol stream, SQL, YAML reads, write contract, tests, security design, and MCP App source are implemented. The direct database path requires a reachable database, the financial wallet, and a locally supplied password; secrets are not committed.</p>
   </section>
 
   <section id="security">

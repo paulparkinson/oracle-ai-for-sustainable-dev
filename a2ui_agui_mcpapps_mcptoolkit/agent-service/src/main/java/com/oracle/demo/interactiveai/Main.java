@@ -14,20 +14,34 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 public final class Main {
-    private final RiskRepository repository = new DemoRiskRepository();
-    private final ApprovalService approvals = new ApprovalService();
-    private final AguiRunService runs = new AguiRunService(repository, approvals);
+    private final RiskRepository repository;
+    private final ApprovalService approvals;
+    private final AguiRunService runs;
     private final String actor = System.getenv().getOrDefault("REQUESTED_BY", "demo.user@example.com");
     private final Path webRoot;
+    private final String dataMode;
 
-    private Main(Path webRoot) {
+    private Main(Path webRoot, String dataMode, RiskRepository repository) {
         this.webRoot = webRoot;
+        this.dataMode = dataMode;
+        this.repository = repository;
+        this.approvals = new ApprovalService();
+        this.runs = new AguiRunService(repository, approvals);
     }
 
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("AGENT_PORT", "8080"));
         Path webRoot = Path.of(System.getProperty("web.root", "../web-client"));
-        new Main(webRoot).start(port);
+        String dataMode = System.getenv().getOrDefault("APP_DATA_MODE", "database").trim().toLowerCase();
+        RiskRepository repository = switch (dataMode) {
+            case "database" -> new OracleUcpRiskRepository(UcpDataSourceConfiguration.fromEnvironment(System.getenv()));
+            case "demo" -> new DemoRiskRepository();
+            default -> throw new IllegalArgumentException("APP_DATA_MODE must be database or demo");
+        };
+        if (repository instanceof AutoCloseable closeable) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> closeQuietly(closeable), "ucp-shutdown"));
+        }
+        new Main(webRoot, dataMode, repository).start(port);
     }
 
     private void start(int port) throws IOException {
@@ -35,7 +49,8 @@ public final class Main {
         server.createContext("/api/runs", this::run);
         server.createContext("/api/approve", this::approve);
         server.createContext("/api/reject", this::reject);
-        server.createContext("/api/health", exchange -> respond(exchange, 200, "application/json", "{\"status\":\"UP\",\"mode\":\"demo\"}"));
+        server.createContext("/api/health", exchange -> respond(exchange, 200, "application/json",
+                Json.value(Map.of("status", "UP", "mode", dataMode, "pool", dataMode.equals("database") ? "UCP" : "none"))));
         server.createContext("/", this::staticFile);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();
@@ -58,6 +73,8 @@ public final class Main {
             }
         } catch (IllegalArgumentException exception) {
             respond(exchange, 400, "application/json", Json.value(Map.of("error", exception.getMessage())));
+        } catch (IllegalStateException exception) {
+            respond(exchange, 500, "application/json", Json.value(Map.of("error", exception.getMessage())));
         }
     }
 
@@ -78,6 +95,8 @@ public final class Main {
                     "actionType", result.actionType(), "status", result.status())));
         } catch (IllegalArgumentException exception) {
             respond(exchange, 400, "application/json", Json.value(Map.of("error", exception.getMessage())));
+        } catch (IllegalStateException exception) {
+            respond(exchange, 500, "application/json", Json.value(Map.of("error", exception.getMessage())));
         }
     }
 
@@ -130,5 +149,13 @@ public final class Main {
         exchange.sendResponseHeaders(status, bytes.length);
         exchange.getResponseBody().write(bytes);
         exchange.close();
+    }
+
+    private static void closeQuietly(AutoCloseable closeable) {
+        try {
+            closeable.close();
+        } catch (Exception exception) {
+            System.err.println("Unable to close datasource: " + exception.getMessage());
+        }
     }
 }

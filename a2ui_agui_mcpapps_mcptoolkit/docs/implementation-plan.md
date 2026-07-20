@@ -23,12 +23,12 @@ web-client
   |  POST run / approval + SSE response
   v
 agent-service
-  |  MCP Streamable HTTP (business-tool allowlist)
-  v
-Oracle Database MCP Java Toolkit + narrow write extension
-  |  JDBC/UCP + binds + explicit transaction
-  v
-Oracle AI Database
+  |-- current runnable path: JDBC/UCP ---------------------|
+  |-- target: MCP Streamable HTTP (business-tool allowlist)|
+  v                                                        v
+Oracle Database MCP Java Toolkit + narrow write extension  Oracle AI Database
+  |  JDBC/UCP + binds + explicit transaction               ^
+  |________________________________________________________|
 
 MCP-compatible host
   |  ui:// resource + postMessage bridge
@@ -38,10 +38,11 @@ mcp-app (dashboard; structured data only)
 
 ## Delivery phases
 
-1. **Foundation (included):** database scripts, deterministic data, narrow read-tool YAML, write-tool contract, runnable dependency-free Java demo adapter, AG-UI SSE, allowlisted A2UI renderer, standalone dashboard preview, tests, and blog.
-2. **Live Oracle integration:** build the toolkit from a sibling checkout, implement the narrow write extension using the toolkit's current extension point, configure TLS/OAuth, and run database integration tests.
-3. **SDK substitution:** replace the dependency-free browser renderer with the maintained A2UI web renderer if its framework/runtime fits the consuming app. Preserve the same v0.9.1 envelopes.
-4. **Production hardening:** external identity, actor claims, persistent approval nonce/idempotency keys, VPD/data-role policies, centralized audit export, and MCP host compatibility testing.
+1. **Foundation (included):** database scripts, deterministic data, narrow read-tool YAML, write-tool contract, runnable Java demo adapter, AG-UI SSE, allowlisted A2UI renderer, standalone dashboard preview, tests, and blog.
+2. **Direct Oracle integration (included):** UCP datasource, the financial database defaults used by the observability demo, bound reads, callable transactional writes, and an explicit in-memory fallback.
+3. **MCP integration:** build the toolkit from a sibling checkout, implement the narrow write extension using the toolkit's current extension point, configure TLS/OAuth, and run database integration tests.
+4. **SDK substitution:** replace the dependency-free browser renderer with the maintained A2UI web renderer if its framework/runtime fits the consuming app. Preserve the same v0.9.1 envelopes.
+5. **Production hardening:** external identity, actor claims, persistent approval nonce/idempotency keys, VPD/data-role policies, centralized audit export, and MCP host compatibility testing.
 
 ## Compatibility risks
 

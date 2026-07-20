@@ -31,7 +31,13 @@ public final class AguiRunService {
         send(output, Map.of("type", "TOOL_CALL_START", "toolCallId", toolCallId, "toolCallName", "find-at-risk-customers", "parentMessageId", messageId));
         send(output, Map.of("type", "TOOL_CALL_ARGS", "toolCallId", toolCallId, "delta", Json.value(Map.of("minimumRisk", minimumRisk, "maximumRows", maximumRows))));
 
-        List<Account> accounts = repository.findAtRisk(minimumRisk, maximumRows);
+        List<Account> accounts;
+        try {
+            accounts = repository.findAtRisk(minimumRisk, maximumRows);
+        } catch (RuntimeException exception) {
+            send(output, Map.of("type", "RUN_ERROR", "message", exception.getMessage(), "code", "DATABASE_TOOL_ERROR"));
+            return;
+        }
         String accountJson = accounts.stream().map(Json::account).reduce("[", (left, item) -> left.equals("[") ? left + item : left + "," + item) + "]";
         send(output, Map.of("type", "TOOL_CALL_END", "toolCallId", toolCallId));
         send(output, Map.of("type", "TOOL_CALL_RESULT", "messageId", UUID.randomUUID().toString(), "toolCallId", toolCallId, "content", accountJson, "role", "tool"));
