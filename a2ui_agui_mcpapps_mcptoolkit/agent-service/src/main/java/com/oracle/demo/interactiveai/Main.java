@@ -19,11 +19,9 @@ public final class Main {
     private final AguiRunService runs;
     private final String actor = System.getenv().getOrDefault("REQUESTED_BY", "demo.user@example.com");
     private final Path webRoot;
-    private final String dataMode;
 
-    private Main(Path webRoot, String dataMode, RiskRepository repository) {
+    private Main(Path webRoot, RiskRepository repository) {
         this.webRoot = webRoot;
-        this.dataMode = dataMode;
         this.repository = repository;
         this.approvals = new ApprovalService();
         this.runs = new AguiRunService(repository, approvals);
@@ -32,17 +30,11 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("AGENT_PORT", "8080"));
         Path webRoot = Path.of(System.getProperty("web.root", "../web-client"));
-        String dataMode = System.getenv().getOrDefault("APP_DATA_MODE", "mcp").trim().toLowerCase();
-        RiskRepository repository = switch (dataMode) {
-            case "mcp" -> McpToolkitRiskRepository.fromEnvironment(System.getenv());
-            case "database" -> new OracleUcpRiskRepository(UcpDataSourceConfiguration.fromEnvironment(System.getenv()));
-            case "demo" -> new DemoRiskRepository();
-            default -> throw new IllegalArgumentException("APP_DATA_MODE must be mcp, database, or demo");
-        };
+        RiskRepository repository = McpToolkitRiskRepository.fromEnvironment(System.getenv());
         if (repository instanceof AutoCloseable closeable) {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> closeQuietly(closeable), "repository-shutdown"));
         }
-        new Main(webRoot, dataMode, repository).start(port);
+        new Main(webRoot, repository).start(port);
     }
 
     private void start(int port) throws IOException {
@@ -51,11 +43,8 @@ public final class Main {
         server.createContext("/api/approve", this::approve);
         server.createContext("/api/reject", this::reject);
         server.createContext("/api/health", exchange -> respond(exchange, 200, "application/json",
-                Json.value(Map.of("status", "UP", "mode", dataMode, "backend", switch (dataMode) {
-                    case "mcp" -> "oracle-db-mcp-java-toolkit";
-                    case "database" -> "direct-ucp";
-                    default -> "in-memory";
-                }))));
+                Json.value(Map.of("status", "UP", "mode", "mcp",
+                        "backend", "oracle-db-mcp-java-toolkit"))));
         server.createContext("/", this::staticFile);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();

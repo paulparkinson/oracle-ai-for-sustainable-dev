@@ -26,9 +26,7 @@ cd agent-service
 
 Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. On first start, `run.sh` downloads the pinned official Oracle Toolkit source into ignored `.runtime/`, builds it, and starts it as an MCP stdio child process. `McpToolkitRiskRepository` uses a small synchronous MCP protocol client to discover the exact tool allowlist and invoke every runtime database read and write. The Toolkit owns Oracle UCP and the database connection.
 
-The ignored `financial/setup/.env` is reused automatically when it is present, so this repository does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The setup runner uses direct UCP only for installation; it refuses unsafe partial state, upgrades the original schema with the MCP write objects, never drops objects, and becomes a no-op after successful installation. SQLcl users can alternatively run `database/setup.sql`.
-
-To exercise the original direct JDBC/UCP adapter for comparison, use `APP_DATA_MODE=database ./run.sh`. To inspect only the UI and protocols without Oracle credentials, use `APP_DATA_MODE=demo ./run.sh`.
+The ignored `financial/setup/.env` is reused automatically when it is present, so this repository does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The one-time setup runner uses UCP only to install the Toolkit’s database objects; it is not an application data path. It refuses unsafe partial state, upgrades the original schema with the MCP write objects, never drops objects, and becomes a no-op after successful installation. SQLcl users can alternatively run `database/setup.sql`.
 
 The Oracle artifacts are not mocked:
 
@@ -45,7 +43,7 @@ The Toolkit path is preferred for this reference architecture because its govern
 2. The agent starts it over stdio with `tools.yaml` and only the `account-risk` toolset.
 3. Credentials pass in the child-process environment, not YAML, browser code, prompts, or Git.
 4. The agent verifies the connected server identity and exact tool allowlist before accepting traffic.
-5. Reads and approved writes execute through MCP; setup alone uses the direct UCP configuration.
+5. Every application read and approved write executes through MCP. Only the separate one-time schema installer connects through its own UCP configuration.
 
 The small committed compatibility patch disables tool-list-change notifications while the pinned Toolkit registers its static YAML tools before an stdio client session exists. It does not alter tool execution, SQL, datasource handling, or the strict application allowlist.
 

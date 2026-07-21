@@ -39,8 +39,8 @@ mcp-app (dashboard; structured data only)
 ## Delivery phases
 
 1. **Foundation (included):** database scripts, deterministic data, tool YAML, AG-UI SSE, allowlisted A2UI renderer, standalone dashboard preview, tests, and blog.
-2. **Direct Oracle integration (included):** UCP setup and comparison adapter, financial database defaults, bound reads, callable writes, and an explicit in-memory fallback.
-3. **MCP integration (included):** pinned official Toolkit bootstrap, synchronous stdio client, exact allowlist verification, YAML reads, and a sequence-backed input-only procedure write.
+2. **Oracle schema bootstrap (included):** guarded one-time UCP setup, financial database defaults, views, sequence, procedures, and deterministic sample records. This installer is separate from application runtime access.
+3. **MCP integration (included):** pinned official Toolkit bootstrap, synchronous stdio client, exact allowlist verification, YAML reads, and a sequence-backed input-only procedure write. Every application database operation uses this path.
 4. **SDK substitution:** replace the dependency-free browser renderer with the maintained A2UI web renderer if its framework/runtime fits the consuming app. Preserve the same v0.9.1 envelopes.
 5. **Production hardening:** external identity, actor claims, persistent approval nonce/idempotency keys, VPD/data-role policies, centralized audit export, and MCP host compatibility testing.
 

@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 # shellcheck disable=SC1091
 source ./load-database-env.sh
 
-if [ "${APP_DATA_MODE:-mcp}" = "mcp" ] && [ -z "${ORACLE_MCP_TOOLKIT_JAR:-}" ]; then
+if [ -z "${ORACLE_MCP_TOOLKIT_JAR:-}" ]; then
   ORACLE_MCP_TOOLKIT_JAR="$(./prepare-mcp-toolkit.sh)"
   export ORACLE_MCP_TOOLKIT_JAR
 fi
@@ -15,7 +15,7 @@ java_command="${JAVA_COMMAND:-java}"
 
 # A locally cached Toolkit may have been built by a newer JDK. Select a
 # compatible installed JDK for both the agent and its MCP child process.
-if [ "${APP_DATA_MODE:-mcp}" = "mcp" ] && command -v javap >/dev/null 2>&1; then
+if command -v javap >/dev/null 2>&1; then
   runtime_class_version="$("$java_command" -XshowSettings:properties -version 2>&1 \
     | awk '/java.class.version =/ {print int($3); exit}')"
   toolkit_class_version="$(javap -verbose -classpath "$ORACLE_MCP_TOOLKIT_JAR" \

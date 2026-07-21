@@ -2,7 +2,6 @@
 
 project_env="../.env"
 financial_env="../../financial/setup/.env"
-requested_data_mode="${APP_DATA_MODE:-}"
 
 if [ -f "$project_env" ]; then
   set -a
@@ -21,12 +20,7 @@ elif [ -f "$financial_env" ]; then
   unset DB_URL
 fi
 
-# Both the direct UCP adapter and the MCP Toolkit child need a local wallet URL.
+# The MCP Toolkit child needs a JDBC URL that points at the local wallet.
 if [ -z "${DB_URL:-}" ] && [ -n "${TNS_ADMIN:-}" ]; then
   export DB_URL="jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=${TNS_ADMIN}"
-fi
-
-# Preserve an explicit per-command mode such as APP_DATA_MODE=database ./run.sh.
-if [ -n "$requested_data_mode" ]; then
-  export APP_DATA_MODE="$requested_data_mode"
 fi

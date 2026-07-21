@@ -5,7 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class DemoRiskRepository implements RiskRepository {
+/** In-memory test fixture; it is not packaged with the running application. */
+final class DemoRiskRepository implements RiskRepository {
     private static final List<Account> ACCOUNTS = List.of(
             account(1, "Apex Freight Systems", "Logistics", 4_200_000, 96, "CRITICAL", "Payment velocity and beneficiary changes exceed policy.", "Jordan Lee"),
             account(2, "Blue Mesa Energy", "Energy", 8_100_000, 93, "CRITICAL", "Sanctions-screening similarity and unusual cross-border payments.", "Sam Rivera"),
