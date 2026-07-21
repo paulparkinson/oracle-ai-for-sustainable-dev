@@ -1,1 +1,0 @@
-Oracle AI Database stores the accounts, risk evidence, and follow-up actions. The narrow stored procedure validates inputs, locks the selected account, inserts one action, and returns its identifier. The Java caller explicitly commits or rolls back.

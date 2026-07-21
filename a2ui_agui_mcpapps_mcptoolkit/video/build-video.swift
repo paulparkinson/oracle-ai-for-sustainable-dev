@@ -46,8 +46,43 @@ struct Cue {
 
 let scenes: [Scene] = [
     Scene(narrationFile: "01-intro.txt", eyebrow: "ORACLE AI DATABASE · INTERACTIVE AI", title: "From agent answer\nto governed action", subtitle: "A2UI · AG-UI · MCP Apps · Oracle Database MCP Java Toolkit", kind: .title, fileLabel: nil, code: nil),
-    Scene(narrationFile: "02-architecture.txt", eyebrow: "REFERENCE ARCHITECTURE", title: "Clear responsibilities,\none continuous experience", subtitle: "The database remains the authoritative data and transaction layer.", kind: .architecture, fileLabel: nil, code: nil),
-    Scene(narrationFile: "03-agui.txt", eyebrow: "AG-UI EVENT STREAM", title: "Stream the run, tool activity,\nand application state", subtitle: "Official lifecycle events plus A2UI carried in a CUSTOM event.", kind: .code, fileLabel: "AguiRunService.java", code: """
+    Scene(narrationFile: "02-architecture.txt", eyebrow: "REFERENCE ARCHITECTURE", title: "Clear responsibilities,\none governed workflow", subtitle: "The Toolkit is the reusable database capability boundary.", kind: .architecture, fileLabel: nil, code: nil),
+    Scene(narrationFile: "03-mcp-runtime.txt", eyebrow: "LIVE MCP RUNTIME", title: "Verify the server and\nexact tool allowlist", subtitle: "The default path launches the pinned Oracle Toolkit over MCP stdio.", kind: .code, fileLabel: "McpToolkitRiskRepository.java", code: """
+client.initialize();
+Set<String> available = client.listTools();
+
+if (!available.equals(REQUIRED_TOOLS))
+  throw new IllegalStateException("Tool allowlist mismatch");
+
+client.callTool("find-at-risk-customers", Map.of(
+    "minimumRisk", minimumRisk,
+    "maximumRows", maximumRows));
+"""),
+    Scene(narrationFile: "04-mcp-tools.txt", eyebrow: "ORACLE DATABASE MCP JAVA TOOLKIT", title: "Expose governed business tools,\nnot unrestricted SQL", subtitle: "Five YAML-defined, bound operations are enabled—and no others.", kind: .code, fileLabel: "oracle-db-mcp-toolkit/config/tools.yaml", code: """
+toolsets:
+  account-risk:
+    - find-at-risk-customers
+    - get-customer-risk-details
+    - reserve-customer-action-id
+    - create-customer-follow-up
+    - count-customer-actions
+
+statement: >-
+  BEGIN create_customer_follow_up_mcp(...); END;
+"""),
+    Scene(narrationFile: "05-database.txt", eyebrow: "ORACLE AI DATABASE", title: "Govern the data and\nexecute one atomic action", subtitle: "Views stabilize reads; an input-only procedure owns the approved write.", kind: .code, fileLabel: "database/06-mcp-procedure.sql", code: """
+SELECT customer_id INTO v_customer_id
+  FROM customer_accounts
+ WHERE customer_id = p_customer_id
+   FOR UPDATE;
+
+INSERT INTO customer_actions (...)
+VALUES (..., 'APPROVED');
+
+UPDATE customer_accounts
+   SET follow_up_status = 'ACTION APPROVED';
+"""),
+    Scene(narrationFile: "06-agui.txt", eyebrow: "AG-UI EVENT STREAM", title: "Stream the run, tool activity,\nand application state", subtitle: "Lifecycle events plus A2UI envelopes carried in a CUSTOM event.", kind: .code, fileLabel: "AguiRunService.java", code: """
 send(output, Map.of("type", "RUN_STARTED", ...));
 send(output, Map.of("type", "TOOL_CALL_START",
     "toolCallName", "find-at-risk-customers"));
@@ -58,7 +93,7 @@ send(output, Map.of("type", "CUSTOM",
     "name", "a2ui.message",
     "value", A2uiPayloads.updateData(...)));
 """),
-    Scene(narrationFile: "04-a2ui.txt", eyebrow: "A2UI TRUSTED RENDERING", title: "Declarative controls,\nnot executable agent code", subtitle: "The client owns the catalog, validation, design system, and DOM insertion.", kind: .code, fileLabel: "web-client/app.js", code: """
+    Scene(narrationFile: "07-a2ui.txt", eyebrow: "A2UI TRUSTED RENDERING", title: "Declarative controls,\nnot executable agent code", subtitle: "The client owns the catalog, validation, design system, and DOM insertion.", kind: .code, fileLabel: "web-client/app.js", code: """
 const allowedComponents = new Set([
   "Column", "Row", "List", "Card", "Text",
   "Button", "TextField", "ChoicePicker"
@@ -68,43 +103,6 @@ if (envelope.version !== "v0.9.1")
   throw new Error("Unsupported A2UI version");
 
 name.textContent = account.customerName;
-"""),
-    Scene(narrationFile: "05-ucp.txt", eyebrow: "ORACLE UCP + JDBC", title: "A real pooled connection\nto the financial database", subtitle: "Bound reads, validated connections, bounded waits, explicit pool sizing.", kind: .code, fileLabel: "OracleUcpRiskRepository.java", code: """
-try (Connection connection = dataSource.getConnection();
-     PreparedStatement statement =
-         connection.prepareStatement(FIND_AT_RISK_SQL)) {
-  statement.setDouble(1, minimumRisk);
-  statement.setMaxRows(maximumRows);
-  statement.setQueryTimeout(15);
-  try (ResultSet rows = statement.executeQuery()) {
-    return mapAccounts(rows);
-  }
-}
-"""),
-    Scene(narrationFile: "06-database.txt", eyebrow: "ORACLE AI DATABASE", title: "Govern data and execute\nthe approved transaction", subtitle: "Views stabilize reads; one procedure owns the allowed business write.", kind: .code, fileLabel: "database/03-procedures.sql", code: """
-SELECT customer_id INTO v_customer_id
-  FROM customer_accounts
- WHERE customer_id = p_customer_id
-   FOR UPDATE;
-
-INSERT INTO customer_actions (...)
-VALUES (..., 'APPROVED')
-RETURNING action_id INTO p_action_id;
-
--- The caller owns COMMIT or ROLLBACK.
-"""),
-    Scene(narrationFile: "07-mcp-tools.txt", eyebrow: "ORACLE DATABASE MCP JAVA TOOLKIT", title: "Expose narrow business tools,\nnot unrestricted SQL", subtitle: "YAML-defined bound reads and a narrowly scoped write extension contract.", kind: .code, fileLabel: "oracle-db-mcp-toolkit/config/tools.yaml", code: """
-tools:
-  find-at-risk-customers:
-    parameters:
-      - name: minimumRisk
-        type: number
-        required: true
-      - name: maximumRows
-        type: integer
-        required: true
-    statement: >-
-      SELECT * FROM (...) WHERE ROWNUM <= :maximumRows
 """),
     Scene(narrationFile: "08-mcp-app.txt", eyebrow: "OPTIONAL MCP APP", title: "Add a sandboxed dashboard\ninside compatible hosts", subtitle: "Structured content crosses the host bridge; database credentials never do.", kind: .code, fileLabel: "mcp-app/server.ts", code: """
 const resourceUri =
@@ -151,7 +149,20 @@ for scene in scenes {
     let narration = try String(contentsOf: narrationURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
     let audioURL = audioDirectory.appendingPathComponent(scene.narrationFile.replacingOccurrences(of: ".txt", with: ".aiff"))
     if fm.fileExists(atPath: audioURL.path) { try fm.removeItem(at: audioURL) }
-    try run("/usr/bin/say", ["-r", "168", "-o", audioURL.path, narration])
+    // Keep canonical product names in source and captions. Apply phonetic
+    // spellings only to the private speech-synthesis input.
+    let speechAliases = [
+        "AG-UI": ["A", "G", "U", "I"].joined(separator: " "),
+        "A2UI": ["A", "two", "U", "I"].joined(separator: " "),
+        "MCP": ["M", "C", "P"].joined(separator: " "),
+        "UCP": ["U", "C", "P"].joined(separator: " "),
+        "JDBC": ["J", "D", "B", "C"].joined(separator: " ")
+    ]
+    var spokenNarration = narration
+    for (canonicalName, speechAlias) in speechAliases {
+        spokenNarration = spokenNarration.replacingOccurrences(of: canonicalName, with: speechAlias)
+    }
+    try run("/usr/bin/say", ["-r", "168", "-o", audioURL.path, spokenNarration])
     let duration = max(8.0, assetDuration(audioURL) + 1.2)
     timedScenes.append(TimedScene(scene: scene, narration: narration, audio: audioURL, start: cursor, duration: duration))
     cursor += duration
@@ -175,9 +186,33 @@ func sentences(_ text: String) -> [String] {
     return pieces.isEmpty ? [text] : pieces
 }
 
+func captionSegments(_ text: String, lineLimit: Int = 42) -> [String] {
+    var segments: [String] = []
+    for sentence in sentences(text) {
+        var lines: [String] = []
+        var line = ""
+        for word in sentence.split(separator: " ").map(String.init) {
+            let candidate = line.isEmpty ? word : line + " " + word
+            if candidate.count <= lineLimit || line.isEmpty {
+                line = candidate
+            } else if lines.isEmpty {
+                lines.append(line)
+                line = word
+            } else {
+                segments.append((lines + [line]).joined(separator: "\n"))
+                lines.removeAll(keepingCapacity: true)
+                line = word
+            }
+        }
+        if !line.isEmpty { lines.append(line) }
+        if !lines.isEmpty { segments.append(lines.joined(separator: "\n")) }
+    }
+    return segments.isEmpty ? [text] : segments
+}
+
 var cues: [Cue] = []
 for (sceneIndex, timed) in timedScenes.enumerated() {
-    let pieces = sentences(timed.narration)
+    let pieces = captionSegments(timed.narration)
     let weights = pieces.map { max(1, $0.split(separator: " ").count) }
     let totalWeight = weights.reduce(0, +)
     var cueStart = timed.start + 0.2
@@ -306,8 +341,8 @@ func drawResult() {
     green.setFill(); NSBezierPath(ovalIn: NSRect(x: 855, y: 390, width: 150, height: 150)).fill()
     text("✓", NSRect(x: 880, y: 410, width: 100, height: 100), font: .boldSystemFont(ofSize: 86), color: .white, alignment: .center)
     text("Action committed", NSRect(x: 1060, y: 365, width: 560, height: 65), font: .boldSystemFont(ofSize: 46), color: .white)
-    text("Stored procedure returned action ID  ·  APPROVED", NSRect(x: 1063, y: 447, width: 560, height: 38), font: .systemFont(ofSize: 25), color: muted)
-    text("UCP commit  ·  audited actor  ·  single-use approval", NSRect(x: 1063, y: 507, width: 560, height: 34), font: .monospacedSystemFont(ofSize: 20, weight: .medium), color: green)
+    text("MCP tool returned action ID  ·  APPROVED", NSRect(x: 1063, y: 447, width: 560, height: 38), font: .systemFont(ofSize: 25), color: muted)
+    text("Atomic procedure  ·  audited actor  ·  single-use approval", NSRect(x: 1063, y: 507, width: 560, height: 34), font: .monospacedSystemFont(ofSize: 20, weight: .medium), color: green)
     rounded(NSRect(x: 1060, y: 585, width: 285, height: 62), radius: 12, color: oracleRed)
     text("APPROVED", NSRect(x: 1085, y: 600, width: 235, height: 36), font: .boldSystemFont(ofSize: 26), color: .white, alignment: .center)
 }
@@ -336,7 +371,7 @@ func imageFor(sceneIndex: Int, caption: String) -> NSImage {
         drawArchitecture()
     case .code:
         drawCode(label: scene.fileLabel ?? "Source", code: scene.code ?? "")
-        badge(sceneIndex == 2 ? "STREAM" : sceneIndex == 3 ? "RENDER" : sceneIndex == 4 ? "CONNECT" : sceneIndex == 5 ? "TRANSACT" : sceneIndex == 6 ? "EXPOSE" : "EMBED", x: 92, y: 525, color: sceneIndex % 2 == 0 ? blue : green)
+        badge(sceneIndex == 2 ? "CONNECT" : sceneIndex == 3 ? "EXPOSE" : sceneIndex == 4 ? "TRANSACT" : sceneIndex == 5 ? "STREAM" : sceneIndex == 6 ? "RENDER" : "EMBED", x: 92, y: 525, color: sceneIndex % 2 == 0 ? blue : green)
     case .application:
         drawApplication()
     case .result:

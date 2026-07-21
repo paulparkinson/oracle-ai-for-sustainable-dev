@@ -1,1 +1,1 @@
-The browser receives streamed agent events and declarative interface updates. The Java orchestration service owns the run, validation, and human approval. Narrow tools reach Oracle AI Database, which remains the authoritative data and transaction layer.
+The browser receives AG-UI events and A2UI interface updates. The Java service owns orchestration, validation, and human approval. The MCP Toolkit exposes governed database capabilities that multiple agents and MCP-compatible clients can reuse.

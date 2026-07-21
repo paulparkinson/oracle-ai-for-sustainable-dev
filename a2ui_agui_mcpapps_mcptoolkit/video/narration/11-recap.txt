@@ -1,1 +1,1 @@
-Each component keeps one clear responsibility: A G U I streams, A two U I describes trusted controls, M C P Apps add rich sandboxed experiences, narrow M C P tools expose business capabilities, and Oracle AI Database governs the data and transaction.
+Each component keeps one clear responsibility: AG-UI streams, A2UI describes trusted controls, MCP Apps add rich sandboxed experiences, the MCP Toolkit exposes reusable governed capabilities, and Oracle AI Database governs data and transactions.
