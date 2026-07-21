@@ -32,14 +32,15 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("AGENT_PORT", "8080"));
         Path webRoot = Path.of(System.getProperty("web.root", "../web-client"));
-        String dataMode = System.getenv().getOrDefault("APP_DATA_MODE", "database").trim().toLowerCase();
+        String dataMode = System.getenv().getOrDefault("APP_DATA_MODE", "mcp").trim().toLowerCase();
         RiskRepository repository = switch (dataMode) {
+            case "mcp" -> McpToolkitRiskRepository.fromEnvironment(System.getenv());
             case "database" -> new OracleUcpRiskRepository(UcpDataSourceConfiguration.fromEnvironment(System.getenv()));
             case "demo" -> new DemoRiskRepository();
-            default -> throw new IllegalArgumentException("APP_DATA_MODE must be database or demo");
+            default -> throw new IllegalArgumentException("APP_DATA_MODE must be mcp, database, or demo");
         };
         if (repository instanceof AutoCloseable closeable) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> closeQuietly(closeable), "ucp-shutdown"));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> closeQuietly(closeable), "repository-shutdown"));
         }
         new Main(webRoot, dataMode, repository).start(port);
     }
@@ -50,7 +51,11 @@ public final class Main {
         server.createContext("/api/approve", this::approve);
         server.createContext("/api/reject", this::reject);
         server.createContext("/api/health", exchange -> respond(exchange, 200, "application/json",
-                Json.value(Map.of("status", "UP", "mode", dataMode, "pool", dataMode.equals("database") ? "UCP" : "none"))));
+                Json.value(Map.of("status", "UP", "mode", dataMode, "backend", switch (dataMode) {
+                    case "mcp" -> "oracle-db-mcp-java-toolkit";
+                    case "database" -> "direct-ucp";
+                    default -> "in-memory";
+                }))));
         server.createContext("/", this::staticFile);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();

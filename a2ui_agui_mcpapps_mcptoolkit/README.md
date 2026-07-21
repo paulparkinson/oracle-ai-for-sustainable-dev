@@ -1,4 +1,4 @@
-# Interactive AI Applications with A2UI, AG-UI, MCP Apps, and Oracle AI Database
+# Interactive AI Applications with A2UI, AG-UI, MCP Apps, the Oracle Database MCP Java Toolkit, and Oracle AI Database
 
 This reference project builds an account-risk assistant while keeping each protocol in its proper layer:
 
@@ -10,9 +10,9 @@ This reference project builds an account-risk assistant while keeping each proto
 
 See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/implementation-plan.md`](docs/implementation-plan.md) for verified versions, compatibility risks, and the phased delivery plan.
 
-## Run against the financial database
+## Run through the Oracle Database MCP Java Toolkit
 
-The agent service now uses Oracle UCP and the same `financialdb_high` database alias and `FINANCIAL` schema as the observability demo. It requires JDK 21 and Maven 3.9+.
+The default runtime uses the same `financialdb_high` database alias and `FINANCIAL` schema as the observability demo. It requires JDK 21, Maven 3.9+, Git, and network access for the first Toolkit build.
 
 ```bash
 cp .env.example .env
@@ -24,35 +24,34 @@ cd agent-service
 ./run.sh
 ```
 
-Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. UCP reads `ACCOUNT_RISK_SUMMARY_V`; approval calls `CREATE_CUSTOMER_FOLLOW_UP`, commits the transaction, and returns the generated action ID. On this workstation the wallet is auto-detected at `~/Downloads/Wallet_financialdb`, but `DB_PASSWORD` is always required.
+Open `http://127.0.0.1:8080`, run a high-risk review, choose an account, and approve or cancel a follow-up. On first start, `run.sh` downloads the pinned official Oracle Toolkit source into ignored `.runtime/`, builds it, and starts it as an MCP stdio child process. `McpToolkitRiskRepository` uses a small synchronous MCP protocol client to discover the exact tool allowlist and invoke every runtime database read and write. The Toolkit owns Oracle UCP and the database connection.
 
-The ignored `financial/setup/.env` is reused automatically when it is present, so this repository does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The setup runner refuses partial or populated schemas and never drops objects; rerunning it after a successful installation makes no changes. SQLcl users can alternatively run `database/setup.sql`.
+The ignored `financial/setup/.env` is reused automatically when it is present, so this repository does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The setup runner uses direct UCP only for installation; it refuses unsafe partial state, upgrades the original schema with the MCP write objects, never drops objects, and becomes a no-op after successful installation. SQLcl users can alternatively run `database/setup.sql`.
 
-To inspect the UI without Oracle credentials, select the explicit in-memory fallback:
-
-```bash
-cd agent-service
-APP_DATA_MODE=demo ./run.sh
-```
+To exercise the original direct JDBC/UCP adapter for comparison, use `APP_DATA_MODE=database ./run.sh`. To inspect only the UI and protocols without Oracle credentials, use `APP_DATA_MODE=demo ./run.sh`.
 
 The Oracle artifacts are not mocked:
 
-- `database/` creates 20 accounts, 40 risk events, views, and the transaction-controlled procedure.
-- `oracle-db-mcp-toolkit/config/tools.yaml` uses the toolkit's current YAML schema for two narrow read tools.
-- `oracle-db-mcp-toolkit/contracts/create-customer-follow-up.json` defines the narrow write extension needed because current YAML has no OUT-parameter mode.
+- `database/` creates 20 accounts, 40 risk events, views, a sequence, and transaction-controlled procedures.
+- `oracle-db-mcp-toolkit/config/tools.yaml` defines the bounded reads, action-ID reservation, procedure-backed write, and verification query.
+- `oracle-db-mcp-toolkit/contracts/create-customer-follow-up.json` records the write tool contract enforced around the YAML tool.
 - `mcp-app/` follows the stable MCP Apps `ui://` resource and structured-content pattern.
 
-## Oracle Database MCP Toolkit path
+## Why the Toolkit is the preferred path
 
-The runnable service uses direct JDBC/UCP so the database-backed application can be exercised independently. The target MCP architecture keeps the database credentials in the Oracle Database MCP Java Toolkit instead:
+The Toolkit path is preferred for this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. The application now implements that path:
 
-1. Create the schema with `agent-service/setup-database.sh` or `database/setup.sql` from SQLcl.
-2. Build the toolkit from a sibling checkout of `oracle/mcp/src/oracle-db-mcp-java-toolkit`.
-3. Run it with Streamable HTTP, TLS/authentication, this project's `tools.yaml`, and `-Dtools=account-risk-read`.
-4. Implement the write contract as a minimal Java toolkit extension using `CallableStatement`, a registered numeric OUT parameter, explicit commit, and rollback on error.
-5. Replace `OracleUcpRiskRepository` with an MCP client adapter; no database credential belongs in the browser or agent prompts.
+1. `prepare-mcp-toolkit.sh` builds a pinned revision of Oracle's official Toolkit without copying its source into this repository. It applies the checked-in one-line stdio compatibility patch described below.
+2. The agent starts it over stdio with `tools.yaml` and only the `account-risk` toolset.
+3. Credentials pass in the child-process environment, not YAML, browser code, prompts, or Git.
+4. The agent verifies the connected server identity and exact tool allowlist before accepting traffic.
+5. Reads and approved writes execute through MCP; setup alone uses the direct UCP configuration.
 
-The separation is intentional. The base app works without MCP Apps, and the MCP App never connects directly to Oracle Database.
+The small committed compatibility patch disables tool-list-change notifications while the pinned Toolkit registers its static YAML tools before an stdio client session exists. It does not alter tool execution, SQL, datasource handling, or the strict application allowlist.
+
+The current Toolkit YAML schema has no callable OUT-parameter mode. The demo therefore reserves an action ID with a bounded read tool and passes it into an input-only stored procedure tool. The procedure validates, locks, inserts, and updates in one database statement. A failed statement creates no business record, although Oracle sequences can legitimately contain gaps.
+
+The pinned Toolkit revision advertises tool-list change notifications before its stdio transport can enqueue several startup registrations. `patches/stdio-tool-registration.patch` changes only the stdio capability from `tools(true)` to `tools(false)`. Static tool discovery and invocation remain available; dynamic list-change notifications are disabled for this fixed local configuration. The agent’s exact allowlist check fails closed if registration is incomplete.
 
 ## MCP App
 
@@ -75,7 +74,7 @@ Then connect an MCP Apps-compatible host to `http://127.0.0.1:3001/mcp` for loca
 - Row counts, ranges, action types, notes, and actor fields are validated server-side.
 - Approval IDs are actor-bound, short-lived, and single-use.
 - Rejection never invokes the write operation.
-- The stored procedure does not commit; the caller controls commit/rollback.
+- The procedure-backed MCP write is one atomic statement; the Toolkit commits only a successful tool statement.
 - The A2UI renderer rejects unknown versions, catalogs, surfaces, envelopes, and components.
 - Generated values are inserted with `textContent`, not executable HTML.
 - Secrets are placeholders only in `.env.example`.

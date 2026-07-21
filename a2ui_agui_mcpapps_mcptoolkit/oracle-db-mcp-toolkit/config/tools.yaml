@@ -1,7 +1,14 @@
-# Compatible with the current Oracle Database MCP Java Toolkit YAML shape.
-# Credentials are intentionally supplied with -Ddb.* properties, not stored here.
+# Compatible with Oracle Database MCP Java Toolkit 1.0.0.
+# Credentials are resolved from the child process environment, not stored here.
+dataSources:
+  financial-db:
+    url: ${DB_URL}
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
 tools:
   find-at-risk-customers:
+    dataSource: financial-db
     description: Returns a bounded list of governed customer accounts at or above the requested risk score.
     parameters:
       - name: minimumRisk
@@ -23,6 +30,7 @@ tools:
       ) WHERE ROWNUM <= :maximumRows
 
   get-customer-risk-details:
+    dataSource: financial-db
     description: Returns one governed account and its recent risk events.
     parameters:
       - name: customerId
@@ -39,5 +47,52 @@ tools:
        WHERE a.customer_id = :customerId
        ORDER BY e.event_date DESC
 
+  reserve-customer-action-id:
+    dataSource: financial-db
+    description: Reserves one database-generated identifier for an approved customer follow-up action.
+    parameters: []
+    statement: SELECT customer_action_mcp_seq.NEXTVAL AS action_id FROM dual
+
+  create-customer-follow-up:
+    dataSource: financial-db
+    description: Executes one validated and audited customer follow-up through a dedicated stored procedure.
+    parameters:
+      - name: actionId
+        type: integer
+        description: Identifier previously reserved with reserve-customer-action-id.
+        required: true
+      - name: customerId
+        type: integer
+        description: Customer account identifier from the governed result set.
+        required: true
+      - name: actionType
+        type: string
+        description: Allowlisted follow-up action type.
+        required: true
+      - name: actionNotes
+        type: string
+        description: Human-supplied approval notes containing 3 through 2000 characters.
+        required: true
+      - name: requestedBy
+        type: string
+        description: Authenticated actor recorded for auditing.
+        required: true
+    statement: >-
+      BEGIN
+        create_customer_follow_up_mcp(:actionId, :customerId, :actionType, :actionNotes, :requestedBy);
+      END;
+
+  count-customer-actions:
+    dataSource: financial-db
+    description: Returns the number of audited customer follow-up actions for verification.
+    parameters: []
+    statement: SELECT COUNT(*) AS action_count FROM customer_actions
+
 toolsets:
   account-risk-read: [find-at-risk-customers, get-customer-risk-details]
+  account-risk:
+    - find-at-risk-customers
+    - get-customer-risk-details
+    - reserve-customer-action-id
+    - create-customer-follow-up
+    - count-customer-actions

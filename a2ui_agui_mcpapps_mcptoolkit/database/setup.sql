@@ -5,5 +5,7 @@ PROMPT Creating account-risk schema objects...
 @@02-seed-data.sql
 @@03-procedures.sql
 @@04-views.sql
+@@05-mcp-sequence.sql
+@@06-mcp-procedure.sql
 
 PROMPT Account-risk database setup complete.

@@ -1,4 +1,5 @@
 .env
+.runtime/
 agent-service/target/
 mcp-app/dist/
 mcp-app/node_modules/

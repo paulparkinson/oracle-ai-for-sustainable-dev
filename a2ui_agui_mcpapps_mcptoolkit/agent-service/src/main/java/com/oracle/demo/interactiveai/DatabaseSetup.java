@@ -25,6 +25,23 @@ public final class DatabaseSetup {
             "CUSTOMER_RISK_EVENTS",
             "CUSTOMER_ACTIONS",
             "CREATE_CUSTOMER_FOLLOW_UP",
+            "CREATE_CUSTOMER_FOLLOW_UP_MCP",
+            "CUSTOMER_ACTION_MCP_SEQ",
+            "ACCOUNT_RISK_SUMMARY_V",
+            "ACCOUNT_RISK_EVENT_V");
+    private static final Set<String> LEGACY_CORE_OBJECTS = Set.of(
+            "CUSTOMER_ACCOUNTS",
+            "CUSTOMER_RISK_EVENTS",
+            "CUSTOMER_ACTIONS",
+            "CREATE_CUSTOMER_FOLLOW_UP",
+            "ACCOUNT_RISK_SUMMARY_V",
+            "ACCOUNT_RISK_EVENT_V");
+    private static final Set<String> MCP_SEQUENCE_RECOVERY_STATE = Set.of(
+            "CUSTOMER_ACCOUNTS",
+            "CUSTOMER_RISK_EVENTS",
+            "CUSTOMER_ACTIONS",
+            "CREATE_CUSTOMER_FOLLOW_UP",
+            "CUSTOMER_ACTION_MCP_SEQ",
             "ACCOUNT_RISK_SUMMARY_V",
             "ACCOUNT_RISK_EVENT_V");
     private static final Set<String> EMPTY_TABLE_RECOVERY_STATE = Set.of(
@@ -42,20 +59,30 @@ public final class DatabaseSetup {
                 System.out.println("Account-risk database objects already exist; no setup changes were made.");
                 return;
             }
+            boolean upgradingForMcp = existing.equals(LEGACY_CORE_OBJECTS);
+            boolean recoveringMcpProcedure = existing.equals(MCP_SEQUENCE_RECOVERY_STATE);
             boolean recoveringEmptyTables = existing.equals(EMPTY_TABLE_RECOVERY_STATE) && tablesAreEmpty(connection);
-            if (!existing.isEmpty() && !recoveringEmptyTables) {
+            if (!existing.isEmpty() && !recoveringEmptyTables && !upgradingForMcp && !recoveringMcpProcedure) {
                 throw new IllegalStateException("Refusing setup because a partial account-risk schema exists: " + existing);
             }
 
-            if (recoveringEmptyTables) {
+            if (recoveringMcpProcedure) {
+                System.out.println("Resuming MCP setup after the sequence was created; existing objects are preserved.");
+            } else if (upgradingForMcp) {
+                System.out.println("Adding the purpose-built MCP sequence and stored procedure to the existing schema.");
+            } else if (recoveringEmptyTables) {
                 System.out.println("Resuming setup from the verified empty-table state; no objects will be dropped.");
             } else {
                 System.out.println("No account-risk core objects exist; installing the schema and seed data.");
                 executeSqlScript(connection, databaseRoot.resolve("01-schema.sql"));
             }
-            executeSqlScript(connection, databaseRoot.resolve("02-seed-data.sql"));
-            executePlsqlScript(connection, databaseRoot.resolve("03-procedures.sql"));
-            executeSqlScript(connection, databaseRoot.resolve("04-views.sql"));
+            if (!upgradingForMcp && !recoveringMcpProcedure) {
+                executeSqlScript(connection, databaseRoot.resolve("02-seed-data.sql"));
+                executePlsqlScript(connection, databaseRoot.resolve("03-procedures.sql"));
+                executeSqlScript(connection, databaseRoot.resolve("04-views.sql"));
+            }
+            if (!recoveringMcpProcedure) executeSqlScript(connection, databaseRoot.resolve("05-mcp-sequence.sql"));
+            executePlsqlScript(connection, databaseRoot.resolve("06-mcp-procedure.sql"));
 
             Set<String> installed = existingCoreObjects(connection);
             if (!installed.equals(CORE_OBJECTS)) {
@@ -77,8 +104,9 @@ public final class DatabaseSetup {
                   FROM user_objects
                  WHERE object_name IN (
                        'CUSTOMER_ACCOUNTS', 'CUSTOMER_RISK_EVENTS', 'CUSTOMER_ACTIONS',
-                       'CREATE_CUSTOMER_FOLLOW_UP', 'ACCOUNT_RISK_SUMMARY_V', 'ACCOUNT_RISK_EVENT_V')
-                   AND object_type IN ('TABLE', 'PROCEDURE', 'VIEW')
+                       'CREATE_CUSTOMER_FOLLOW_UP', 'CREATE_CUSTOMER_FOLLOW_UP_MCP',
+                       'CUSTOMER_ACTION_MCP_SEQ', 'ACCOUNT_RISK_SUMMARY_V', 'ACCOUNT_RISK_EVENT_V')
+                   AND object_type IN ('TABLE', 'PROCEDURE', 'VIEW', 'SEQUENCE')
                 """;
         Set<String> objects = new LinkedHashSet<>();
         try (PreparedStatement statement = connection.prepareStatement(sql);
