@@ -53,6 +53,8 @@ The pinned Toolkit revision advertises tool-list change notifications before its
 
 ## MCP App
 
+The port-8080 web application does not invoke the MCP App. This separate package demonstrates the MCP Apps extension inside a compatible conversational host: `server.ts` registers `show-account-risk-dashboard` and its `ui://` resource, and `src/mcp-app.ts` implements the dashboard. It currently serves deterministic sample accounts; connecting it to the Toolkit’s governed result remains a host-integration step.
+
 With Node.js 20+ installed:
 
 ```bash

@@ -218,6 +218,7 @@ RUN_FINISHED</code></pre>
 
   <section id="mcp-app">
     <h2>Add a Rich Dashboard with MCP Apps</h2>
+    <p class="note"><strong>Current implementation:</strong> the web application at <code>http://127.0.0.1:8080</code> demonstrates AG-UI and A2UI; it does not embed or invoke the MCP App. MCP Apps are demonstrated separately by the <code>mcp-app/</code> package. Its <code>server.ts</code> registers the tool and <code>ui://</code> resource, while <code>src/mcp-app.ts</code> implements the host-bridged dashboard. Connect that server to an MCP Apps-compatible host to see this part of the project.</p>
     <p>The optional dashboard is a separate TypeScript package. Its tool metadata references <code>ui://oracle-account-risk/dashboard-v1</code>. The server returns the resource using <code>text/html;profile=mcp-app</code>, and an MCP Apps-compatible host renders it in a sandboxed iframe.</p>
     <p class="note"><strong>The sandbox is an <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps security characteristic</a>, not a demo-only choice.</strong> The host controls the iframe, isolates the app from the parent DOM, cookies, and storage, and mediates communication through <code>postMessage</code>. The app can request declared capabilities and external origins through permissions and CSP metadata, but the host remains the enforcement point. Host support varies because MCP Apps is an extension to core MCP.</p>
     <pre><code>registerAppTool(server, "show-account-risk-dashboard", {
@@ -254,7 +255,7 @@ cd agent-service
     <p>The guarded schema installer is separate from the application runtime. It uses UCP once to create and seed a new schema or safely add the MCP sequence and procedure to the original six-object schema. It refuses other partial states, never drops objects, and becomes a no-op after successful installation. If SQLcl is available, <code>database/setup.sql</code> remains an equivalent installation option.</p>
     <p>On first start, <code>run.sh</code> downloads a pinned revision of Oracle’s official Toolkit source into ignored <code>.runtime/</code> and builds it. The agent then starts the Toolkit over stdio, passes credentials only through the child environment, enables <code>account-risk</code>, verifies the exact tools, and invokes them through MCP. The Toolkit’s UCP pool owns every runtime database connection.</p>
     <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes. The running application has one database path: the Oracle Database MCP Java Toolkit.</p>
-    <p class="note"><strong>Current status:</strong> the MCP client adapter, patched pinned Toolkit bootstrap, exact tool allowlist, YAML reads and writes, database setup, UI, AG-UI/A2UI flow, security design, and MCP App source are implemented and live-tested against the financial database. A reachable database, local wallet, and locally supplied password are required for the default MCP path; secrets are not committed.</p>
+    <p class="note"><strong>Current status:</strong> the MCP client adapter, patched pinned Toolkit bootstrap, exact tool allowlist, YAML reads and writes, database setup, and AG-UI/A2UI web flow are implemented and live-tested against the financial database. The separate MCP App builds and serves its dashboard with deterministic sample accounts; connecting it to the Toolkit’s governed results inside a compatible host remains integration work. A reachable database, local wallet, and locally supplied password are required for the application’s MCP path; secrets are not committed.</p>
   </section>
 
   <section id="execution-walkthrough">
@@ -296,7 +297,7 @@ cd agent-service
       <tr><td>A2UI</td><td>The agent should compose native, accessible controls from a restricted catalog without sending executable code.</td></tr>
       <tr><td>MCP Apps</td><td>A compatible conversational host needs a sandboxed dashboard, chart, canvas, or complex embedded workflow.</td></tr>
       <tr><td>Oracle Database MCP Java Toolkit</td><td>Oracle data, vector search, transactions, or stored business operations must be exposed as MCP tools.</td></tr>
-      <tr><td>All four</td><td>Each layer adds distinct value to the same end-to-end interaction.</td></tr>
+      <tr><td>All four</td><td>The target host integration needs streaming, native controls, a rich embedded dashboard, and governed Oracle tools. In this repository, the MCP App remains a separate demonstration rather than part of the web application flow.</td></tr>
     </table>
   </section>
 
@@ -306,12 +307,26 @@ cd agent-service
     <p>The local reference uses stdio because the agent owns the Toolkit child-process lifecycle. A remote deployment should instead use the Toolkit’s Streamable HTTP transport with TLS, OAuth 2.0, host restrictions, and independently managed secrets. Next steps are real identity, database authorization policies, durable approvals and idempotency, vector-supported risk explanations, centralized audit export, and screenshots from an MCP Apps-compatible host.</p>
   </section>
 
+  <section id="references">
+    <h2>References</h2>
+    <ul>
+      <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">Source code for this reference application</a></li>
+      <li><a href="https://github.com/oracle/mcp/blob/main/src/oracle-db-mcp-java-toolkit/README.md">Oracle Database MCP Java Toolkit README</a></li>
+      <li><a href="https://docs.ag-ui.com/introduction">AG-UI protocol overview</a></li>
+      <li><a href="https://a2ui.org/">A2UI project and specification</a></li>
+      <li><a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a></li>
+      <li><a href="https://modelcontextprotocol.io/extensions/apps/build">Build an MCP App</a></li>
+      <li><a href="https://modelcontextprotocol.io/specification/latest">Model Context Protocol specification</a></li>
+      <li><a href="https://www.oracle.com/database/">Oracle AI Database</a></li>
+    </ul>
+  </section>
+
   <section id="faq">
     <h2>Frequently Asked Questions</h2>
     <h3>Does A2UI replace AG-UI?</h3>
     <p>No. A2UI describes UI surfaces and data; AG-UI carries agent events and state. A2UI messages can travel inside AG-UI custom events.</p>
     <h3>Does an MCP App replace the web client?</h3>
-    <p>No. An MCP App is useful inside compatible conversational hosts. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
+    <p>No. An MCP App is useful inside compatible conversational hosts. The current web client demonstrates AG-UI and A2UI, while the separate <code>mcp-app/</code> package demonstrates MCP Apps with sample account data. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
     <h3>Why not give the model the toolkit’s write-query tool?</h3>
     <p>An unrestricted write tool dramatically increases scope and injection risk. A purpose-built procedure-backed tool makes the allowed operation, validation, privileges, transaction, and audit result explicit.</p>
     <h3>Where should approval be enforced?</h3>
