@@ -12,8 +12,8 @@ let duration = CMTimeGetSeconds(asset.duration)
 let videoTracks = asset.tracks(withMediaType: .video)
 let audioTracks = asset.tracks(withMediaType: .audio)
 
-guard let videoTrack = videoTracks.first, !audioTracks.isEmpty else {
-    fputs("Expected both video and audio tracks.\n", stderr)
+guard let videoTrack = videoTracks.first, audioTracks.isEmpty else {
+    fputs("Expected one silent video track and no audio track.\n", stderr)
     exit(1)
 }
 
@@ -45,5 +45,5 @@ let sheetCG = sheet.cgImage(forProposedRect: &rect, context: nil, hints: nil)!
 let representation = NSBitmapImageRep(cgImage: sheetCG)
 try representation.representation(using: .png, properties: [:])!.write(to: outputURL)
 
-print(String(format: "Verified %dx%d, %.1f seconds, %d video track, %d audio track", pixelWidth, pixelHeight, duration, videoTracks.count, audioTracks.count))
+print(String(format: "Verified silent %dx%d, %.1f seconds, %d video track, %d audio tracks", pixelWidth, pixelHeight, duration, videoTracks.count, audioTracks.count))
 print("Contact sheet: \(outputURL.path)")

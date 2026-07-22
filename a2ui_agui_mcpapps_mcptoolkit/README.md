@@ -6,7 +6,7 @@ This reference project builds an account-risk assistant while keeping each proto
 - Oracle Database MCP Java Toolkit exposes narrow database tools.
 - The Java agent service streams official AG-UI events and carries A2UI v0.9.1 envelopes.
 - The browser validates and renders an allowlisted A2UI surface.
-- A separate MCP App renders a richer dashboard inside compatible hosts.
+- A separate MCP App renders Toolkit-backed governed results as a richer dashboard inside compatible hosts.
 
 See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/implementation-plan.md`](docs/implementation-plan.md) for verified versions, compatibility risks, and the phased delivery plan.
 
@@ -53,7 +53,7 @@ The pinned Toolkit revision advertises tool-list change notifications before its
 
 ## MCP App
 
-The port-8080 web application does not invoke the MCP App. This separate package demonstrates the MCP Apps extension inside a compatible conversational host: `server.ts` registers `show-account-risk-dashboard` and its `ui://` resource, and `src/mcp-app.ts` implements the dashboard. It currently serves deterministic sample accounts; connecting it to the Toolkit’s governed result remains a host-integration step.
+The port-8080 web application does not embed the MCP App. This separate package demonstrates the MCP Apps extension inside a compatible host: `server.ts` registers `show-account-risk-dashboard` and its `ui://` resource, while `src/mcp-app.ts` implements the dashboard. The tool calls the Java service’s `/api/accounts` adapter; that adapter invokes `find-at-risk-customers` through the Oracle Database MCP Java Toolkit and returns current Toolkit-labeled governed rows. The iframe never receives database credentials or a direct database connection.
 
 With Node.js 20+ installed:
 
@@ -65,7 +65,13 @@ npm run build
 npm run serve
 ```
 
-Then connect an MCP Apps-compatible host to `http://127.0.0.1:3001/mcp` for local development.
+Keep that server and the Java service running. In a third terminal, launch the pinned official MCP Apps basic host:
+
+```bash
+./run-basic-host.sh
+```
+
+Open `http://127.0.0.1:8082`, select `show-account-risk-dashboard`, and invoke it. This path requires no third-party host account. Claude is an optional alternative: expose port 3001 through an HTTPS tunnel and register its `/mcp` URL as a custom connector in a supported paid plan.
 
 ## Security posture
 

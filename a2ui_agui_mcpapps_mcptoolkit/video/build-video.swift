@@ -10,8 +10,6 @@ let height = 1080
 let fps: Int32 = 24
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 let build = root.appendingPathComponent(".build")
-let audioDirectory = build.appendingPathComponent("audio")
-let silentVideo = build.appendingPathComponent("silent.mp4")
 let finalVideo = root.appendingPathComponent("interactive-ai-walkthrough.mp4")
 let poster = root.appendingPathComponent("interactive-ai-walkthrough-poster.png")
 let srtFile = root.appendingPathComponent("interactive-ai-walkthrough.srt")
@@ -32,7 +30,6 @@ struct Scene {
 struct TimedScene {
     let scene: Scene
     let narration: String
-    let audio: URL
     let start: Double
     let duration: Double
 }
@@ -46,7 +43,7 @@ struct Cue {
 
 let scenes: [Scene] = [
     Scene(narrationFile: "01-intro.txt", eyebrow: "ORACLE AI DATABASE · INTERACTIVE AI", title: "From agent answer\nto governed action", subtitle: "A2UI · AG-UI · MCP Apps · Oracle Database MCP Java Toolkit", kind: .title, fileLabel: nil, code: nil),
-    Scene(narrationFile: "02-architecture.txt", eyebrow: "REFERENCE ARCHITECTURE", title: "Clear responsibilities,\none governed workflow", subtitle: "The Toolkit is the reusable database capability boundary.", kind: .architecture, fileLabel: nil, code: nil),
+    Scene(narrationFile: "02-architecture.txt", eyebrow: "PROTOCOL RESPONSIBILITY MAP", title: "Tools, agents, and GUI\nhave different boundaries", subtitle: "MCP · agent to tools     A2A · agent to agent     AG-UI · agent to frontend", kind: .architecture, fileLabel: nil, code: nil),
     Scene(narrationFile: "03-mcp-runtime.txt", eyebrow: "LIVE MCP RUNTIME", title: "Verify the server and\nexact tool allowlist", subtitle: "The default path launches the pinned Oracle Toolkit over MCP stdio.", kind: .code, fileLabel: "McpToolkitRiskRepository.java", code: """
 client.initialize();
 Set<String> available = client.listTools();
@@ -104,17 +101,19 @@ if (envelope.version !== "v0.9.1")
 
 name.textContent = account.customerName;
 """),
-    Scene(narrationFile: "08-mcp-app.txt", eyebrow: "OPTIONAL MCP APP", title: "Add a sandboxed dashboard\ninside compatible hosts", subtitle: "Structured content crosses the host bridge; database credentials never do.", kind: .code, fileLabel: "mcp-app/server.ts", code: """
-const resourceUri =
-  "ui://oracle-account-risk/dashboard-v1";
-
+    Scene(narrationFile: "08-mcp-app.txt", eyebrow: "SEPARATE MCP APP DEMO", title: "Render governed results\nin the official basic host", subtitle: "The MCP App adapter calls the Java service; the Toolkit remains the database path.", kind: .code, fileLabel: "mcp-app/server.ts", code: """
 registerAppTool(server, "show-account-risk-dashboard", {
   title: "Show account risk dashboard",
-  _meta: { ui: { resourceUri,
-    visibility: ["model", "app"] } }
-}, async () => ({
-  structuredContent: { accounts }
-}));
+  inputSchema: z.object({
+    minimumRisk: z.number().default(75), maximumRows: z.number().int().default(10)
+  }),
+  _meta: { ui: { resourceUri:
+    "ui://oracle-account-risk/dashboard-v1" } }
+}, async ({ minimumRisk, maximumRows }) => {
+  const accounts = await loadGovernedAccounts(minimumRisk, maximumRows);
+  return { structuredContent: { accounts,
+    source: "oracle-db-mcp-java-toolkit" } };
+});
 """),
     Scene(narrationFile: "09-application.txt", eyebrow: "LIVE APPLICATION FLOW", title: "Explore governed risk,\nthen choose an action", subtitle: "A2UI results and approval controls alongside the AG-UI event rail.", kind: .application, fileLabel: nil, code: nil),
     Scene(narrationFile: "10-approval.txt", eyebrow: "HUMAN APPROVAL BOUNDARY", title: "Commit exactly one\naudited follow-up", subtitle: "Actor-bound, result-bound, expiring, and single-use approval state.", kind: .result, fileLabel: "Approval result", code: nil),
@@ -122,24 +121,9 @@ registerAppTool(server, "show-account-risk-dashboard", {
 ]
 
 let fm = FileManager.default
-try fm.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
-for url in [silentVideo, finalVideo, poster, srtFile, vttFile] where fm.fileExists(atPath: url.path) {
+try fm.createDirectory(at: build, withIntermediateDirectories: true)
+for url in [finalVideo, poster, srtFile, vttFile] where fm.fileExists(atPath: url.path) {
     try fm.removeItem(at: url)
-}
-
-func run(_ executable: String, _ arguments: [String]) throws {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: executable)
-    process.arguments = arguments
-    try process.run()
-    process.waitUntilExit()
-    guard process.terminationStatus == 0 else {
-        throw NSError(domain: "VideoBuild", code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: "Command failed: \(executable)"])
-    }
-}
-
-func assetDuration(_ url: URL) -> Double {
-    CMTimeGetSeconds(AVURLAsset(url: url).duration)
 }
 
 var timedScenes: [TimedScene] = []
@@ -147,24 +131,9 @@ var cursor = 0.0
 for scene in scenes {
     let narrationURL = root.appendingPathComponent("narration").appendingPathComponent(scene.narrationFile)
     let narration = try String(contentsOf: narrationURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
-    let audioURL = audioDirectory.appendingPathComponent(scene.narrationFile.replacingOccurrences(of: ".txt", with: ".aiff"))
-    if fm.fileExists(atPath: audioURL.path) { try fm.removeItem(at: audioURL) }
-    // Keep canonical product names in source and captions. Apply phonetic
-    // spellings only to the private speech-synthesis input.
-    let speechAliases = [
-        "AG-UI": ["A", "G", "U", "I"].joined(separator: " "),
-        "A2UI": ["A", "two", "U", "I"].joined(separator: " "),
-        "MCP": ["M", "C", "P"].joined(separator: " "),
-        "UCP": ["U", "C", "P"].joined(separator: " "),
-        "JDBC": ["J", "D", "B", "C"].joined(separator: " ")
-    ]
-    var spokenNarration = narration
-    for (canonicalName, speechAlias) in speechAliases {
-        spokenNarration = spokenNarration.replacingOccurrences(of: canonicalName, with: speechAlias)
-    }
-    try run("/usr/bin/say", ["-r", "168", "-o", audioURL.path, spokenNarration])
-    let duration = max(8.0, assetDuration(audioURL) + 1.2)
-    timedScenes.append(TimedScene(scene: scene, narration: narration, audio: audioURL, start: cursor, duration: duration))
+    let wordCount = narration.split(whereSeparator: { $0.isWhitespace }).count
+    let duration = max(9.0, Double(wordCount) / 2.8 + 3.0)
+    timedScenes.append(TimedScene(scene: scene, narration: narration, start: cursor, duration: duration))
     cursor += duration
 }
 let totalDuration = cursor
@@ -272,28 +241,35 @@ func badge(_ value: String, x: CGFloat, y: CGFloat, color: NSColor) {
     text(value, NSRect(x: x + 17, y: y + 8, width: size.width, height: 28), font: .boldSystemFont(ofSize: 22), color: color)
 }
 
-func drawArchitecture(y: CGFloat = 345) {
-    let nodes: [(String, String, NSColor)] = [
-        ("Browser", "AG-UI + A2UI", blue),
-        ("Java agent", "Run + approval", oracleRed),
-        ("MCP Toolkit", "Narrow tools", NSColor.systemPurple),
-        ("Oracle AI Database", "Data + transaction", green)
-    ]
-    let nodeWidth: CGFloat = 350
-    let gap: CGFloat = 78
-    let startX: CGFloat = 95
-    for (index, node) in nodes.enumerated() {
-        let x = startX + CGFloat(index) * (nodeWidth + gap)
-        rounded(NSRect(x: x, y: y, width: nodeWidth, height: 152), radius: 22, color: panel)
-        rounded(NSRect(x: x, y: y, width: 9, height: 152), radius: 4, color: node.2)
-        text(node.0, NSRect(x: x + 30, y: y + 32, width: nodeWidth - 55, height: 42), font: .boldSystemFont(ofSize: 31), color: .white)
-        text(node.1, NSRect(x: x + 30, y: y + 82, width: nodeWidth - 55, height: 30), font: .systemFont(ofSize: 22), color: muted)
-        if index < nodes.count - 1 {
-            text("→", NSRect(x: x + nodeWidth + 18, y: y + 49, width: 45, height: 50), font: .boldSystemFont(ofSize: 42), color: muted, alignment: .center)
-        }
-    }
-    rounded(NSRect(x: 527, y: y + 203, width: 860, height: 72), radius: 36, color: NSColor(calibratedWhite: 0.17, alpha: 1))
-    text("Optional MCP App · sandboxed dashboard in compatible hosts", NSRect(x: 557, y: y + 222, width: 800, height: 34), font: .boldSystemFont(ofSize: 24), color: NSColor.systemPurple, alignment: .center)
+func drawArchitecture(y: CGFloat = 405) {
+    rounded(NSRect(x: 555, y: y, width: 810, height: 112), radius: 22, color: panel)
+    text("USER-FACING AGENTIC APPLICATION", NSRect(x: 580, y: y + 18, width: 760, height: 25), font: .boldSystemFont(ofSize: 18), color: muted, alignment: .center)
+    badge("A2UI · native controls", x: 640, y: y + 55, color: blue)
+    badge("MCP Apps · rich iframe", x: 1000, y: y + 55, color: NSColor.systemPurple)
+
+    rounded(NSRect(x: 720, y: y + 205, width: 480, height: 132), radius: 24, color: oracleRed)
+    text("Java agent backend", NSRect(x: 750, y: y + 232, width: 420, height: 40), font: .boldSystemFont(ofSize: 32), color: .white, alignment: .center)
+    text("orchestration · policy · approval", NSRect(x: 750, y: y + 278, width: 420, height: 30), font: .systemFont(ofSize: 21), color: .white, alignment: .center)
+
+    rounded(NSRect(x: 75, y: y + 214, width: 300, height: 115), radius: 20, color: panel)
+    text("TOOLS", NSRect(x: 100, y: y + 238, width: 250, height: 34), font: .boldSystemFont(ofSize: 28), color: .white, alignment: .center)
+    text("Toolkit · APIs · services", NSRect(x: 95, y: y + 281, width: 260, height: 28), font: .systemFont(ofSize: 19), color: muted, alignment: .center)
+
+    rounded(NSRect(x: 1545, y: y + 214, width: 300, height: 115), radius: 20, color: panel)
+    text("OTHER AGENTS", NSRect(x: 1570, y: y + 238, width: 250, height: 34), font: .boldSystemFont(ofSize: 28), color: .white, alignment: .center)
+    text("conceptual · not implemented", NSRect(x: 1565, y: y + 281, width: 260, height: 28), font: .systemFont(ofSize: 18), color: muted, alignment: .center)
+
+    text("AG-UI", NSRect(x: 910, y: y + 138, width: 100, height: 32), font: .boldSystemFont(ofSize: 24), color: oracleRed, alignment: .center)
+    text("↕", NSRect(x: 935, y: y + 164, width: 50, height: 40), font: .boldSystemFont(ofSize: 34), color: oracleRed, alignment: .center)
+    text("MCP  ·  agent ↔ tools", NSRect(x: 405, y: y + 248, width: 285, height: 34), font: .boldSystemFont(ofSize: 22), color: blue, alignment: .center)
+    text("→", NSRect(x: 660, y: y + 246, width: 50, height: 40), font: .boldSystemFont(ofSize: 34), color: blue, alignment: .center)
+    text("A2A  ·  agent ↔ agent", NSRect(x: 1230, y: y + 248, width: 285, height: 34), font: .boldSystemFont(ofSize: 22), color: NSColor.systemPurple, alignment: .center)
+    text("→", NSRect(x: 1510, y: y + 246, width: 50, height: 40), font: .boldSystemFont(ofSize: 34), color: NSColor.systemPurple, alignment: .center)
+
+    rounded(NSRect(x: 720, y: y + 375, width: 480, height: 78), radius: 20, color: NSColor(calibratedWhite: 0.17, alpha: 1))
+    text("Oracle AI Database", NSRect(x: 750, y: y + 390, width: 420, height: 35), font: .boldSystemFont(ofSize: 29), color: .white, alignment: .center)
+    text("Toolkit JDBC/UCP · governed results", NSRect(x: 750, y: y + 425, width: 420, height: 24), font: .systemFont(ofSize: 17), color: green, alignment: .center)
+    text("↓", NSRect(x: 935, y: y + 335, width: 50, height: 40), font: .boldSystemFont(ofSize: 32), color: green, alignment: .center)
 }
 
 func drawCode(label: String, code: String) {
@@ -395,7 +371,7 @@ let posterImage = imageFor(sceneIndex: 0, caption: "A governed account-risk work
 let posterRep = NSBitmapImageRep(cgImage: cgImage(posterImage))
 try posterRep.representation(using: .png, properties: [:])!.write(to: poster)
 
-let writer = try AVAssetWriter(outputURL: silentVideo, fileType: .mp4)
+let writer = try AVAssetWriter(outputURL: finalVideo, fileType: .mp4)
 let videoSettings: [String: Any] = [
     AVVideoCodecKey: AVVideoCodecType.h264,
     AVVideoWidthKey: width,
@@ -438,27 +414,6 @@ let writerSemaphore = DispatchSemaphore(value: 0)
 writer.finishWriting { writerSemaphore.signal() }
 writerSemaphore.wait()
 guard writer.status == AVAssetWriter.Status.completed else { throw writer.error ?? NSError(domain: "VideoBuild", code: 2) }
-
-let composition = AVMutableComposition()
-let videoAsset = AVURLAsset(url: silentVideo)
-let compositionVideo = composition.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: kCMPersistentTrackID_Invalid)!
-try compositionVideo.insertTimeRange(CMTimeRange(start: CMTime.zero, duration: videoAsset.duration), of: videoAsset.tracks(withMediaType: AVMediaType.video)[0], at: CMTime.zero)
-let compositionAudio = composition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
-for timed in timedScenes {
-    let audioAsset = AVURLAsset(url: timed.audio)
-    if let audioTrack = audioAsset.tracks(withMediaType: AVMediaType.audio).first {
-        try compositionAudio.insertTimeRange(CMTimeRange(start: CMTime.zero, duration: audioAsset.duration), of: audioTrack, at: CMTime(seconds: timed.start + 0.3, preferredTimescale: 600))
-    }
-}
-
-let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality)!
-exporter.outputURL = finalVideo
-exporter.outputFileType = .mp4
-exporter.shouldOptimizeForNetworkUse = true
-let exportSemaphore = DispatchSemaphore(value: 0)
-exporter.exportAsynchronously { exportSemaphore.signal() }
-exportSemaphore.wait()
-guard exporter.status == AVAssetExportSession.Status.completed else { throw exporter.error ?? NSError(domain: "VideoBuild", code: 3) }
 
 print(String(format: "Created %@ (%.1f seconds)", finalVideo.lastPathComponent, totalDuration))
 print("Created \(poster.lastPathComponent), \(srtFile.lastPathComponent), and \(vttFile.lastPathComponent)")

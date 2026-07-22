@@ -38,7 +38,7 @@
   <p class="subtitle">A reference account-risk assistant that streams agent work, renders safe native controls, offers an optional embedded dashboard, and keeps data and transactions in Oracle AI Database.</p>
 
   <p>Text is enough for many agent answers. It is not enough when a person must explore governed data, understand why an account is risky, select one record, enter notes, and explicitly approve a transactional follow-up. That workflow needs progress, state, controls, validation, and a clear security boundary.</p>
-  <p>This reference project combines four technologies without blending their responsibilities. <a href="https://docs.ag-ui.com/">AG-UI</a> streams agent activity. <a href="https://a2ui.org/">A2UI</a> describes a native interface. <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> supplies an optional rich dashboard inside a compatible host. The <a href="https://github.com/oracle/mcp/tree/main/src/oracle-db-mcp-java-toolkit">Oracle Database MCP Java Toolkit</a> exposes purpose-built, bounded tools backed by Oracle AI Database.</p>
+  <p>This reference project combines four implemented technologies without blending their responsibilities. <a href="https://docs.ag-ui.com/">AG-UI</a> streams agent activity. <a href="https://a2ui.org/">A2UI</a> describes a native interface. <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> supplies a separate rich dashboard inside a compatible host. The <a href="https://github.com/oracle/mcp/tree/main/src/oracle-db-mcp-java-toolkit">Oracle Database MCP Java Toolkit</a> exposes purpose-built, bounded tools backed by Oracle AI Database. The architecture map also shows where <a href="https://a2a-protocol.org/latest/">A2A</a> would connect independent agents, but this single-agent demo does not claim to implement it.</p>
   <p>I prefer the MCP Toolkit approach for this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. The runnable application invokes the Oracle Toolkit over MCP for every database read and approved write.</p>
   <p>All source code, SQL, YAML, security notes, and the verified implementation plan are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
 
@@ -49,13 +49,13 @@
 
   <section id="video-walkthrough">
     <h2>Video Walkthrough</h2>
-    <p>This narrated walkthrough shows the current MCP-backed account-risk workflow and the source behind each layer: MCP initialization and allowlist verification, Oracle Database MCP Java Toolkit YAML, Oracle AI Database views and procedures, AG-UI streaming, A2UI validation and rendering, and the optional MCP App.</p>
+    <p>This silent, captioned walkthrough shows the current MCP-backed account-risk workflow and the source behind each layer: MCP initialization and allowlist verification, Oracle Database MCP Java Toolkit YAML, Oracle AI Database views and procedures, AG-UI streaming, A2UI validation and rendering, and the separate MCP App demonstration. It intentionally contains no voice track so narration can be added later.</p>
     <video class="walkthrough" controls preload="metadata" poster="video/interactive-ai-walkthrough-poster.png">
       <source src="video/interactive-ai-walkthrough.mp4" type="video/mp4">
       <track kind="captions" src="video/interactive-ai-walkthrough.vtt" srclang="en" label="English" default>
       Your browser does not support embedded video. <a href="video/interactive-ai-walkthrough.mp4">Open the walkthrough MP4</a>.
     </video>
-    <p><small>The repository includes the Swift/AVFoundation build source and YouTube-ready SRT subtitles. This local player can be replaced with the eventual YouTube embed without changing the article flow.</small></p>
+    <p><small>The repository includes the Swift/AVFoundation build source and YouTube-ready <a href="video/interactive-ai-walkthrough.srt">SRT subtitles</a>. This local player can be replaced with the eventual YouTube embed without changing the article flow.</small></p>
   </section>
 
   <section id="key-takeaways">
@@ -83,15 +83,21 @@
   </section>
 
   <section id="what-each-layer-solves">
-    <h2>What AG-UI, A2UI, MCP Apps, and MCP Each Solve</h2>
+    <h2>What AG-UI, A2UI, MCP Apps, MCP, and A2A Each Solve</h2>
     <table>
       <tr><th>Layer</th><th>Primary job</th><th>In this demo</th></tr>
       <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, assistant text, MCP tool activity, state, and recoverable errors over SSE.</td></tr>
       <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders its own trusted components.</td><td>Describes the account review surface, form controls, and actions using v0.9.1 envelopes.</td></tr>
       <tr><td>MCP Apps</td><td>Render rich HTML interfaces inside a host-controlled sandboxed iframe and communicate through the host bridge.</td><td>Displays risk metrics, distributions, account cards, and a “send selection to conversation” action.</td></tr>
+      <tr><td>MCP</td><td>Standardize how an AI application discovers and invokes tools and resources.</td><td>Connects the Java agent service and the MCP App server to governed database capabilities.</td></tr>
+      <tr><td>A2A</td><td>Standardize communication and collaboration between independent agents.</td><td>Shown as the agent-to-agent boundary in the conceptual map; it is not implemented by this single-agent reference application.</td></tr>
       <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities to agents and MCP-compatible clients.</td><td>Runs an exact allowlist of YAML-defined reads, sequence reservation, procedure-backed write, and verification tools through JDBC/UCP.</td></tr>
       <tr><td>Oracle AI Database</td><td>Remain the trusted system of record and execution layer.</td><td>Stores accounts, risk events, and actions; applies views, validation, transactions, authorization, and auditing.</td></tr>
     </table>
+    <figure>
+      <img src="images/protocol-responsibility-map.svg" alt="Protocol responsibility map showing AG-UI between a Java agent backend and a user-facing application, MCP between the agent and governed tools, A2A between independent agents, A2UI and MCP Apps in the user interface, and Oracle AI Database below the Oracle Database MCP Java Toolkit.">
+      <figcaption>A useful shorthand is MCP for agent-to-tool integration, A2A for agent-to-agent collaboration, and AG-UI for agent-to-user-interface events and state. A2UI and MCP Apps provide different UI rendering models. A2A is included for architectural context but is not implemented in this single-agent demo.</figcaption>
+    </figure>
     <p class="callout"><strong>The important design decision:</strong> do not place all AG-UI and A2UI implementation inside the database MCP toolkit. The toolkit is database-facing. Orchestration and approval belong in the agent service; rendering belongs in the frontend.</p>
   </section>
 
@@ -218,18 +224,24 @@ RUN_FINISHED</code></pre>
 
   <section id="mcp-app">
     <h2>Add a Rich Dashboard with MCP Apps</h2>
-    <p class="note"><strong>Current implementation:</strong> the web application at <code>http://127.0.0.1:8080</code> demonstrates AG-UI and A2UI; it does not embed or invoke the MCP App. MCP Apps are demonstrated separately by the <code>mcp-app/</code> package. Its <code>server.ts</code> registers the tool and <code>ui://</code> resource, while <code>src/mcp-app.ts</code> implements the host-bridged dashboard. Connect that server to an MCP Apps-compatible host to see this part of the project.</p>
-    <p>The optional dashboard is a separate TypeScript package. Its tool metadata references <code>ui://oracle-account-risk/dashboard-v1</code>. The server returns the resource using <code>text/html;profile=mcp-app</code>, and an MCP Apps-compatible host renders it in a sandboxed iframe.</p>
+    <p class="note"><strong>Current implementation:</strong> the web application at <code>http://127.0.0.1:8080</code> demonstrates AG-UI and A2UI. The <code>mcp-app/</code> package is a separate, real MCP App demonstration that can run in the official MCP Apps basic host without requiring a third-party account. Its tool retrieves current governed rows through the Java service and Oracle Database MCP Java Toolkit; it does not use sample data.</p>
+    <p>The dashboard tool metadata references <code>ui://oracle-account-risk/dashboard-v1</code>. The server returns that resource using <code>text/html;profile=mcp-app</code>, and an MCP Apps-compatible host renders it in a sandboxed iframe.</p>
     <p class="note"><strong>The sandbox is an <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps security characteristic</a>, not a demo-only choice.</strong> The host controls the iframe, isolates the app from the parent DOM, cookies, and storage, and mediates communication through <code>postMessage</code>. The app can request declared capabilities and external origins through permissions and CSP metadata, but the host remains the enforcement point. Host support varies because MCP Apps is an extension to core MCP.</p>
     <pre><code>registerAppTool(server, "show-account-risk-dashboard", {
   title: "Show account risk dashboard",
-  inputSchema: {},
+  inputSchema: z.object({
+    minimumRisk: z.number().min(0).max(100).default(75),
+    maximumRows: z.number().int().min(1).max(50).default(10)
+  }),
   _meta: { ui: { resourceUri, visibility: ["model", "app"] } }
-}, async () =&gt; ({
-  content: [{ type: "text", text: "Account risk dashboard ready." }],
-  structuredContent: { accounts }
-}));</code></pre>
-    <p>The app reads <code>structuredContent</code>; it does not parse prose and never connects to Oracle Database. When the user selects an account, <code>updateModelContext</code> sends that structured choice back through the host bridge. The app remains optional because MCP Apps support varies by host.</p>
+}, async ({ minimumRisk, maximumRows }) =&gt; {
+  const accounts = await loadGovernedAccounts(minimumRisk, maximumRows);
+  return {
+    content: [{ type: "text", text: "Account risk dashboard ready." }],
+    structuredContent: { accounts, source: "oracle-db-mcp-java-toolkit" }
+  };
+});</code></pre>
+    <p>The MCP App server calls <code>/api/accounts</code> on the Java service. That endpoint invokes the Toolkit’s allowlisted <code>find-at-risk-customers</code> tool and labels the response <code>oracle-db-mcp-java-toolkit</code>. The TypeScript server validates the complete response before returning structured tool content. The iframe app reads <code>structuredContent</code>; it never receives wallet files, database credentials, or a direct database connection. When the user selects an account, <code>updateModelContext</code> sends that structured choice back through the host bridge.</p>
   </section>
 
   <section id="approval">
@@ -255,7 +267,7 @@ cd agent-service
     <p>The guarded schema installer is separate from the application runtime. It uses UCP once to create and seed a new schema or safely add the MCP sequence and procedure to the original six-object schema. It refuses other partial states, never drops objects, and becomes a no-op after successful installation. If SQLcl is available, <code>database/setup.sql</code> remains an equivalent installation option.</p>
     <p>On first start, <code>run.sh</code> downloads a pinned revision of Oracle’s official Toolkit source into ignored <code>.runtime/</code> and builds it. The agent then starts the Toolkit over stdio, passes credentials only through the child environment, enables <code>account-risk</code>, verifies the exact tools, and invokes them through MCP. The Toolkit’s UCP pool owns every runtime database connection.</p>
     <p>The tests cover bounded reads, invalid input, rejection without a write, single-use approval, and the presence of official AG-UI events and A2UI v0.9.1 envelopes. The running application has one database path: the Oracle Database MCP Java Toolkit.</p>
-    <p class="note"><strong>Current status:</strong> the MCP client adapter, patched pinned Toolkit bootstrap, exact tool allowlist, YAML reads and writes, database setup, and AG-UI/A2UI web flow are implemented and live-tested against the financial database. The separate MCP App builds and serves its dashboard with deterministic sample accounts; connecting it to the Toolkit’s governed results inside a compatible host remains integration work. A reachable database, local wallet, and locally supplied password are required for the application’s MCP path; secrets are not committed.</p>
+    <p class="note"><strong>Current status:</strong> the MCP client adapter, patched pinned Toolkit bootstrap, exact tool allowlist, YAML reads and writes, database setup, AG-UI/A2UI web flow, and separate MCP App governed-data adapter are implemented. The Java endpoint has been live-tested against the financial database and returns Toolkit-labeled rows. A reachable database, local wallet, and locally supplied password are required; secrets are not committed.</p>
   </section>
 
   <section id="execution-walkthrough">
@@ -270,7 +282,9 @@ cd agent-service
       <li><strong>Select and approve a follow-up.</strong> Choose one returned account, an allowlisted action, and approval notes. <code>ApprovalService</code> has bound the short-lived approval ID to the actor and exact returned customer IDs. The browser posts to <code>/api/approve</code>; the service consumes the ID once and rejects reuse, actor changes, or an account outside the governed result.</li>
       <li><strong>Commit the database action through MCP.</strong> The repository first invokes <code>reserve-customer-action-id</code>, then calls <code>create-customer-follow-up</code> with that ID and the approved inputs. The Toolkit executes <code>CREATE_CUSTOMER_FOLLOW_UP_MCP</code>; Oracle validates the action, locks the customer, inserts <code>CUSTOMER_ACTIONS</code>, updates its status, and commits only the successful statement. The UI displays the reserved audited ID and <code>APPROVED</code> status.</li>
       <li><strong>Test the no-write path.</strong> Run another review and select <strong>Cancel</strong>. The browser posts to <code>/api/reject</code>, the approval is consumed, and no stored procedure or database write is invoked. From a second <code>agent-service</code> terminal, run <code>../scripts/smoke-test.sh</code> to exercise both approval and rejection automatically.</li>
-      <li><strong>Optionally open the MCP App dashboard.</strong> In another terminal, run <code>cd mcp-app</code>, <code>npm install</code>, <code>npm run build</code>, and <code>npm run serve</code>, then connect an MCP Apps-compatible host to <code>http://127.0.0.1:3001/mcp</code>. The MCP server declares a <code>ui://</code> resource and returns structured account content. The host renders the dashboard in its controlled sandboxed iframe; the app communicates through the host bridge and never connects directly to Oracle Database. This standalone preview uses deterministic sample account content; the target host integration passes governed results from the Oracle-backed tool.</li>
+      <li><strong>Open the MCP App server.</strong> Keep the Java service running. In another terminal, run <code>cd mcp-app</code>, <code>npm install</code>, <code>npm run build</code>, and <code>npm run serve</code>. The MCP endpoint at <code>http://127.0.0.1:3001/mcp</code> gets its account rows from the Java service, which invokes the Toolkit’s governed read tool.</li>
+      <li><strong>Use the official local MCP Apps host.</strong> In a third terminal in <code>mcp-app/</code>, run <code>./run-basic-host.sh</code>, then open <code>http://127.0.0.1:8082</code>. Select <code>show-account-risk-dashboard</code>, enter the risk threshold and row limit, and invoke it. The host fetches the declared <code>ui://</code> resource, creates its controlled sandboxed iframe, and delivers Toolkit-backed <code>structuredContent</code> through the MCP Apps bridge. No Claude account is required.</li>
+      <li><strong>Optionally demonstrate it in Claude.</strong> If you want a familiar conversational host, expose port 3001 through an HTTPS tunnel and register the resulting <code>/mcp</code> URL as a custom connector in a supported paid Claude plan. This is optional; the pinned official basic host is the reproducible, account-free path documented by the project.</li>
     </ol>
   </section>
 
@@ -297,14 +311,15 @@ cd agent-service
       <tr><td>A2UI</td><td>The agent should compose native, accessible controls from a restricted catalog without sending executable code.</td></tr>
       <tr><td>MCP Apps</td><td>A compatible conversational host needs a sandboxed dashboard, chart, canvas, or complex embedded workflow.</td></tr>
       <tr><td>Oracle Database MCP Java Toolkit</td><td>Oracle data, vector search, transactions, or stored business operations must be exposed as MCP tools.</td></tr>
-      <tr><td>All four</td><td>The target host integration needs streaming, native controls, a rich embedded dashboard, and governed Oracle tools. In this repository, the MCP App remains a separate demonstration rather than part of the web application flow.</td></tr>
+      <tr><td>A2A</td><td>Independent agents need to discover one another, delegate work, exchange results, and coordinate across agent boundaries. It is architectural context here, not an implemented dependency.</td></tr>
+      <tr><td>Combined reference</td><td>The experience needs streaming, native controls, a separate rich embedded dashboard, and governed Oracle tools. The web client and MCP App are two frontend demonstrations over the same Toolkit-backed data path.</td></tr>
     </table>
   </section>
 
   <section id="limitations">
     <h2>Limitations and Next Steps</h2>
     <p>The Java AG-UI SDK is community-maintained and evolving, so the foundation uses the official wire event contract without a hard dependency on a volatile artifact. A2UI v1.0 is still a candidate; adopting it will require its new action response and surface-property changes. MCP Apps host support and capabilities vary.</p>
-    <p>The local reference uses stdio because the agent owns the Toolkit child-process lifecycle. A remote deployment should instead use the Toolkit’s Streamable HTTP transport with TLS, OAuth 2.0, host restrictions, and independently managed secrets. Next steps are real identity, database authorization policies, durable approvals and idempotency, vector-supported risk explanations, centralized audit export, and screenshots from an MCP Apps-compatible host.</p>
+    <p>The local reference uses stdio because the agent owns the Toolkit child-process lifecycle. A remote deployment should instead use the Toolkit’s Streamable HTTP transport with TLS, OAuth 2.0, host restrictions, and independently managed secrets. Next steps are real identity, service-to-service authorization for the MCP App adapter, database authorization policies, durable approvals and idempotency, vector-supported risk explanations, and centralized audit export.</p>
   </section>
 
   <section id="references">
@@ -316,7 +331,9 @@ cd agent-service
       <li><a href="https://a2ui.org/">A2UI project and specification</a></li>
       <li><a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a></li>
       <li><a href="https://modelcontextprotocol.io/extensions/apps/build">Build an MCP App</a></li>
+      <li><a href="https://github.com/modelcontextprotocol/ext-apps/">Official MCP Apps SDK, examples, and basic host</a></li>
       <li><a href="https://modelcontextprotocol.io/specification/latest">Model Context Protocol specification</a></li>
+      <li><a href="https://a2a-protocol.org/latest/">Agent2Agent (A2A) protocol documentation</a></li>
       <li><a href="https://www.oracle.com/database/">Oracle AI Database</a></li>
     </ul>
   </section>
@@ -326,7 +343,7 @@ cd agent-service
     <h3>Does A2UI replace AG-UI?</h3>
     <p>No. A2UI describes UI surfaces and data; AG-UI carries agent events and state. A2UI messages can travel inside AG-UI custom events.</p>
     <h3>Does an MCP App replace the web client?</h3>
-    <p>No. An MCP App is useful inside compatible conversational hosts. The current web client demonstrates AG-UI and A2UI, while the separate <code>mcp-app/</code> package demonstrates MCP Apps with sample account data. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
+    <p>No. An MCP App is useful inside compatible conversational hosts. The current web client demonstrates AG-UI and A2UI, while the separate <code>mcp-app/</code> package renders the same Toolkit-backed governed results through an MCP Apps host. A standalone web application remains the better fit when you own the complete frontend or need broad browser capabilities.</p>
     <h3>Why not give the model the toolkit’s write-query tool?</h3>
     <p>An unrestricted write tool dramatically increases scope and injection risk. A purpose-built procedure-backed tool makes the allowed operation, validation, privileges, transaction, and audit result explicit.</p>
     <h3>Where should approval be enforced?</h3>

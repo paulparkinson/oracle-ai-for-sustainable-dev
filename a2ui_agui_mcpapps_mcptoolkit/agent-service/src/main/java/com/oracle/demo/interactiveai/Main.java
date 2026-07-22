@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -40,6 +41,7 @@ public final class Main {
     private void start(int port) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
         server.createContext("/api/runs", this::run);
+        server.createContext("/api/accounts", this::accounts);
         server.createContext("/api/approve", this::approve);
         server.createContext("/api/reject", this::reject);
         server.createContext("/api/health", exchange -> respond(exchange, 200, "application/json",
@@ -49,6 +51,24 @@ public final class Main {
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();
         System.out.println("Account-risk demo listening on http://127.0.0.1:" + port);
+    }
+
+    private void accounts(HttpExchange exchange) throws IOException {
+        if (!"GET".equals(exchange.getRequestMethod())) { respond(exchange, 405, "text/plain", "GET required"); return; }
+        try {
+            Map<String, String> query = query(exchange);
+            double minimumRisk = Double.parseDouble(query.getOrDefault("minimumRisk", "75"));
+            int maximumRows = Integer.parseInt(query.getOrDefault("maximumRows", "10"));
+            InputValidation.minimumRisk(minimumRisk);
+            InputValidation.maximumRows(maximumRows);
+            List<Account> accounts = repository.findAtRisk(minimumRisk, maximumRows);
+            exchange.getResponseHeaders().set("Cache-Control", "no-store");
+            respond(exchange, 200, "application/json", accountsJson(accounts));
+        } catch (IllegalArgumentException exception) {
+            respond(exchange, 400, "application/json", Json.value(Map.of("error", exception.getMessage())));
+        } catch (IllegalStateException exception) {
+            respond(exchange, 500, "application/json", Json.value(Map.of("error", exception.getMessage())));
+        }
     }
 
     private void run(HttpExchange exchange) throws IOException {
@@ -121,14 +141,28 @@ public final class Main {
     }
 
     private static Map<String, String> form(HttpExchange exchange) throws IOException {
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        return pairs(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+    }
+
+    private static Map<String, String> query(HttpExchange exchange) {
+        return pairs(exchange.getRequestURI().getRawQuery());
+    }
+
+    private static Map<String, String> pairs(String encoded) {
         Map<String, String> result = new HashMap<>();
-        for (String pair : body.split("&")) {
+        if (encoded == null || encoded.isBlank()) return result;
+        for (String pair : encoded.split("&")) {
             if (pair.isBlank()) continue;
             String[] pieces = pair.split("=", 2);
             result.put(URLDecoder.decode(pieces[0], StandardCharsets.UTF_8), URLDecoder.decode(pieces.length > 1 ? pieces[1] : "", StandardCharsets.UTF_8));
         }
         return result;
+    }
+
+    static String accountsJson(List<Account> accounts) {
+        String rows = accounts.stream().map(Json::account)
+                .reduce("[", (left, item) -> left.equals("[") ? left + item : left + "," + item) + "]";
+        return "{\"source\":\"oracle-db-mcp-java-toolkit\",\"accounts\":" + rows + "}";
     }
 
     private static String required(Map<String, String> form, String name) {

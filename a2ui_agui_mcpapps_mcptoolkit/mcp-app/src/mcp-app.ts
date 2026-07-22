@@ -4,15 +4,23 @@ type Account = { customerId: number; customerName: string; accountValue: number;
 const app = new App({ name: "Oracle Account Risk Dashboard", version: "0.1.0" });
 const metrics = document.querySelector<HTMLDivElement>("#metrics")!;
 const accountsElement = document.querySelector<HTMLDivElement>("#accounts")!;
+const sourceElement = document.querySelector<HTMLParagraphElement>("#source")!;
 
 app.ontoolresult = (result) => {
-  const payload = result.structuredContent as { accounts?: Account[] } | undefined;
+  const payload = result.structuredContent as { accounts?: Account[]; source?: string; minimumRisk?: number } | undefined;
+  sourceElement.textContent = payload?.source === "oracle-db-mcp-java-toolkit"
+    ? `Live governed results from the Oracle Database MCP Java Toolkit · minimum risk ${payload.minimumRisk}`
+    : "Waiting for governed Toolkit results.";
   render(payload?.accounts ?? []);
 };
 app.connect();
 
 function render(accounts: Account[]) {
   metrics.replaceChildren(); accountsElement.replaceChildren();
+  if (accounts.length === 0) {
+    const empty = document.createElement("p"); empty.textContent = "No accounts matched the governed risk threshold.";
+    accountsElement.append(empty); return;
+  }
   const total = accounts.reduce((sum, account) => sum + account.accountValue, 0);
   const critical = accounts.filter(account => account.riskLevel === "CRITICAL").length;
   [

@@ -76,4 +76,12 @@ final class ReferenceTests {
         assertTrue(stream.contains("\"name\":\"a2ui.message\""));
         assertTrue(stream.contains("\"version\":\"v0.9.1\""));
     }
+
+    @Test
+    void governedAccountsPayloadIdentifiesToolkitSource() {
+        var account = new DemoRiskRepository().findAtRisk(90, 1).getFirst();
+        String payload = Main.accountsJson(List.of(account));
+        assertTrue(payload.contains("\"source\":\"oracle-db-mcp-java-toolkit\""));
+        assertTrue(payload.contains("\"customerName\":\"Apex Freight Systems\""));
+    }
 }
