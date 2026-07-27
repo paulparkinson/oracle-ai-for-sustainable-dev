@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>End-to-End Agentic AI Observability: Tracing from Agents INTO the Oracle AI Database (using the Java observability provider and server-side OTel exporter)</title>
-  <meta name="description" content="A developer how-to for continuous OpenTelemetry tracing from a Spring Boot AI agent workload through Oracle JDBC into Oracle AI Database server-side spans for observability, security correlation, and performance profiling.">
+  <title>AI Agent Observability with Oracle AI Database and OpenTelemetry</title>
+  <meta name="description" content="Learn AI agent observability with end-to-end OpenTelemetry agent context tracing from Spring Boot and Oracle JDBC into Oracle AI Database server-side spans.">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; color: #1f2933; }
     main { max-width: 980px; margin: 0 auto; padding: 32px 20px 56px; }
@@ -27,12 +27,14 @@
 <body>
 <main>
   <h1>End-to-End Agentic AI Observability: Tracing from Agents INTO the Oracle AI Database (using the Java observability provider and server-side OTel exporter)</h1>
-  <p class="subtitle">Build one continuous trace across a Spring Boot agent workload, Oracle JDBC, and Oracle AI Database server-side execution.</p>
+  <p class="subtitle">Build one continuous AI agent observability trace across a Spring Boot workload, Oracle JDBC, and Oracle AI Database server-side execution.</p>
 
   <p>
-    This walkthrough answers a practical question for agentic applications:
+    This walkthrough answers a practical AI agent observability question:
     can you see one trace that starts with an AI agent request, crosses the
     Spring Boot and JDBC layers, and continues inside Oracle AI Database? Yes.
+    This end-to-end agent context tracing pattern follows the request from the
+    agent workflow to the SQL and database execution that contributed to its answer.
     With Spring Boot, Micrometer, Oracle JDBC observability providers, and
     <code>DBMS_OBSERVABILITY</code>, the same request can appear in any
     OpenTelemetry-compatible observability backend as application spans, JDBC
@@ -48,8 +50,9 @@
     investigate inside the database. Oracle AI Database keeps the trace
     continuous. Developers, DevOps teams, and security reviewers can see how
     long the database actually took, correlate it to database-side evidence,
-    and use the same trace for performance profiling, troubleshooting, and
-    security context.
+    and use the same trace for production monitoring, performance profiling,
+    troubleshooting, security context, and evidence that helps make AI agent
+    answers auditable.
   </p>
 
   <p>
@@ -84,7 +87,7 @@
     <li>Oracle AI Database lets the trace continue into database server-side execution instead of stopping at the database edge.</li>
     <li>Spring Boot and Micrometer create the application trace context, while Oracle JDBC adds database client spans.</li>
     <li><code>DBMS_OBSERVABILITY</code> exports Oracle AI Database server-side spans to OpenTelemetry-compatible observability tools; this demo uses Jaeger.</li>
-    <li>Agent metadata, <code>MODULE</code>, <code>ACTION</code>, and <code>CLIENT_IDENTIFIER</code> create a foundation for security and audit correlation.</li>
+    <li>Agent context tracing with <code>MODULE</code>, <code>ACTION</code>, and <code>CLIENT_IDENTIFIER</code> creates a foundation for production monitoring and auditable AI agent answers.</li>
   </ul>
 
   <h2>What We Are Building</h2>
@@ -627,7 +630,7 @@ Oracle AI Database Metrics Exporter -> Prometheus/OpenTelemetry metrics -> colle
     <a href="agent-security-observability.md">Agent Security Observability With Oracle AI Database</a>.
   </p>
 
-  <h2>How Can This Connect to Model Observability?</h2>
+  <h2>How Can Agent Context Tracing Support Model Observability and Auditable AI Agent Answers?</h2>
   <p>
     Agent observability should not stop at infrastructure traces. The same task
     can also be correlated with model-level telemetry: prompt, model, tool
@@ -688,12 +691,13 @@ Oracle AI Database Metrics Exporter -> Prometheus/OpenTelemetry metrics -> colle
     immediately to a separate diagnostic workflow.
   </p>
 
-  <h3>Why frame this as an AI agent workload?</h3>
+  <h3>How does this help make AI agent answers auditable?</h3>
   <p>
-    Agentic applications need explainability across application and database
-    boundaries. Adding agent id, task, module, action, client identifier, and
-    SQL_ID makes the trace useful for operations, security review, and future
-    audit correlation.
+    It records execution evidence across application and database boundaries.
+    Adding agent id, task, module, action, client identifier, and SQL_ID lets a
+    reviewer correlate an answer with its database work. A complete audit still
+    needs durable prompt, model, tool, identity, and policy records in addition
+    to the observability trace.
   </p>
 </main>
 </body>

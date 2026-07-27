@@ -16,118 +16,150 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /** Guarded local setup runner for environments where SQLcl is unavailable. */
 public final class DatabaseSetup {
+    private static final Set<String> SCHEMA_TABLES = Set.of(
+            "SUPPLY_LOCATIONS",
+            "SUPPLY_PRODUCTS",
+            "INVENTORY_POSITIONS",
+            "SUPPLY_LANES",
+            "INVENTORY_TRANSFERS");
     private static final Set<String> CORE_OBJECTS = Set.of(
-            "CUSTOMER_ACCOUNTS",
-            "CUSTOMER_RISK_EVENTS",
-            "CUSTOMER_ACTIONS",
-            "CREATE_CUSTOMER_FOLLOW_UP",
-            "CREATE_CUSTOMER_FOLLOW_UP_MCP",
-            "CUSTOMER_ACTION_MCP_SEQ",
-            "ACCOUNT_RISK_SUMMARY_V",
-            "ACCOUNT_RISK_EVENT_V");
-    private static final Set<String> LEGACY_CORE_OBJECTS = Set.of(
-            "CUSTOMER_ACCOUNTS",
-            "CUSTOMER_RISK_EVENTS",
-            "CUSTOMER_ACTIONS",
-            "CREATE_CUSTOMER_FOLLOW_UP",
-            "ACCOUNT_RISK_SUMMARY_V",
-            "ACCOUNT_RISK_EVENT_V");
-    private static final Set<String> MCP_SEQUENCE_RECOVERY_STATE = Set.of(
-            "CUSTOMER_ACCOUNTS",
-            "CUSTOMER_RISK_EVENTS",
-            "CUSTOMER_ACTIONS",
-            "CREATE_CUSTOMER_FOLLOW_UP",
-            "CUSTOMER_ACTION_MCP_SEQ",
-            "ACCOUNT_RISK_SUMMARY_V",
-            "ACCOUNT_RISK_EVENT_V");
-    private static final Set<String> EMPTY_TABLE_RECOVERY_STATE = Set.of(
-            "CUSTOMER_ACCOUNTS", "CUSTOMER_RISK_EVENTS", "CUSTOMER_ACTIONS");
+            "SUPPLY_LOCATIONS",
+            "SUPPLY_PRODUCTS",
+            "INVENTORY_POSITIONS",
+            "SUPPLY_LANES",
+            "INVENTORY_TRANSFERS",
+            "APPROVE_INVENTORY_TRANSFER_MCP",
+            "INVENTORY_TRANSFER_MCP_SEQ",
+            "STOCKOUT_TRANSFER_RECOMMENDATION_V");
+    private static final Map<String, Integer> EXPECTED_SEED_COUNTS = Map.of(
+            "SUPPLY_LOCATIONS", 4,
+            "SUPPLY_PRODUCTS", 5,
+            "INVENTORY_POSITIONS", 20,
+            "SUPPLY_LANES", 12,
+            "INVENTORY_TRANSFERS", 0);
 
     private DatabaseSetup() {
     }
 
     public static void main(String[] args) throws Exception {
-        Path databaseRoot = Path.of(System.getProperty("database.root", "../database")).toAbsolutePath().normalize();
-        PoolDataSource dataSource = UcpDataSourceConfiguration.fromEnvironment(System.getenv());
+        Path databaseRoot = Path.of(
+                        System.getProperty("database.root", "../database"))
+                .toAbsolutePath()
+                .normalize();
+        PoolDataSource dataSource =
+                UcpDataSourceConfiguration.fromEnvironment(System.getenv());
         try (Connection connection = dataSource.getConnection()) {
             Set<String> existing = existingCoreObjects(connection);
             if (existing.equals(CORE_OBJECTS)) {
-                System.out.println("Account-risk database objects already exist; no setup changes were made.");
+                System.out.println(
+                        "Supply-chain exchange database objects already exist; "
+                                + "no setup changes were made.");
                 return;
             }
-            boolean upgradingForMcp = existing.equals(LEGACY_CORE_OBJECTS);
-            boolean recoveringMcpProcedure = existing.equals(MCP_SEQUENCE_RECOVERY_STATE);
-            boolean recoveringEmptyTables = existing.equals(EMPTY_TABLE_RECOVERY_STATE) && tablesAreEmpty(connection);
-            if (!existing.isEmpty() && !recoveringEmptyTables && !upgradingForMcp && !recoveringMcpProcedure) {
-                throw new IllegalStateException("Refusing setup because a partial account-risk schema exists: " + existing);
+
+            if (existing.isEmpty()) {
+                System.out.println(
+                        "No supply-chain exchange objects exist; "
+                                + "installing the schema and deterministic seed data.");
+                executeSqlScript(
+                        connection,
+                        databaseRoot.resolve("01-schema.sql"));
+                executeSqlScript(
+                        connection,
+                        databaseRoot.resolve("02-seed-data.sql"));
+            } else {
+                if (!existing.containsAll(SCHEMA_TABLES)
+                        || !verifiedSeedState(connection)) {
+                    throw new IllegalStateException(
+                            "Refusing setup because an unknown partial "
+                                    + "supply-chain schema exists: "
+                                    + existing);
+                }
+                System.out.println(
+                        "Resuming setup from the verified deterministic "
+                                + "supply-chain seed state; no tables will be dropped.");
             }
 
-            if (recoveringMcpProcedure) {
-                System.out.println("Resuming MCP setup after the sequence was created; existing objects are preserved.");
-            } else if (upgradingForMcp) {
-                System.out.println("Adding the purpose-built MCP sequence and stored procedure to the existing schema.");
-            } else if (recoveringEmptyTables) {
-                System.out.println("Resuming setup from the verified empty-table state; no objects will be dropped.");
-            } else {
-                System.out.println("No account-risk core objects exist; installing the schema and seed data.");
-                executeSqlScript(connection, databaseRoot.resolve("01-schema.sql"));
+            executeSqlScript(
+                    connection,
+                    databaseRoot.resolve("04-views.sql"));
+            if (!existingCoreObjects(connection)
+                    .contains("INVENTORY_TRANSFER_MCP_SEQ")) {
+                executeSqlScript(
+                        connection,
+                        databaseRoot.resolve("05-mcp-sequence.sql"));
             }
-            if (!upgradingForMcp && !recoveringMcpProcedure) {
-                executeSqlScript(connection, databaseRoot.resolve("02-seed-data.sql"));
-                executePlsqlScript(connection, databaseRoot.resolve("03-procedures.sql"));
-                executeSqlScript(connection, databaseRoot.resolve("04-views.sql"));
-            }
-            if (!recoveringMcpProcedure) executeSqlScript(connection, databaseRoot.resolve("05-mcp-sequence.sql"));
-            executePlsqlScript(connection, databaseRoot.resolve("06-mcp-procedure.sql"));
+            executePlsqlScript(
+                    connection,
+                    databaseRoot.resolve("06-mcp-procedure.sql"));
 
             Set<String> installed = existingCoreObjects(connection);
             if (!installed.equals(CORE_OBJECTS)) {
-                throw new IllegalStateException("Database setup did not create every expected object: " + installed);
+                throw new IllegalStateException(
+                        "Database setup did not create every expected object: "
+                                + installed);
             }
             try (Statement statement = connection.createStatement();
-                 ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM customer_accounts")) {
+                    ResultSet result = statement.executeQuery(
+                            "SELECT COUNT(*) "
+                                    + "FROM stockout_transfer_recommendation_v")) {
                 result.next();
-                System.out.println("Account-risk database setup complete; customer rows=" + result.getInt(1));
+                System.out.println(
+                        "Supply-chain exchange database setup complete; "
+                                + "current recommendations="
+                                + result.getInt(1));
             }
         } finally {
             destroyPool(dataSource);
         }
     }
 
-    private static Set<String> existingCoreObjects(Connection connection) throws SQLException {
+    private static Set<String> existingCoreObjects(Connection connection)
+            throws SQLException {
         String sql = """
                 SELECT object_name
                   FROM user_objects
                  WHERE object_name IN (
-                       'CUSTOMER_ACCOUNTS', 'CUSTOMER_RISK_EVENTS', 'CUSTOMER_ACTIONS',
-                       'CREATE_CUSTOMER_FOLLOW_UP', 'CREATE_CUSTOMER_FOLLOW_UP_MCP',
-                       'CUSTOMER_ACTION_MCP_SEQ', 'ACCOUNT_RISK_SUMMARY_V', 'ACCOUNT_RISK_EVENT_V')
+                       'SUPPLY_LOCATIONS', 'SUPPLY_PRODUCTS',
+                       'INVENTORY_POSITIONS', 'SUPPLY_LANES',
+                       'INVENTORY_TRANSFERS',
+                       'APPROVE_INVENTORY_TRANSFER_MCP',
+                       'INVENTORY_TRANSFER_MCP_SEQ',
+                       'STOCKOUT_TRANSFER_RECOMMENDATION_V')
                    AND object_type IN ('TABLE', 'PROCEDURE', 'VIEW', 'SEQUENCE')
                 """;
         Set<String> objects = new LinkedHashSet<>();
         try (PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rows = statement.executeQuery()) {
-            while (rows.next()) objects.add(rows.getString(1).toUpperCase(Locale.ROOT));
+                ResultSet rows = statement.executeQuery()) {
+            while (rows.next()) {
+                objects.add(rows.getString(1).toUpperCase(Locale.ROOT));
+            }
         }
         return Set.copyOf(objects);
     }
 
-    private static boolean tablesAreEmpty(Connection connection) throws SQLException {
-        for (String table : List.of("customer_accounts", "customer_risk_events", "customer_actions")) {
+    private static boolean verifiedSeedState(Connection connection)
+            throws SQLException {
+        for (Map.Entry<String, Integer> expected
+                : EXPECTED_SEED_COUNTS.entrySet()) {
             try (Statement statement = connection.createStatement();
-                 ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
+                    ResultSet result = statement.executeQuery(
+                            "SELECT COUNT(*) FROM " + expected.getKey())) {
                 result.next();
-                if (result.getInt(1) != 0) return false;
+                if (result.getInt(1) != expected.getValue()) return false;
             }
         }
         return true;
     }
 
-    private static void executeSqlScript(Connection connection, Path script) throws IOException, SQLException {
+    private static void executeSqlScript(
+            Connection connection,
+            Path script) throws IOException, SQLException {
         for (String sql : splitStatements(readScript(script))) {
             try (Statement statement = connection.createStatement()) {
                 statement.execute(sql);
@@ -135,8 +167,12 @@ public final class DatabaseSetup {
         }
     }
 
-    private static void executePlsqlScript(Connection connection, Path script) throws IOException, SQLException {
-        String sql = readScript(script).replaceFirst("(?m)^/\\s*$", "").trim();
+    private static void executePlsqlScript(
+            Connection connection,
+            Path script) throws IOException, SQLException {
+        String sql = readScript(script)
+                .replaceFirst("(?m)^/\\s*$", "")
+                .trim();
         try (Statement statement = connection.createStatement()) {
             statement.execute(sql);
         }
@@ -145,8 +181,12 @@ public final class DatabaseSetup {
     private static String readScript(Path script) throws IOException {
         StringBuilder sql = new StringBuilder();
         for (String line : Files.readAllLines(script)) {
-            String trimmed = line.stripLeading().toUpperCase(Locale.ROOT);
-            if (trimmed.startsWith("WHENEVER SQLERROR") || trimmed.startsWith("PROMPT ")) continue;
+            String trimmed =
+                    line.stripLeading().toUpperCase(Locale.ROOT);
+            if (trimmed.startsWith("WHENEVER SQLERROR")
+                    || trimmed.startsWith("PROMPT ")) {
+                continue;
+            }
             sql.append(line).append('\n');
         }
         return sql.toString().trim();
@@ -158,7 +198,10 @@ public final class DatabaseSetup {
         boolean quoted = false;
         for (int index = 0; index < script.length(); index++) {
             char character = script.charAt(index);
-            if (character == '\'' && quoted && index + 1 < script.length() && script.charAt(index + 1) == '\'') {
+            if (character == '\''
+                    && quoted
+                    && index + 1 < script.length()
+                    && script.charAt(index + 1) == '\'') {
                 current.append(character).append(script.charAt(++index));
                 continue;
             }
@@ -178,10 +221,14 @@ public final class DatabaseSetup {
 
     private static void destroyPool(PoolDataSource dataSource) {
         try {
-            UniversalConnectionPoolManagerImpl.getUniversalConnectionPoolManager()
-                    .destroyConnectionPool(dataSource.getConnectionPoolName());
+            UniversalConnectionPoolManagerImpl
+                    .getUniversalConnectionPoolManager()
+                    .destroyConnectionPool(
+                            dataSource.getConnectionPoolName());
         } catch (UniversalConnectionPoolException exception) {
-            throw new IllegalStateException("Unable to close Oracle UCP after database setup", exception);
+            throw new IllegalStateException(
+                    "Unable to close Oracle UCP after database setup",
+                    exception);
         }
     }
 }

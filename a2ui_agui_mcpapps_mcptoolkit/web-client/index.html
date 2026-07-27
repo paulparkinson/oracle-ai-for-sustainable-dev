@@ -3,33 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Oracle Account-Risk Assistant</title>
+  <title>Oracle Supply-Chain Inventory Exchange</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <main>
   <header>
     <p class="eyebrow">Oracle AI Database · AG-UI · A2UI</p>
-    <h1>Account-Risk Assistant</h1>
-    <p class="lede">Review governed account-risk data and explicitly approve a narrowly scoped follow-up action.</p>
+    <h1>Supply-Chain Inventory Exchange</h1>
+    <p class="lede">Find stockout exposure, review database-calculated inventory transfers, and explicitly approve one governed transaction.</p>
   </header>
 
   <section class="request-panel" aria-labelledby="request-heading">
     <div>
-      <h2 id="request-heading">Find accounts</h2>
-      <p>“Show me high-risk customer accounts, explain the risk factors, and let me approve a follow-up action.”</p>
+      <h2 id="request-heading">Find stockout risk</h2>
+      <p>“Show inventory at risk of stockout, explain why, recommend a safe transfer, and let me approve it.”</p>
     </div>
     <form id="run-form">
-      <label>Minimum risk <input id="minimum-risk" name="minimumRisk" type="number" min="0" max="100" value="75" required></label>
-      <label>Maximum rows <input id="maximum-rows" name="maximumRows" type="number" min="1" max="50" value="10" required></label>
-      <button type="submit">Run review</button>
+      <label>Minimum stockout risk <input id="minimum-stockout-risk" name="minimumStockoutRisk" type="number" min="0" max="100" value="70" required></label>
+      <label>Maximum recommendations <input id="maximum-rows" name="maximumRows" type="number" min="1" max="50" value="10" required></label>
+      <button type="submit">Analyze inventory</button>
     </form>
   </section>
 
   <div class="layout">
     <section aria-labelledby="results-heading">
       <div class="section-title">
-        <div><p class="kicker">A2UI surface</p><h2 id="results-heading">Governed results</h2></div>
+        <div><p class="kicker">A2UI surface</p><h2 id="results-heading">Governed transfer recommendations</h2></div>
         <span id="status" class="status">Ready</span>
       </div>
       <p id="assistant-message" class="assistant" aria-live="polite">Submit the request to begin.</p>

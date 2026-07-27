@@ -21,16 +21,17 @@ button:disabled { cursor: wait; opacity: .55; }
 .section-title { display: flex; justify-content: space-between; gap: 18px; align-items: center; }
 .status { padding: 5px 10px; border-radius: 999px; background: #edf1f4; color: #39424c; font-size: .8rem; font-weight: 800; }
 .assistant { min-height: 48px; color: var(--muted); }
-.account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.account { display: grid; gap: 7px; padding: 16px; border: 2px solid transparent; border-radius: 12px; background: var(--soft); cursor: pointer; }
-.account:has(input:checked) { border-color: var(--oracle); }
-.account input { min-height: auto; }
-.account-top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.recommendation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.recommendation { display: grid; gap: 7px; padding: 16px; border: 2px solid transparent; border-radius: 12px; background: var(--soft); cursor: pointer; }
+.recommendation:has(input:checked) { border-color: var(--oracle); }
+.recommendation input { min-height: auto; }
+.recommendation-top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
 .badge { padding: 3px 7px; border-radius: 999px; background: #f3d6d1; color: #7b2116; font-size: .72rem; font-weight: 900; }
-.account p { margin: 0; color: var(--muted); font-size: .9rem; }
-.account dl { display: grid; grid-template-columns: 1fr 1fr; margin: 4px 0 0; }
-.account dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; }
-.account dd { margin: 0; font-weight: 800; }
+.recommendation p { margin: 0; color: var(--muted); font-size: .9rem; }
+.recommendation p.route { color: var(--ink); font-weight: 900; }
+.recommendation dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 0; }
+.recommendation dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; }
+.recommendation dd { margin: 0; font-weight: 800; }
 .approval { display: grid; gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
 .approval-actions { display: flex; gap: 10px; }
 .events { display: grid; gap: 9px; max-height: 680px; margin: 18px 0 0; padding: 0; overflow: auto; list-style: none; }

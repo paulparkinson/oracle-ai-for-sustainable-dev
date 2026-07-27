@@ -70,7 +70,7 @@
     <path d="M842 417 h286 v115 c0 25-64 45-143 45s-143-20-143-45z" class="box"/>
     <ellipse cx="985" cy="417" rx="143" ry="42" fill="#313f4d" stroke="#778796" stroke-width="1.5"/>
     <text x="885" y="427" class="label" style="font-size:22px">Oracle AI Database</text>
-    <text x="883" y="474" class="small">Governed account data + vectors</text>
+    <text x="883" y="474" class="small">Governed inventory + demand data</text>
     <text x="883" y="500" class="small">Views · procedures · transactions</text>
     <text x="883" y="526" class="small">Authorization · auditing</text>
   </g>

@@ -1,5 +1,5 @@
-const allowedComponents = new Set(["Column", "Row", "List", "Card", "Text", "Button", "TextField", "ChoicePicker"]);
-const state = { message: "", approvalId: null, accounts: [], components: new Map(), data: null };
+const allowedComponents = new Set(["Column", "Row", "List", "Card", "Text", "Button", "TextField"]);
+const state = { message: "", approvalId: null, recommendations: [], components: new Map(), data: null };
 const statusEl = document.querySelector("#status");
 const messageEl = document.querySelector("#assistant-message");
 const surfaceEl = document.querySelector("#a2ui-surface");
@@ -12,7 +12,11 @@ runForm.addEventListener("submit", async (event) => {
   statusEl.textContent = "Running";
   setBusy(true);
   try {
-    const response = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(new FormData(runForm)) });
+    const response = await fetch("/api/runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(new FormData(runForm))
+    });
     if (!response.ok) throw new Error(await response.text());
     await readSse(response.body);
   } catch (error) {
@@ -57,13 +61,15 @@ function consumeA2ui(envelope) {
   validateEnvelope(envelope);
   if (envelope.updateComponents) {
     for (const component of envelope.updateComponents.components) {
-      if (!allowedComponents.has(component.component)) throw new Error(`A2UI component not allowed: ${component.component}`);
+      if (!allowedComponents.has(component.component)) {
+        throw new Error(`A2UI component not allowed: ${component.component}`);
+      }
       state.components.set(component.id, component);
     }
   }
   if (envelope.updateDataModel) {
     state.data = envelope.updateDataModel.value;
-    state.accounts = state.data.accounts || [];
+    state.recommendations = state.data.recommendations || [];
     state.approvalId = state.data.approvalId;
     renderReview();
   }
@@ -71,11 +77,18 @@ function consumeA2ui(envelope) {
 
 function validateEnvelope(envelope) {
   if (envelope.version !== "v0.9.1") throw new Error("Unsupported A2UI version");
-  const keys = ["createSurface", "updateComponents", "updateDataModel", "deleteSurface"].filter(key => key in envelope);
+  const keys = ["createSurface", "updateComponents", "updateDataModel", "deleteSurface"]
+    .filter(key => key in envelope);
   if (keys.length !== 1) throw new Error("Invalid A2UI envelope");
   const payload = envelope[keys[0]];
-  if (payload.surfaceId !== "account-risk-review") throw new Error("Unexpected A2UI surface");
-  if (envelope.createSurface && envelope.createSurface.catalogId !== "https://a2ui.org/specification/v0_9_1/catalogs/basic/catalog.json") throw new Error("Unexpected A2UI catalog");
+  if (payload.surfaceId !== "inventory-transfer-review") {
+    throw new Error("Unexpected A2UI surface");
+  }
+  if (envelope.createSurface
+      && envelope.createSurface.catalogId
+        !== "https://a2ui.org/specification/v0_9_1/catalogs/basic/catalog.json") {
+    throw new Error("Unexpected A2UI catalog");
+  }
 }
 
 function renderReview() {
@@ -84,54 +97,88 @@ function renderReview() {
   summary.className = "result";
   summary.textContent = state.data.summary;
   const grid = document.createElement("div");
-  grid.className = "account-grid";
-  state.accounts.forEach((account, index) => grid.append(accountCard(account, index === 0)));
-  const approval = approvalForm();
-  surfaceEl.append(summary, grid, approval);
+  grid.className = "recommendation-grid";
+  state.recommendations.forEach((recommendation, index) =>
+    grid.append(recommendationCard(recommendation, index === 0)));
+  surfaceEl.append(summary, grid);
+  if (state.recommendations.length > 0) surfaceEl.append(approvalForm());
 }
 
-function accountCard(account, checked) {
+function recommendationCard(recommendation, checked) {
   const label = document.createElement("label");
-  label.className = "account";
+  label.className = "recommendation";
   const top = document.createElement("span");
-  top.className = "account-top";
+  top.className = "recommendation-top";
   const choice = document.createElement("span");
   const radio = document.createElement("input");
-  radio.type = "radio"; radio.name = "customerId"; radio.value = account.customerId; radio.checked = checked;
-  const name = document.createElement("strong"); name.textContent = ` ${account.customerName}`;
+  radio.type = "radio";
+  radio.name = "recommendationId";
+  radio.value = recommendation.recommendationId;
+  radio.checked = checked;
+  const name = document.createElement("strong");
+  name.textContent = ` ${recommendation.sku} · ${recommendation.productName}`;
   choice.append(radio, name);
-  const badge = document.createElement("span"); badge.className = "badge"; badge.textContent = `${account.riskLevel} · ${account.riskScore}`;
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = `${recommendation.riskLevel} · ${recommendation.stockoutRiskScore}`;
   top.append(choice, badge);
-  const summary = document.createElement("p"); summary.textContent = account.riskSummary;
+
+  const route = document.createElement("p");
+  route.className = "route";
+  route.textContent =
+    `${recommendation.sourceLocationCode} → ${recommendation.targetLocationCode}`;
+  const rationale = document.createElement("p");
+  rationale.textContent = recommendation.rationale;
   const details = document.createElement("dl");
-  addDetail(details, "Value", new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(account.accountValue));
-  addDetail(details, "Owner", account.ownerName);
-  label.append(top, summary, details);
+  addDetail(details, "Transfer", `${recommendation.recommendedTransferQuantity} units`);
+  addDetail(details, "Shortage", `${recommendation.shortageQuantity} units`);
+  addDetail(details, "Transit", `${recommendation.transitDays} days`);
+  addDetail(
+    details,
+    "Estimated lane cost",
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "USD"
+    }).format(
+      recommendation.recommendedTransferQuantity
+        * recommendation.unitTransferCost));
+  label.append(top, route, rationale, details);
   return label;
 }
 
 function addDetail(list, termText, valueText) {
   const box = document.createElement("div");
-  const term = document.createElement("dt"); term.textContent = termText;
-  const value = document.createElement("dd"); value.textContent = valueText;
-  box.append(term, value); list.append(box);
+  const term = document.createElement("dt");
+  term.textContent = termText;
+  const value = document.createElement("dd");
+  value.textContent = valueText;
+  box.append(term, value);
+  list.append(box);
 }
 
 function approvalForm() {
-  const form = document.createElement("form"); form.className = "approval";
-  const actionLabel = document.createElement("label"); actionLabel.textContent = "Follow-up action";
-  const select = document.createElement("select"); select.name = "actionType";
-  [["REVIEW", "Review"], ["CONTACT_OWNER", "Contact owner"], ["FREEZE_CHANGES", "Freeze changes"]].forEach(([value, label]) => {
-    const option = document.createElement("option"); option.value = value; option.textContent = label; select.append(option);
-  });
-  actionLabel.append(select);
-  const notesLabel = document.createElement("label"); notesLabel.textContent = "Approval notes";
-  const notes = document.createElement("textarea"); notes.name = "actionNotes"; notes.minLength = 3; notes.maxLength = 2000; notes.required = true; notes.value = state.data.form.actionNotes;
+  const form = document.createElement("form");
+  form.className = "approval";
+  const notesLabel = document.createElement("label");
+  notesLabel.textContent = "Transfer approval notes";
+  const notes = document.createElement("textarea");
+  notes.name = "approvalNotes";
+  notes.minLength = 3;
+  notes.maxLength = 2000;
+  notes.required = true;
+  notes.value = state.data.form.approvalNotes;
   notesLabel.append(notes);
-  const actions = document.createElement("div"); actions.className = "approval-actions";
-  const approve = document.createElement("button"); approve.type = "submit"; approve.textContent = "Approve follow-up";
-  const reject = document.createElement("button"); reject.type = "button"; reject.className = "secondary"; reject.textContent = "Cancel";
-  actions.append(approve, reject); form.append(actionLabel, notesLabel, actions);
+  const actions = document.createElement("div");
+  actions.className = "approval-actions";
+  const approve = document.createElement("button");
+  approve.type = "submit";
+  approve.textContent = "Approve inventory transfer";
+  const reject = document.createElement("button");
+  reject.type = "button";
+  reject.className = "secondary";
+  reject.textContent = "Cancel";
+  actions.append(approve, reject);
+  form.append(notesLabel, actions);
   form.addEventListener("submit", submitApproval);
   reject.addEventListener("click", rejectApproval);
   return form;
@@ -139,37 +186,90 @@ function approvalForm() {
 
 async function submitApproval(event) {
   event.preventDefault();
-  const selected = document.querySelector('input[name="customerId"]:checked');
-  if (!selected) return showError("Select an account first.");
+  const selected = document.querySelector(
+    'input[name="recommendationId"]:checked');
+  if (!selected) return showError("Select a transfer recommendation first.");
   const form = new FormData(event.currentTarget);
-  form.set("customerId", selected.value); form.set("approvalId", state.approvalId);
-  await postAction("/api/approve", form, result => `Action ${result.actionId} is ${result.status}.`);
+  form.set("recommendationId", selected.value);
+  form.set("approvalId", state.approvalId);
+  await postAction(
+    "/api/approve",
+    form,
+    result =>
+      `Transfer ${result.transferId} is ${result.status}: `
+        + `${result.transferQuantity} units reserved for movement.`);
 }
 
 async function rejectApproval() {
-  const form = new FormData(); form.set("approvalId", state.approvalId);
-  await postAction("/api/reject", form, () => "Follow-up rejected. No database action was created.");
+  const form = new FormData();
+  form.set("approvalId", state.approvalId);
+  await postAction(
+    "/api/reject",
+    form,
+    () => "Transfer rejected. No inventory was reserved and no transfer was created.");
 }
 
 async function postAction(url, form, message) {
   setBusy(true);
   try {
-    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form) });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(form)
+    });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Action failed");
     statusEl.textContent = humanize(result.status);
-    surfaceEl.replaceChildren(Object.assign(document.createElement("p"), { className: "result", textContent: message(result) }));
-  } catch (error) { showError(error.message); } finally { setBusy(false); }
+    surfaceEl.replaceChildren(Object.assign(
+      document.createElement("p"),
+      { className: "result", textContent: message(result) }));
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    setBusy(false);
+  }
 }
 
 function appendEvent(event) {
   const item = document.createElement("li");
   if (event.type.startsWith("TOOL_CALL")) item.className = "tool";
-  item.textContent = event.type + (event.toolCallName ? ` · ${event.toolCallName}` : event.stepName ? ` · ${event.stepName}` : "");
-  eventsEl.append(item); item.scrollIntoView({ block: "nearest" });
+  item.textContent = event.type
+    + (event.toolCallName
+      ? ` · ${event.toolCallName}`
+      : event.stepName
+        ? ` · ${event.stepName}`
+        : "");
+  eventsEl.append(item);
+  item.scrollIntoView({ block: "nearest" });
 }
 
-function reset() { state.message = ""; state.approvalId = null; state.accounts = []; state.components.clear(); state.data = null; eventsEl.replaceChildren(); surfaceEl.replaceChildren(); messageEl.textContent = ""; }
-function setBusy(busy) { document.querySelectorAll("button").forEach(button => button.disabled = busy); }
-function humanize(value) { return String(value).toLowerCase().replaceAll("_", " ").replace(/^./, c => c.toUpperCase()); }
-function showError(message) { statusEl.textContent = "Error"; const error = document.createElement("p"); error.className = "error"; error.textContent = message; surfaceEl.prepend(error); }
+function reset() {
+  state.message = "";
+  state.approvalId = null;
+  state.recommendations = [];
+  state.components.clear();
+  state.data = null;
+  eventsEl.replaceChildren();
+  surfaceEl.replaceChildren();
+  messageEl.textContent = "";
+}
+
+function setBusy(busy) {
+  document.querySelectorAll("button")
+    .forEach(button => button.disabled = busy);
+}
+
+function humanize(value) {
+  return String(value)
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^./, character => character.toUpperCase());
+}
+
+function showError(message) {
+  statusEl.textContent = "Error";
+  const error = document.createElement("p");
+  error.className = "error";
+  error.textContent = message;
+  surfaceEl.prepend(error);
+}

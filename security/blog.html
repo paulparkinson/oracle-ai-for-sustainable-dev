@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java</title>
-  <meta name="description" content="Propagate Microsoft Entra identity through Spring Boot and pooled Oracle JDBC connections so Oracle AI Database Deep Data Security enforces row, column, and cell-level access.">
+  <title>AI Agent Authorization with Oracle AI Database Deep Data Security</title>
+  <meta name="description" content="Build policy-aware AI agent context with Microsoft Entra, Spring Boot, Oracle JDBC, and database-enforced row, column, and cell access.">
   <style>
     :root { color-scheme: light; }
     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; color: #1f2933; background: #fff; }
@@ -36,7 +36,7 @@
 <main>
   <p class="eyebrow">Oracle AI Database 26ai + Spring Boot + Microsoft Entra ID</p>
   <h1>Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java</h1>
-  <p class="subtitle">A practical walkthrough for propagating Microsoft Entra identity through a Spring Boot application via a JDBC connection to Oracle AI Database, which enforces row, column, and cell-level access rules.</p>
+  <p class="subtitle">Build policy-aware AI agent and application context by propagating Microsoft Entra identity through Spring Boot and Oracle JDBC for database-enforced access.</p>
 <p>Yes—an enterprise Spring Boot application can keep pooled JDBC connections while Oracle AI Database enforces authorization for each signed-in Microsoft Entra user. The application propagates user and database tokens; Deep Data Security applies declarative row, column, and cell-level rules when SQL executes.</p>
 <figure class="cover">
   <img src="images/oracle-ai-database-deep-data-security-cover.png" alt="Diagram showing a browser user, user token, database token, Spring Boot application, pooled JDBC connection, and Oracle AI Database Deep Data Security enforcing row, column, and cell access.">
@@ -48,7 +48,7 @@
   <li>Pooled JDBC connections can carry end-user identity when application code or <code>ojdbc-provider-spring</code> attaches an Oracle JDBC end-user security context before SQL runs.</li>
   <li>The OAuth on-behalf-of flow produces a separate database-access token, so the user token proves the browser user while the database token proves access to Oracle AI Database.</li>
   <li>Microsoft Entra app roles such as EMPLOYEES and MANAGERS map to Oracle Deep Data Security data roles, letting the same SQL return different rows based on the signed-in user.</li>
-  <li>The Java app stays role-agnostic: Oracle AI Database becomes the enforcement point for row, column, and cell-level authorization.</li>
+  <li>The Java app stays role-agnostic: Oracle AI Database becomes the enforcement point for policy-aware AI agent context and row, column, and cell-level authorization.</li>
 </ul>
 </section>
 <section id="source-code-and-video">
@@ -62,12 +62,12 @@
 </figure>
 </section>
 <section id="why-this-matters">
-<h2>Why This Matters</h2>
+<h2>Why Database-Enforced Authorization Matters for Policy-Aware AI Agents</h2>
 <p>Most enterprise Java services use a connection pool. That is good engineering: fast, stable, observable, and easy to operate. It also means every request may reach the database through the same application database account.</p>
 <p>That is where authorization gets tricky. If Emma and Marvin both use the same pooled database user, the database cannot naturally tell which rows belong to Emma, which columns Marvin may see, or which values a manager may update.</p>
 <p>One option is to push that logic into every application query. Another is to create separate datasources or connection pools per user. Neither is a good fit for real enterprise systems.</p>
 <p>Oracle Deep Data Security changes the shape of the problem. The application still uses a pooled connection, but it attaches an end-user security context to the JDBC connection before SQL runs. Oracle AI Database evaluates declarative data grants at execution time.</p>
-<p>This matters even more for agentic applications. Agents, copilots, and natural-language SQL tools can fan out into many possible data paths. With Deep Data Security, the database remains the final policy enforcement point for fine-grained row, column, and cell-level access.</p>
+<p>This matters even more for agentic applications. Agents, copilots, and natural-language SQL tools can fan out into many possible data paths. Deep Data Security turns the signed-in identity and mapped roles into policy-aware AI agent context, while the database remains the final enforcement point for fine-grained row, column, and cell-level access.</p>
 <p class="callout"><strong>The important idea: </strong>the Spring Boot app does not rewrite SQL or implement authorization logic. It propagates identity and tokens to Oracle AI Database, which enforces authorization policies.</p>
 <p>This walkthrough includes the Microsoft Entra setup explicitly instead of only linking to the Microsoft documentation. That part is easy to get subtly wrong, and writing it down forced me to understand it better too.</p>
 <p>A good starting point, and the one I extended to create this Java app, is Richard C. Evans&#39;s excellent <a href="https://livelabs.oracle.com/ords/r/dbpm/livelabs/run-workshop?p210_wid=4396">LiveLabs FastLab: Identity-Aware Database Access with Microsoft Entra ID and Oracle Deep Data Security</a>. While I am giving credit due, I will mention that Michael McMahon is the fantastic and friendly developer who wrote the Java support for this Deep Data Security feature.</p>
@@ -504,7 +504,7 @@ COMMIT;</code></pre>
 </ul>
 </section>
 <section id="productionization-checklist">
-<h2>Productionization Checklist</h2>
+<h2>Production Security and Governance Checklist</h2>
 <ol>
   <li>Store the Entra client secret in a secret manager, not in a local file.</li>
   <li>Validate expected issuer, audience, scopes, tenant, and role claims explicitly.</li>
@@ -537,7 +537,7 @@ COMMIT;</code></pre>
 <section id="faq">
 <h2>FAQ</h2>
 <h3>What problem does this pattern solve?</h3>
-<p>It lets a Java service keep the operational benefits of a pooled application database user while still allowing Oracle AI Database to enforce access for the signed-in end user.</p>
+<p>It lets a Java service keep the operational benefits of a pooled application database user while Oracle AI Database enforces access for the signed-in end user. For agentic applications, that creates policy-aware AI agent context without duplicating authorization rules in every prompt, tool, or SQL statement.</p>
 <h3>Why are there two tokens?</h3>
 <p>The user token proves who signed in to the Spring Boot app. The database-access token is addressed to the Oracle AI Database resource and carries the claims Oracle validates for role mapping and data grants.</p>
 <h3>Do employees and managers need different Java code?</h3>

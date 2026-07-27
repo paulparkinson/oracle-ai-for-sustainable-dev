@@ -1,11 +1,10 @@
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 
-PROMPT Creating account-risk schema objects...
+PROMPT Creating supply-chain exchange schema objects...
 @@01-schema.sql
 @@02-seed-data.sql
-@@03-procedures.sql
 @@04-views.sql
 @@05-mcp-sequence.sql
 @@06-mcp-procedure.sql
 
-PROMPT Account-risk database setup complete.
+PROMPT Supply-chain exchange database setup complete.

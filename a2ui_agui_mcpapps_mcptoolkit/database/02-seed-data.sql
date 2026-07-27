@@ -1,32 +1,54 @@
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Apex Freight Systems', 'Logistics', 4200000, 96, 'CRITICAL', 'Payment velocity and beneficiary changes exceed policy.', 'Jordan Lee');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Blue Mesa Energy', 'Energy', 8100000, 93, 'CRITICAL', 'Sanctions-screening similarity and unusual cross-border payments.', 'Sam Rivera');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Cobalt Health Partners', 'Healthcare', 3650000, 91, 'CRITICAL', 'Repeated access anomalies and overdue compliance evidence.', 'Morgan Chen');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Delta Retail Group', 'Retail', 2850000, 88, 'HIGH', 'Chargeback spike and new settlement account.', 'Taylor Singh');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Evergreen Public Works', 'Public Sector', 6400000, 86, 'HIGH', 'Contract variance and incomplete ownership attestation.', 'Alex Kim');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Fathom Insurance', 'Insurance', 5100000, 84, 'HIGH', 'Claims payout pattern differs from peer baseline.', 'Jordan Lee');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Granite Telecom', 'Telecommunications', 4750000, 82, 'HIGH', 'Credential churn and privileged access escalation.', 'Sam Rivera');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Harborline Foods', 'Food Distribution', 1900000, 79, 'HIGH', 'Supplier bank change preceded expedited payment.', 'Morgan Chen');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Ionix Manufacturing', 'Manufacturing', 7300000, 77, 'HIGH', 'Export-control documentation is incomplete.', 'Taylor Singh');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Juniper Media', 'Media', 1200000, 74, 'HIGH', 'Revenue concentration and late covenant reporting.', 'Alex Kim');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Keystone Aviation', 'Aviation', 9200000, 69, 'MEDIUM', 'Maintenance reserve variance requires review.', 'Jordan Lee');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Lumen Education', 'Education', 2100000, 66, 'MEDIUM', 'Enrollment forecast diverges from observed receipts.', 'Sam Rivera');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Meridian BioLabs', 'Life Sciences', 5800000, 63, 'MEDIUM', 'Trial milestone delay may affect liquidity.', 'Morgan Chen');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Northstar Hospitality', 'Hospitality', 3300000, 61, 'MEDIUM', 'Seasonal cash coverage below internal target.', 'Taylor Singh');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Orchid Software', 'Technology', 2700000, 58, 'MEDIUM', 'Customer concentration increased this quarter.', 'Alex Kim');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Pioneer Construction', 'Construction', 4500000, 54, 'MEDIUM', 'Two projects show schedule and cost pressure.', 'Jordan Lee');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Quartz Mobility', 'Transportation', 3900000, 47, 'LOW', 'Insurance renewal is pending but within tolerance.', 'Sam Rivera');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Redwood Agriculture', 'Agriculture', 2400000, 42, 'LOW', 'Commodity exposure is hedged within policy.', 'Morgan Chen');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Solstice Apparel', 'Apparel', 1750000, 36, 'LOW', 'Minor forecast variance with adequate liquidity.', 'Taylor Singh');
-INSERT INTO customer_accounts (customer_name, industry, account_value, risk_score, risk_level, risk_summary, owner_name) VALUES ('Trellis Legal Services', 'Professional Services', 980000, 28, 'LOW', 'No material exceptions; annual review upcoming.', 'Alex Kim');
+INSERT INTO supply_locations VALUES (101, 'ATL-DC', 'Atlanta Distribution Center', 'Southeast', 'DISTRIBUTION_CENTER');
+INSERT INTO supply_locations VALUES (102, 'PHX-DC', 'Phoenix Distribution Center', 'Southwest', 'DISTRIBUTION_CENTER');
+INSERT INTO supply_locations VALUES (103, 'CHI-FC', 'Chicago Fulfillment Center', 'Midwest', 'FULFILLMENT_CENTER');
+INSERT INTO supply_locations VALUES (104, 'SEA-FC', 'Seattle Fulfillment Center', 'Northwest', 'FULFILLMENT_CENTER');
 
-INSERT INTO customer_risk_events (customer_id, event_type, event_description, event_date, severity)
-SELECT customer_id, 'PAYMENT_ANOMALY', 'Payment velocity exceeded the 30-day account baseline.', SYSTIMESTAMP - INTERVAL '2' DAY, LEAST(10, CEIL(risk_score / 10))
-FROM customer_accounts;
+INSERT INTO supply_products VALUES (1001, 'BAT-48V', '48V Solar Battery Pack', 'Energy Storage', 1299.00);
+INSERT INTO supply_products VALUES (1002, 'THERM-PRO', 'Smart Thermostat Pro', 'Building Controls', 189.00);
+INSERT INTO supply_products VALUES (1003, 'EVSE-22K', '22kW EV Charger', 'EV Infrastructure', 899.00);
+INSERT INTO supply_products VALUES (1004, 'WATER-SENSE', 'Connected Water Sensor', 'Environmental Monitoring', 79.00);
+INSERT INTO supply_products VALUES (1005, 'GRID-CTRL', 'Edge Grid Controller', 'Grid Automation', 2499.00);
 
-INSERT INTO customer_risk_events (customer_id, event_type, event_description, event_date, severity)
-SELECT customer_id, 'CONTROL_REVIEW', 'Automated control review recorded the current account risk classification.', SYSTIMESTAMP - INTERVAL '9' DAY, GREATEST(1, CEIL(risk_score / 12))
-FROM customer_accounts;
+-- Each product has both constrained and surplus locations so the governed view
+-- can calculate an actionable transfer rather than merely report a shortage.
+INSERT INTO inventory_positions VALUES (1001, 101, 18, 4, 0, 26, 8, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1001, 102, 92, 7, 4, 21, 18, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1001, 103, 48, 6, 0, 24, 10, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1001, 104, 37, 5, 8, 20, 9, SYSTIMESTAMP);
+
+INSERT INTO inventory_positions VALUES (1002, 101, 160, 20, 25, 72, 30, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1002, 102, 29, 6, 0, 41, 15, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1002, 103, 124, 17, 10, 61, 24, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1002, 104, 81, 8, 12, 46, 18, SYSTIMESTAMP);
+
+INSERT INTO inventory_positions VALUES (1003, 101, 44, 5, 0, 19, 8, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1003, 102, 51, 7, 0, 22, 9, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1003, 103, 13, 3, 0, 18, 7, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1003, 104, 64, 8, 6, 24, 10, SYSTIMESTAMP);
+
+INSERT INTO inventory_positions VALUES (1004, 101, 210, 26, 20, 91, 38, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1004, 102, 174, 18, 18, 82, 32, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1004, 103, 158, 22, 12, 77, 30, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1004, 104, 24, 5, 0, 52, 18, SYSTIMESTAMP);
+
+INSERT INTO inventory_positions VALUES (1005, 101, 31, 4, 0, 12, 6, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1005, 102, 27, 3, 2, 11, 5, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1005, 103, 35, 5, 0, 14, 6, SYSTIMESTAMP);
+INSERT INTO inventory_positions VALUES (1005, 104, 8, 2, 0, 10, 5, SYSTIMESTAMP);
+
+INSERT INTO supply_lanes VALUES (101, 102, 3, 18.50, 'Y');
+INSERT INTO supply_lanes VALUES (101, 103, 2, 13.25, 'Y');
+INSERT INTO supply_lanes VALUES (101, 104, 5, 25.00, 'Y');
+INSERT INTO supply_lanes VALUES (102, 101, 3, 18.50, 'Y');
+INSERT INTO supply_lanes VALUES (102, 103, 3, 16.75, 'Y');
+INSERT INTO supply_lanes VALUES (102, 104, 3, 17.25, 'Y');
+INSERT INTO supply_lanes VALUES (103, 101, 2, 13.25, 'Y');
+INSERT INTO supply_lanes VALUES (103, 102, 3, 16.75, 'Y');
+INSERT INTO supply_lanes VALUES (103, 104, 4, 19.50, 'Y');
+INSERT INTO supply_lanes VALUES (104, 101, 5, 25.00, 'Y');
+INSERT INTO supply_lanes VALUES (104, 102, 3, 17.25, 'Y');
+INSERT INTO supply_lanes VALUES (104, 103, 4, 19.50, 'Y');
 
 COMMIT;

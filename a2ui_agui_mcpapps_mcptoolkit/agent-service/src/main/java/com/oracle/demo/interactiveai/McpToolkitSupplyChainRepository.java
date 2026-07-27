@@ -10,22 +10,22 @@ import java.util.Set;
 import java.util.stream.StreamSupport;
 
 /** Calls purpose-built Oracle Database MCP Java Toolkit tools over MCP stdio. */
-public final class McpToolkitRiskRepository implements RiskRepository, AutoCloseable {
+public final class McpToolkitSupplyChainRepository implements SupplyChainRepository, AutoCloseable {
     private static final Set<String> REQUIRED_TOOLS = Set.of(
-            "find-at-risk-customers",
-            "get-customer-risk-details",
-            "reserve-customer-action-id",
-            "create-customer-follow-up",
-            "count-customer-actions");
+            "find-stockout-transfer-recommendations",
+            "get-stockout-transfer-details",
+            "reserve-inventory-transfer-id",
+            "approve-inventory-transfer",
+            "count-inventory-transfers");
 
     private final McpStdioClient client;
 
-    private McpToolkitRiskRepository(McpStdioClient client) {
+    private McpToolkitSupplyChainRepository(McpStdioClient client) {
         this.client = client;
         verifyToolkit();
     }
 
-    public static McpToolkitRiskRepository fromEnvironment(Map<String, String> environment) {
+    public static McpToolkitSupplyChainRepository fromEnvironment(Map<String, String> environment) {
         Path toolkitJar = requiredPath(environment, "ORACLE_MCP_TOOLKIT_JAR");
         Path configFile = optionalPath(environment, "ORACLE_MCP_CONFIG_FILE",
                 Path.of("../oracle-db-mcp-toolkit/config/tools.yaml"));
@@ -38,52 +38,80 @@ public final class McpToolkitRiskRepository implements RiskRepository, AutoClose
         McpStdioClient client = new McpStdioClient(
                 List.of(javaCommand,
                         "-DconfigFile=" + configFile,
-                        "-Dtools=account-risk",
+                        "-Dtools=supply-chain-exchange",
                         "-jar", toolkitJar.toString()),
                 Map.of(
                         "DB_URL", databaseUrl,
                         "DB_USERNAME", databaseUser,
                         "DB_PASSWORD", databasePassword));
         client.initialize();
-        return new McpToolkitRiskRepository(client);
+        return new McpToolkitSupplyChainRepository(client);
     }
 
     @Override
-    public List<Account> findAtRisk(double minimumRisk, int maximumRows) {
-        InputValidation.minimumRisk(minimumRisk);
+    public List<TransferRecommendation> findTransferRecommendations(
+            double minimumStockoutRisk,
+            int maximumRows) {
+        InputValidation.minimumStockoutRisk(minimumStockoutRisk);
         InputValidation.maximumRows(maximumRows);
-        return rows(client.callTool("find-at-risk-customers", Map.of(
-                "minimumRisk", minimumRisk,
+        return rows(client.callTool("find-stockout-transfer-recommendations", Map.of(
+                "minimumStockoutRisk", minimumStockoutRisk,
                 "maximumRows", maximumRows))).stream()
-                .map(row -> new Account(
-                        longValue(row, "CUSTOMER_ID"),
-                        stringValue(row, "CUSTOMER_NAME"),
-                        stringValue(row, "INDUSTRY"),
-                        longValue(row, "ACCOUNT_VALUE"),
-                        doubleValue(row, "RISK_SCORE"),
+                .map(row -> new TransferRecommendation(
+                        stringValue(row, "RECOMMENDATION_ID"),
+                        longValue(row, "PRODUCT_ID"),
+                        stringValue(row, "SKU"),
+                        stringValue(row, "PRODUCT_NAME"),
+                        stringValue(row, "CATEGORY_NAME"),
+                        longValue(row, "SOURCE_LOCATION_ID"),
+                        stringValue(row, "SOURCE_LOCATION_CODE"),
+                        stringValue(row, "SOURCE_LOCATION_NAME"),
+                        longValue(row, "TARGET_LOCATION_ID"),
+                        stringValue(row, "TARGET_LOCATION_CODE"),
+                        stringValue(row, "TARGET_LOCATION_NAME"),
+                        longValue(row, "SOURCE_AVAILABLE_QTY"),
+                        longValue(row, "TARGET_AVAILABLE_QTY"),
+                        longValue(row, "FORECAST_7D_QTY"),
+                        longValue(row, "SAFETY_STOCK_QTY"),
+                        longValue(row, "SHORTAGE_QTY"),
+                        longValue(row, "RECOMMENDED_TRANSFER_QTY"),
+                        Math.toIntExact(longValue(row, "TRANSIT_DAYS")),
+                        doubleValue(row, "UNIT_TRANSFER_COST"),
+                        doubleValue(row, "STOCKOUT_RISK_SCORE"),
                         stringValue(row, "RISK_LEVEL"),
-                        stringValue(row, "RISK_SUMMARY"),
-                        stringValue(row, "OWNER_NAME"),
-                        stringValue(row, "FOLLOW_UP_STATUS")))
+                        stringValue(row, "RATIONALE")))
                 .toList();
     }
 
     @Override
-    public ActionResult createFollowUp(long customerId, String actionType, String actionNotes, String requestedBy) {
-        InputValidation.followUp(customerId, actionType, actionNotes, requestedBy);
-        long actionId = longValue(firstRow(client.callTool("reserve-customer-action-id", Map.of())), "ACTION_ID");
-        client.callTool("create-customer-follow-up", Map.of(
-                "actionId", actionId,
-                "customerId", customerId,
-                "actionType", actionType,
-                "actionNotes", actionNotes,
+    public TransferResult approveTransfer(
+            TransferRecommendation recommendation,
+            String approvalNotes,
+            String requestedBy) {
+        InputValidation.approval(recommendation, approvalNotes, requestedBy);
+        long transferId = longValue(
+                firstRow(client.callTool("reserve-inventory-transfer-id", Map.of())),
+                "TRANSFER_ID");
+        client.callTool("approve-inventory-transfer", Map.of(
+                "transferId", transferId,
+                "productId", recommendation.productId(),
+                "sourceLocationId", recommendation.sourceLocationId(),
+                "targetLocationId", recommendation.targetLocationId(),
+                "transferQuantity", recommendation.recommendedTransferQuantity(),
+                "approvalNotes", approvalNotes,
                 "requestedBy", requestedBy));
-        return new ActionResult(actionId, customerId, actionType, "APPROVED");
+        return new TransferResult(
+                transferId,
+                recommendation.recommendationId(),
+                recommendation.recommendedTransferQuantity(),
+                "APPROVED");
     }
 
     @Override
-    public int actionCount() {
-        return Math.toIntExact(longValue(firstRow(client.callTool("count-customer-actions", Map.of())), "ACTION_COUNT"));
+    public int transferCount() {
+        return Math.toIntExact(longValue(
+                firstRow(client.callTool("count-inventory-transfers", Map.of())),
+                "TRANSFER_COUNT"));
     }
 
     @Override

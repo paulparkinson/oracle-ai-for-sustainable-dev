@@ -1,16 +1,13 @@
 package com.oracle.demo.interactiveai;
 
-import java.util.Set;
-
 public final class InputValidation {
-    private static final Set<String> ACTION_TYPES = Set.of("REVIEW", "CONTACT_OWNER", "FREEZE_CHANGES");
-
     private InputValidation() {
     }
 
-    public static void minimumRisk(double value) {
+    public static void minimumStockoutRisk(double value) {
         if (!Double.isFinite(value) || value < 0 || value > 100) {
-            throw new IllegalArgumentException("minimumRisk must be between 0 and 100");
+            throw new IllegalArgumentException(
+                    "minimumStockoutRisk must be between 0 and 100");
         }
     }
 
@@ -20,14 +17,33 @@ public final class InputValidation {
         }
     }
 
-    public static void followUp(long customerId, String actionType, String notes, String requestedBy) {
-        if (customerId < 1) throw new IllegalArgumentException("customerId must be positive");
-        if (!ACTION_TYPES.contains(actionType)) throw new IllegalArgumentException("Unsupported actionType");
-        if (notes == null || notes.trim().length() < 3 || notes.length() > 2000) {
-            throw new IllegalArgumentException("actionNotes must contain 3 to 2000 characters");
+    public static void approval(
+            TransferRecommendation recommendation,
+            String notes,
+            String requestedBy) {
+        if (recommendation == null) {
+            throw new IllegalArgumentException("A governed transfer recommendation is required");
         }
-        if (requestedBy == null || requestedBy.trim().length() < 3 || requestedBy.length() > 200) {
-            throw new IllegalArgumentException("requestedBy must contain 3 to 200 characters");
+        if (recommendation.productId() < 1
+                || recommendation.sourceLocationId() < 1
+                || recommendation.targetLocationId() < 1
+                || recommendation.sourceLocationId() == recommendation.targetLocationId()) {
+            throw new IllegalArgumentException(
+                    "Recommendation has invalid product or location identifiers");
+        }
+        if (recommendation.recommendedTransferQuantity() < 1) {
+            throw new IllegalArgumentException(
+                    "Recommended transfer quantity must be positive");
+        }
+        if (notes == null || notes.trim().length() < 3 || notes.length() > 2000) {
+            throw new IllegalArgumentException(
+                    "approvalNotes must contain 3 to 2000 characters");
+        }
+        if (requestedBy == null
+                || requestedBy.trim().length() < 3
+                || requestedBy.length() > 200) {
+            throw new IllegalArgumentException(
+                    "requestedBy must contain 3 to 200 characters");
         }
     }
 }
