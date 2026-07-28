@@ -21,7 +21,7 @@
     figcaption { margin-top: 8px; color: #5c6673; font-size: .95rem; }
     code { font-family: "SFMono-Regular", Consolas, monospace; overflow-wrap: anywhere; }
     .table-wrap { width: 100%; overflow-x: auto; }
-    table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: .94rem; line-height: 1.45; }
+    table { width: 100%; min-width: 1900px; border-collapse: collapse; font-size: .92rem; line-height: 1.45; }
     th, td { padding: 12px; border: 1px solid #d6dce3; text-align: left; vertical-align: top; }
     th { background: #eef2f6; }
     tbody tr:nth-child(even) { background: #fafbfc; }
@@ -51,7 +51,7 @@
     <ul>
       <li>Mem0, Zep, Letta, LangMem, and AgentCore address different layers: memory service, temporal graph, stateful-agent platform, framework utilities, and managed cloud infrastructure.</li>
       <li>Open-source availability does not automatically mean the managed service or its storage engine is open source; several products use a mixed model.</li>
-      <li>Database choice affects portability, operations, retrieval behavior, transaction support, data movement, and governance.</li>
+      <li>All six choices can evolve stored memory, but “continual learning” here does not mean automatically retraining the foundation model.</li>
       <li>Oracle AI Agent Memory keeps short- and long-term memory on Oracle AI Database and adds explicit scope, hybrid retrieval, lifecycle management, and a dual-licensed Python library.</li>
     </ul>
   </section>
@@ -59,6 +59,7 @@
   <section id="comparison">
     <h2>Agent Memory Platform Comparison Matrix</h2>
     <p>The matrix uses the product's documented production path. Where a project has both open-source and managed editions, the distinction is stated explicitly.</p>
+    <p class="note"><strong>How this article uses “continual learning”:</strong> the system extracts, adds, consolidates, corrects, invalidates, or retrieves memory as interactions accumulate. It may also refine prompts or agent state. This is inference-time adaptation through external state—not automatic training of the underlying foundation model's weights.</p>
     <div class="table-wrap">
       <table>
         <thead>
@@ -68,6 +69,9 @@
             <th>Is open source?</th>
             <th>Database supported</th>
             <th>Client languages supported</th>
+            <th>Continual learning</th>
+            <th>Strengths</th>
+            <th>Limitations</th>
             <th>Short description of main features/characteristics</th>
           </tr>
         </thead>
@@ -78,6 +82,9 @@
             <td><strong>Mixed.</strong> The OSS memory layer is Apache 2.0; the hosted Mem0 Platform is managed.</td>
             <td>Python OSS supports Qdrant, Chroma, pgvector, Redis/Valkey, MongoDB, Elasticsearch/OpenSearch, Pinecone, Milvus, Weaviate, Vertex AI, and other vector stores. TypeScript supports a smaller documented subset.</td>
             <td>Python, TypeScript/JavaScript, REST/cURL, and Python/Node CLIs.</td>
+            <td><strong>Yes, at the memory layer.</strong> Inferred writes extract useful facts from new conversations and perform duplicate or conflict handling. The current Platform algorithm accumulates temporally linked facts rather than overwriting them; explicit update APIs can correct stored memories. It does not retrain model weights.</td>
+            <td>Simple memory API; managed and self-hosted choices; broad vector-store and framework integrations; user, agent, and run scoping; automatic extraction.</td>
+            <td>Managed and OSS capabilities differ; TypeScript supports fewer stores; extraction accuracy, latency, and cost depend on the configured models. ADD-only Platform memory can grow over time and relies on retrieval to prioritize current facts.</td>
             <td>General-purpose memory extraction and CRUD with user, agent, and run scopes; managed or self-hosted operation; metadata filtering; vector retrieval; optional graph-oriented features and broad framework integrations.</td>
           </tr>
           <tr>
@@ -86,6 +93,9 @@
             <td><strong>Mixed.</strong> Graphiti is open-source; the managed Zep Context Graph Engine and service are proprietary.</td>
             <td>Zep uses its managed Context Graph Engine. Graphiti supports pluggable Neo4j, FalkorDB, and Amazon Neptune graph backends.</td>
             <td>Zep: Python, TypeScript/JavaScript, and Go. Graphiti's primary library is Python.</td>
+            <td><strong>Yes, through incremental temporal-graph updates.</strong> New episodes add entities and facts, update entity summaries, and automatically invalidate superseded facts while retaining their validity history. It does not retrain model weights.</td>
+            <td>Strong temporal reasoning, provenance, contradiction handling, and hybrid vector/keyword/graph retrieval; supports current-state and historical queries.</td>
+            <td>More operational and conceptual complexity than flat memory; Graphiti users must build user/thread management, governance, and production tooling. Extraction depends on reliable structured LLM output, while managed Zep is proprietary.</td>
             <td>Temporal knowledge graphs with entities, episodes, and bi-temporal facts; invalidation of superseded facts; hybrid vector, full-text, and graph retrieval; prompt-ready context blocks; managed governance in Zep.</td>
           </tr>
           <tr>
@@ -94,6 +104,9 @@
             <td><strong>Yes for the core server/API.</strong> The Letta project is Apache 2.0; Letta Cloud is a managed offering.</td>
             <td>PostgreSQL with the <code>pgvector</code> extension for self-hosted deployments; Letta Cloud manages its backend.</td>
             <td>Python and TypeScript/JavaScript SDKs; REST API.</td>
+            <td><strong>Yes, through agent-managed state.</strong> Agents can autonomously edit read-write memory blocks, retain archival memory, and evolve behavior-relevant context across interactions. This changes persistent agent state and prompts, not the base model's weights.</td>
+            <td>Complete stateful-agent runtime; persistent identity; always-visible editable memory blocks; shared memory across agents; model-agnostic API.</td>
+            <td>More opinionated and broader than a standalone memory layer; self-hosting requires operating the server and PostgreSQL. Autonomous memory edits consume model/context resources and require validation and access controls.</td>
             <td>Stateful-agent platform rather than only a memory store. Agents own editable memory blocks, conversation history, archival memory, tool state, and persistent identity; suitable when the agent runtime and memory model should be managed together.</td>
           </tr>
           <tr>
@@ -102,6 +115,9 @@
             <td><strong>Mixed.</strong> LangMem and LangGraph OSS are MIT licensed; LangGraph Platform is managed/commercial infrastructure.</td>
             <td>LangMem core primitives can work with any application storage. Stateful integration uses LangGraph <code>BaseStore</code>; documented development and production choices include in-memory and PostgreSQL stores, with additional stores available through the LangGraph ecosystem.</td>
             <td>Python for LangMem; Python and TypeScript/JavaScript for LangGraph applications.</td>
+            <td><strong>Yes, and explicitly designed for it.</strong> Hot-path or background managers extract, insert, consolidate, update, and optionally delete memories. Prompt optimizers can refine procedural instructions from feedback. These update external memory and prompts, not model weights.</td>
+            <td>Composable semantic, episodic, and procedural memory; storage-neutral core; background reflection; explicit update/delete controls; prompt optimization; close LangGraph integration.</td>
+            <td>It is a developer library and framework integration rather than a turnkey memory service. Teams own persistence, scheduling, authorization, governance, and production operations; LangMem itself is Python-first and behavior depends on prompts and models.</td>
             <td>Framework-level tools for semantic, episodic, and procedural memory; hot-path agent-managed memory; background extraction and consolidation; namespaces; prompt optimization; strong fit for applications already using LangGraph.</td>
           </tr>
           <tr>
@@ -110,6 +126,9 @@
             <td><strong>No.</strong> It is a fully managed AWS service.</td>
             <td>AWS-managed memory storage; applications do not choose or operate the underlying database.</td>
             <td>Python high-level AgentCore SDK and Boto3; AWS service APIs/SDKs and a Node-based AgentCore CLI support broader integration.</td>
+            <td><strong>Yes, through managed strategies.</strong> New events asynchronously trigger extraction and consolidation for semantic, summary, preference, episodic, or custom memories; episodic strategies can reflect across experiences. It does not retrain model weights.</td>
+            <td>Fully managed scaling and lifecycle; built-in and customizable strategies; actor/session namespaces; AWS security integration; self-managed strategy option for custom pipelines.</td>
+            <td>Underlying storage is AWS-managed and not portable. Long-term extraction requires an active strategy and is not retroactive for earlier events; built-in strategies trade control for convenience, while self-managed strategies restore operational work.</td>
             <td>Managed short-term event history and asynchronous long-term memory extraction; semantic, summary, and user-preference strategies; actor/session scoping; retrieval APIs; designed to integrate with AgentCore and multiple agent frameworks.</td>
           </tr>
           <tr class="oracle">
@@ -118,6 +137,9 @@
             <td><strong>Mixed.</strong> The Python library is dual-licensed under Apache 2.0 or UPL 1.0; Oracle AI Database is a commercial database platform.</td>
             <td>Oracle AI Database 26ai or later, using an application-supplied Oracle Database connection or pool.</td>
             <td>Python 3.10–3.13 for the current <code>oracleagentmemory</code> library.</td>
+            <td><strong>Yes, at the governed memory layer.</strong> Inline or background extraction mines appended messages, refreshes summaries, and supports custom extraction instructions and frequencies. Applications can update messages and memories; an edited message can trigger re-extraction. It does not retrain model weights.</td>
+            <td>Database-native memory beside operational data; vector, keyword, and hybrid retrieval; explicit user/agent/thread scope; SQL security and operations; update, TTL, and cascading deletion controls.</td>
+            <td>Requires Oracle AI Database 26ai or later and currently exposes a Python library. Teams still configure the database, model endpoints, and policies; background extraction is best effort and derived memories can be temporarily stale or dropped under configured queue behavior.</td>
             <td>Unified short-term threads, summaries, context cards, and durable memories on Oracle AI Database; vector, keyword, and hybrid retrieval; metadata filtering; user/agent/thread scopes; background extraction; full CRUD, time-to-live, cascading thread deletion, and in-database embeddings.</td>
           </tr>
         </tbody>
@@ -161,12 +183,12 @@
   <section id="references">
     <h2>Primary References</h2>
     <ul>
-      <li><a href="https://docs.mem0.ai/platform/quickstart">Mem0 Platform quickstart</a> and <a href="https://docs.mem0.ai/components/vectordbs/overview">supported vector databases</a></li>
-      <li><a href="https://help.getzep.com/zep-vs-graphiti">Zep versus Graphiti</a> and <a href="https://help.getzep.com/v2/quickstart">Zep SDK quickstart</a></li>
-      <li><a href="https://github.com/letta-ai/letta">Letta open-source repository</a>, <a href="https://docs.letta.com/api-overview/client-sdks">client SDKs</a>, and <a href="https://docs.letta.com/guides/docker/postgres/">PostgreSQL configuration</a></li>
-      <li><a href="https://langchain-ai.github.io/langmem/">LangMem documentation</a> and <a href="https://github.com/langchain-ai/langmem">open-source repository</a></li>
-      <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html">Amazon Bedrock AgentCore Memory</a></li>
-      <li><a href="https://www.oracle.com/database/ai-agent-memory/">Oracle Agent Memory overview</a>, <a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/get-started.html">26.6 getting started guide</a>, and <a href="https://pypi.org/project/oracleagentmemory/">Python package</a></li>
+      <li><a href="https://docs.mem0.ai/platform/quickstart">Mem0 Platform quickstart</a>, <a href="https://docs.mem0.ai/core-concepts/memory-operations/add">memory extraction and conflict handling</a>, and <a href="https://docs.mem0.ai/components/vectordbs/overview">supported vector databases</a></li>
+      <li><a href="https://help.getzep.com/zep-vs-graphiti">Zep versus Graphiti</a>, <a href="https://github.com/getzep/graphiti">Graphiti temporal and incremental learning model</a>, and <a href="https://help.getzep.com/v2/quickstart">Zep SDK quickstart</a></li>
+      <li><a href="https://github.com/letta-ai/letta">Letta open-source repository</a>, <a href="https://docs.letta.com/guides/core-concepts/memory/memory-blocks">agent-managed memory blocks</a>, and <a href="https://docs.letta.com/guides/docker/postgres/">PostgreSQL configuration</a></li>
+      <li><a href="https://langchain-ai.github.io/langmem/">LangMem documentation</a>, <a href="https://langchain-ai.github.io/langmem/concepts/conceptual_guide/">continual memory and prompt optimization concepts</a>, and <a href="https://github.com/langchain-ai/langmem">open-source repository</a></li>
+      <li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html">Amazon Bedrock AgentCore Memory</a> and <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-strategies.html">extraction and consolidation strategies</a></li>
+      <li><a href="https://www.oracle.com/database/ai-agent-memory/">Oracle Agent Memory overview</a>, <a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/whats-new.html">26.6 extraction and lifecycle capabilities</a>, and <a href="https://pypi.org/project/oracleagentmemory/">Python package</a></li>
     </ul>
   </section>
 
