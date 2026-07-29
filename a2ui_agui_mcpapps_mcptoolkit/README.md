@@ -6,7 +6,8 @@ This runnable reference application turns a stockout investigation into a govern
 - Oracle Database MCP Java Toolkit exposes five bounded supply-chain tools that can be reused by multiple agents and MCP-compatible clients.
 - The Java agent service streams official AG-UI events and carries A2UI v0.9.1 envelopes.
 - The browser validates and renders an allowlisted A2UI recommendation-and-approval surface.
-- A separate MCP App renders the same Toolkit-backed recommendations as a richer dashboard inside compatible hosts.
+- A separate MCP App renders and explicitly approves the same Toolkit-backed recommendations inside ChatGPT and other compatible MCP Apps hosts.
+- A Gemini Enterprise adapter serves the same workflow over A2A v0.3 with the A2UI v0.8 messages its native renderer currently requires.
 
 See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/implementation-plan.md`](docs/implementation-plan.md) for verified versions, compatibility risks, and the implementation design.
 
@@ -49,11 +50,35 @@ The Toolkit YAML schema has no callable OUT-parameter mode. The demo therefore r
 
 The pinned Toolkit revision advertises tool-list change notifications before its stdio transport can enqueue several startup registrations. `patches/stdio-tool-registration.patch` changes only the stdio capability from `tools(true)` to `tools(false)`. Static tool discovery and invocation remain available; dynamic list-change notifications are disabled for this fixed local configuration. The agent's exact allowlist check fails closed if registration is incomplete.
 
-## MCP App
+## Host adapters: one workflow, three presentation contracts
 
-The port-8080 web application demonstrates AG-UI and A2UI; it does not embed the MCP App. The separate `mcp-app/` package demonstrates the MCP Apps extension inside a compatible host. `server.ts` registers `show-inventory-transfer-dashboard` and its `ui://oracle-supply-chain/inventory-exchange-v1` resource, while `src/mcp-app.ts` implements the dashboard.
+The Java service is the common policy and domain boundary. The hosts do not
+share a UI binary or transport:
 
-The MCP App tool calls the Java service's `/api/recommendations` adapter. That adapter invokes `find-stockout-transfer-recommendations` through the Oracle Database MCP Java Toolkit and returns current Toolkit-labeled governed rows. The iframe never receives database credentials or a direct database connection.
+| Experience | Host contract | UI contract |
+|---|---|---|
+| Standalone browser | AG-UI events over SSE | allowlisted A2UI v0.9.1 |
+| ChatGPT | MCP over Streamable HTTP | MCP Apps `ui://` HTML and host bridge |
+| Gemini Enterprise | A2A v0.3 endpoint | native A2UI v0.8 |
+
+Gemini Enterprise does not need MCP Apps to provide the same governed
+recommendation-and-approval workflow. It renders native A2UI controls supplied
+by `gemini-enterprise-a2a/`. That adapter calls the same Java review, approval,
+and rejection APIs, which in turn use the same Toolkit tools and Oracle
+transaction. It is a transport/presentation adapter, not a second business
+implementation.
+
+## MCP App and ChatGPT
+
+The port-8080 web application demonstrates AG-UI and A2UI; it does not embed the MCP App. The separate `mcp-app/` package demonstrates the MCP Apps extension inside a compatible host. `server.ts` registers the model-visible `show-inventory-transfer-dashboard` tool, the app-only approve and reject tools, and the `ui://oracle-supply-chain/inventory-exchange-v1` resource, while `src/mcp-app.ts` implements the dashboard.
+
+The model-visible MCP App tool calls the Java service's `/api/reviews` adapter.
+That adapter invokes `find-stockout-transfer-recommendations`, binds a
+short-lived single-use approval handle to the exact returned rows, and puts the
+handle in widget-only result metadata. The iframe can call two app-only tools:
+`approve-inventory-transfer` and `reject-inventory-transfer-review`. The model
+cannot invoke either action tool. The iframe never receives database
+credentials or a direct database connection.
 
 With Node.js 20.19+ or 22.12+ installed:
 
@@ -70,7 +95,14 @@ Keep that server and the Java service running. In a third terminal, launch the p
 
 Open `http://127.0.0.1:8082`, select `show-inventory-transfer-dashboard`, and invoke it. This path requires no third-party host account.
 
-ChatGPT can also render the same standards-based MCP App. Keep the Java service and `mcp-app/run.sh` running, expose port 3001 through OpenAI Secure MCP Tunnel or another HTTPS tunnel, enable ChatGPT Developer Mode, and create a developer-mode app using the resulting `/mcp` URL. Start a new chat, select the app from **+ → More**, and ask it to show the stockout transfer dashboard. ChatGPT cannot connect directly to the loopback URL. See the detailed, current steps and availability caveats in [`mcp-app/README.md`](mcp-app/README.md).
+ChatGPT can render this standards-based MCP App. Keep the Java service and
+`mcp-app/run.sh` running, expose port 3001 through OpenAI Secure MCP Tunnel or
+another HTTPS tunnel, enable ChatGPT Developer Mode, and create a
+developer-mode plugin using the resulting `/mcp` URL. Start a new chat, select
+the plugin, ask it to show the dashboard, select one exact recommendation,
+review the notes, and choose **Approve and execute transfer** or **Cancel
+review**. ChatGPT cannot connect directly to the loopback URL. See the detailed
+steps in [`mcp-app/README.md`](mcp-app/README.md).
 
 Claude remains an optional alternative host using the same tunneled `/mcp` endpoint.
 
@@ -79,12 +111,29 @@ For cross-machine ChatGPT or Claude validation, use the complete
 runbook and record sanitized evidence in
 [`docs/mcp-app-host-validation-results.md`](docs/mcp-app-host-validation-results.md).
 
+## Gemini Enterprise
+
+Keep the Java service running and start the separate adapter:
+
+```bash
+cd gemini-enterprise-a2a
+./run.sh
+```
+
+Deploy that adapter at a public authenticated HTTPS endpoint and register its
+agent card as a custom A2A agent in Gemini Enterprise. Gemini Enterprise
+currently supports A2UI v0.8 rather than the browser's v0.9.1 envelopes, so the
+adapter emits the older `beginRendering`, `surfaceUpdate`, and
+`dataModelUpdate` shapes. See
+[`gemini-enterprise-a2a/README.md`](gemini-enterprise-a2a/README.md).
+
 ## Security posture
 
 - Only five bounded supply-chain business tools are enabled; do not use `-Dtools=*`.
 - Every user-controlled database value is bound and validated server-side.
 - A recommendation is determined by governed SQL, not invented by the browser or model.
 - The approval ID is actor-bound, short-lived, single-use, and bound to the exact recommendation returned by the database.
+- MCP App write tools are app-only; the model-visible tool remains read-only.
 - Rejection never invokes the write operation.
 - The stored procedure revalidates current quantities under row locks before reserving inventory.
 - The procedure-backed MCP write is one atomic statement; the Toolkit commits only a successful tool statement.

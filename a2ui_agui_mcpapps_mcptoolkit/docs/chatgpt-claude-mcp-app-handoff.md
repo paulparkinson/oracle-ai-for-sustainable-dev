@@ -13,8 +13,11 @@ Prove that the existing standards-based MCP App can:
 2. invoke `show-inventory-transfer-dashboard`;
 3. render the `ui://oracle-supply-chain/inventory-exchange-v1` dashboard;
 4. display current Oracle Database MCP Java Toolkit-governed recommendations;
-5. send a selected recommendation back to the host conversation; and
-6. produce publication-quality evidence for a later update to `blog.html`.
+5. send a selected recommendation back to the host conversation;
+6. explicitly approve one exact transfer through an app-only tool and verify
+   its audited result;
+7. cancel a second review and verify that no write occurs; and
+8. produce publication-quality evidence for a later update to `blog.html`.
 
 Do not redesign the application or rewrite the blog during this validation.
 Record verified host behavior and capture evidence. The Oracle blog-writing
@@ -30,10 +33,14 @@ session will use that evidence to finish the article.
 - MCP App server: TypeScript Streamable HTTP server on port `3001`
 - Local account-free MCP Apps host: port `8082`
 - MCP tool: `show-inventory-transfer-dashboard`
+- App-only tools: `approve-inventory-transfer` and
+  `reject-inventory-transfer-review`
 - UI resource:
   `ui://oracle-supply-chain/inventory-exchange-v1`
 - UI MIME type: the MCP Apps `RESOURCE_MIME_TYPE`
-- Governed-data adapter:
+- Governed review adapter:
+  `POST http://127.0.0.1:8080/api/reviews`
+- Read-only diagnostic adapter:
   `GET http://127.0.0.1:8080/api/recommendations`
 - Database path:
   MCP App → Java adapter → Oracle Database MCP Java Toolkit → Oracle AI Database
@@ -55,11 +62,10 @@ the MCP App. ChatGPT, Claude, or the official basic host renders the separate
 MCP App returned by the port-3001 MCP server.
 
 At handoff on 2026-07-28, the local baseline was verified: Java tests passed,
-both health endpoints returned `UP`, MCP initialization negotiated protocol
-`2025-06-18`, `tools/list` returned the one expected dashboard tool and
-`ui://` resource metadata, and a direct `tools/call` returned a live
-Toolkit-labeled recommendation. The remote ChatGPT and Claude host checks are
-the intentionally outstanding work.
+the TypeScript package typechecked and built, and the A2UI v0.8 payload tests
+passed. The server registers one model-visible dashboard tool plus two
+app-only action tools and the `ui://` resource. The remote ChatGPT and Claude
+host checks are the intentionally outstanding work.
 
 ## What must be available on the other machine
 
@@ -194,8 +200,9 @@ npx @modelcontextprotocol/inspector@latest
 ```
 
 Configure Streamable HTTP with `http://127.0.0.1:3001/mcp`, list the tools, and
-invoke `show-inventory-transfer-dashboard`. The discovered server should expose
-only that MCP App tool.
+invoke `show-inventory-transfer-dashboard`. Inspector should list three tools:
+the dashboard tool with model-and-app visibility, plus approve and reject tools
+with app-only visibility.
 
 If MCP Inspector is unavailable, this stateless Streamable HTTP request checks
 tool discovery directly:
@@ -208,8 +215,11 @@ curl --fail --silent --show-error \
   --data '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
-The response must contain `show-inventory-transfer-dashboard` and
-`ui://oracle-supply-chain/inventory-exchange-v1`.
+The response must contain `show-inventory-transfer-dashboard`,
+`approve-inventory-transfer`, `reject-inventory-transfer-review`, their
+visibility metadata, and `ui://oracle-supply-chain/inventory-exchange-v1`.
+ChatGPT's model-facing discovery should expose only the dashboard tool; the
+rendered app can call the two app-only tools.
 
 ## Make the MCP endpoint reachable
 
@@ -291,8 +301,12 @@ Expected result:
 - The MCP App renders inline in a sandboxed iframe.
 - The source message identifies the Oracle Database MCP Java Toolkit.
 - Recommendation cards show SKU, route, transfer quantity, risk, and rationale.
-- Clicking **Send recommendation to conversation** adds a structured selection
-  such as SKU, source, target, and quantity to the conversation.
+- Clicking **Review this transfer** adds a structured selection such as SKU,
+  source, target, and quantity to the conversation.
+- Clicking **Approve and execute transfer** invokes the app-only approval tool
+  and returns an audited transfer ID.
+- Clicking **Cancel review** in a fresh review invokes the app-only rejection
+  tool and performs no database write.
 
 Then run:
 
@@ -354,8 +368,10 @@ Expected result:
 - The interactive connector renders the MCP App inline or in its supported
   expanded presentation.
 - The dashboard shows Toolkit-governed results.
-- **Send recommendation to conversation** passes the selected transfer back
-  into the conversation.
+- **Review this transfer** passes the selected transfer into host context.
+- **Approve transfer** calls the app-only approval tool and reports the audited
+  result; **Cancel review** calls the app-only rejection tool and performs no
+  inventory write.
 
 If the UI does not appear, confirm that the connector is connected and enabled,
 start a new conversation, and verify the public endpoint again with MCP
@@ -413,6 +429,8 @@ For each tested host:
 - [ ] The interactive MCP App renders.
 - [ ] Toolkit-governed recommendation data appears.
 - [ ] Selection returns structured transfer context to the conversation.
+- [ ] Explicit MCP App approval returns an audited transfer ID.
+- [ ] A separate cancellation performs no database write.
 - [ ] Unrelated prompts do not invoke the tool.
 - [ ] Evidence contains no secrets.
 - [ ] Validation results and screenshots are committed and pushed to `main`.

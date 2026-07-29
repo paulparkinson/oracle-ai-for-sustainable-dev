@@ -24,11 +24,12 @@ curl --fail --silent --show-error -X POST "$base_url/api/approve" \
   --data-urlencode 'approvalNotes=Approve governed inventory rebalancing recommendation' \
   | grep -q '"status":"APPROVED"'
 
-curl --fail --silent --show-error -X POST "$base_url/api/runs" \
+curl --fail --silent --show-error -X POST "$base_url/api/reviews" \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   --data 'minimumStockoutRisk=70&maximumRows=2' > "$reject_file"
 approval_id="$(sed -n 's/.*"approvalId":"\([^"]*\)".*/\1/p' "$reject_file" | head -1)"
 test -n "$approval_id"
+grep -q '"source":"oracle-db-mcp-java-toolkit"' "$reject_file"
 
 curl --fail --silent --show-error -X POST "$base_url/api/reject" \
   -H 'Content-Type: application/x-www-form-urlencoded' \

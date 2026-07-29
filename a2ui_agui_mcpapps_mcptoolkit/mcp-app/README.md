@@ -1,6 +1,25 @@
 # Supply-chain inventory-transfer MCP App
 
-This dashboard is a separate MCP App that uses the running Java service as its governed-data adapter. The Java service invokes `find-stockout-transfer-recommendations` through the Oracle Database MCP Java Toolkit; the MCP App server validates that Toolkit-labeled response and returns it as structured tool content. The sandboxed `ui://oracle-supply-chain/inventory-exchange-v1` resource receives those rows through the MCP Apps host bridge. It never receives database credentials or connects directly to Oracle Database.
+This dashboard is a separate MCP App that uses the running Java service as its
+governed-data and approval adapter. The Java service invokes
+`find-stockout-transfer-recommendations` through the Oracle Database MCP Java
+Toolkit, binds a short-lived approval handle to the exact returned rows, and
+returns Toolkit-labeled data. The sandboxed
+`ui://oracle-supply-chain/inventory-exchange-v1` resource receives the rows and
+the widget-only handle through the MCP Apps host bridge. It never receives
+database credentials or connects directly to Oracle Database.
+
+The MCP server exposes:
+
+- `show-inventory-transfer-dashboard` to the model and app; it is read-only.
+- `approve-inventory-transfer` only to the app; it executes one exact reviewed
+  recommendation.
+- `reject-inventory-transfer-review` only to the app; it invalidates the
+  handle without a write.
+
+The model cannot call the approve or reject tools. The person must select a
+card, inspect the route and quantity, review the notes, and click the explicit
+approval button inside the MCP App.
 
 Requires Node.js 20.19+ or 22.12+:
 
@@ -27,7 +46,13 @@ ChatGPT can render this same portable MCP App without a separate UI implementati
 3. In ChatGPT, enable **Developer mode** under **Settings → Security and login**. If the setting is unavailable, the account or workspace administrator must allow it.
 4. Open **Settings → Plugins** or `https://chatgpt.com/plugins`, select **+**, and create a developer-mode app using the tunnel URL ending in `/mcp`.
 5. Start a new chat, select the app from **+ → More**, and prompt: `Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 10 recommendations.`
-6. Confirm that ChatGPT calls `show-inventory-transfer-dashboard`, renders the dashboard, and that selecting a recommendation sends its structured source, target, SKU, and quantity back to the conversation.
+6. Confirm that ChatGPT calls `show-inventory-transfer-dashboard`, renders the
+   dashboard, and that selecting a recommendation sends its structured source,
+   target, SKU, and quantity back to the conversation.
+7. Select one recommendation, review the approval notes, and click **Approve
+   and execute transfer**. Confirm the audited transfer ID appears in the app
+   and conversation. Run a second review and choose **Cancel review** to verify
+   that no write occurs.
 
 See OpenAI's [MCP Apps compatibility](https://developers.openai.com/apps-sdk/mcp-apps-in-chatgpt), [Connect from ChatGPT](https://developers.openai.com/apps-sdk/deploy/connect-chatgpt), and [testing](https://developers.openai.com/apps-sdk/deploy/testing) guidance. Developer Mode availability and permissions depend on the account and workspace policy.
 
@@ -41,4 +66,11 @@ template. The runbook includes prerequisites, database startup, tunnel choices,
 current ChatGPT and Claude navigation, prompts, expected results, screenshot
 names, security rules, and a copy/paste prompt for the next ChatGPT session.
 
-For production, use HTTPS, authentication, an explicit origin policy, service-to-service authorization between the MCP App server and agent service, and durable user identity rather than the local loopback trust boundary.
+Gemini Enterprise does not use this `ui://` application. It uses the sibling
+`../gemini-enterprise-a2a/` adapter, which exposes the same Java workflow over
+A2A and produces native A2UI v0.8 controls.
+
+For production, use HTTPS, authentication, an explicit origin policy,
+service-to-service authorization between the MCP App server and agent service,
+durable approval/idempotency storage, and durable user identity rather than
+the local loopback trust boundary.

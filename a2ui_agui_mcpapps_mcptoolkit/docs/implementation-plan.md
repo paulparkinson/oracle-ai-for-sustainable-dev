@@ -9,8 +9,9 @@ Originally verified on 2026-07-20 against the upstream projects linked below; th
 | Oracle Database MCP Java Toolkit | `com.oracle.database.mcptoolkit:oracle-db-mcp-toolkit:1.0.0`; pinned upstream commit `5bb406b5b70e109a749cd16cc026422134a117b2`; JDK 17+, Maven 3.9+ | Build the official source into ignored `.runtime/`, apply the one-line stdio registration patch, and launch it with only `supply-chain-exchange`. Use Streamable HTTP with TLS/OAuth for a remote deployment. |
 | MCP protocol client | MCP `2025-03-26`, matching the Toolkit's `io.modelcontextprotocol.sdk:mcp:0.12.1` baseline | Keep the agent adapter small and dependency-light: newline-delimited JSON-RPC over stdio, initialization, tool discovery, tool calls, 30-second timeouts, server identity checks, and an exact allowlist. |
 | AG-UI | Current standardized lifecycle, text, tool-call, state, and `CUSTOM` events | Emit the official event names over SSE. Carry each A2UI envelope in a `CUSTOM` event named `a2ui.message`. Approval is application state, not an invented AG-UI event type. |
-| A2UI | v0.9.1, current production baseline | Emit `createSurface`, `updateComponents`, and `updateDataModel` envelopes using the Basic Catalog ID. The browser renderer accepts only a small catalog and component allowlist. |
-| MCP Apps | Stable 2026-01-26 extension; `@modelcontextprotocol/ext-apps` 1.7.4; `ui://` resource; `text/html;profile=mcp-app` | Keep the recommendation dashboard in a separate TypeScript package. It receives structured Toolkit-governed results through the host bridge and never connects to Oracle Database. |
+| A2UI browser | v0.9.1 | Emit `createSurface`, `updateComponents`, and `updateDataModel` envelopes using the Basic Catalog ID. The browser renderer accepts only a small catalog and component allowlist. |
+| MCP Apps / ChatGPT | Stable 2026-01-26 extension; `@modelcontextprotocol/ext-apps` 1.7.4; `ui://` resource; `text/html;profile=mcp-app` | Keep the dashboard in a separate TypeScript package. The model-visible tool is read-only; approve and reject are app-only tools invoked after explicit interaction. |
+| Gemini Enterprise | Preview; A2A v0.3 compatibility; A2UI v0.8 only as of 2026-07-28 | Serve a separate A2A adapter with deterministic `beginRendering`, `surfaceUpdate`, and `dataModelUpdate` messages. Reuse the Java domain API and Oracle transaction; do not send the MCP App or v0.9.1 browser envelopes to Gemini Enterprise. |
 
 ## Business decision: a governed recommendation, not an arbitrary action menu
 
@@ -40,7 +41,15 @@ Oracle AI Database
 MCP-compatible host
   |  ui:// resource + postMessage bridge
   v
-mcp-app (recommendation dashboard; structured data only)
+mcp-app (dashboard + app-only approval/rejection tools)
+
+Gemini Enterprise
+  |  A2A v0.3 JSON-RPC + A2UI v0.8 DataParts
+  v
+gemini-enterprise-a2a
+  |  same review / approval / rejection API
+  v
+agent-service -> Toolkit -> Oracle AI Database
 ```
 
 ## Delivered phases
@@ -48,13 +57,20 @@ mcp-app (recommendation dashboard; structured data only)
 1. **Foundation:** supply-chain schema, deterministic data, tool YAML, AG-UI SSE, allowlisted A2UI renderer, MCP App dashboard, tests, and blog.
 2. **Oracle schema bootstrap:** guarded one-time UCP setup using the financial database defaults, recommendation view, sequence, input-only procedure, and deterministic sample records. This installer is separate from application runtime access.
 3. **MCP integration:** pinned official Toolkit bootstrap, synchronous stdio client, exact allowlist verification, YAML reads, and a sequence-backed procedure write. Every application database operation uses this path.
-4. **Production path:** replace in-memory approval state with durable hashed nonce/idempotency records; use external identity, VPD/data-role policies, centralized audit export, authenticated Streamable HTTP, and host compatibility testing.
+4. **Host adapters:** MCP Apps approval inside ChatGPT-compatible hosts and
+   A2A/A2UI v0.8 delivery for Gemini Enterprise, both over the same
+   short-lived approval and Oracle transaction boundary.
+5. **Production path:** replace in-memory approval state with durable hashed
+   nonce/idempotency records; use external identity, VPD/data-role policies,
+   centralized audit export, authenticated Streamable HTTP/A2A, and host
+   compatibility testing.
 
 ## Compatibility risks
 
 - The Java AG-UI SDK is community-maintained and has moved within the upstream monorepo. The baseline therefore uses the stable wire contract without taking a hard dependency on a volatile Java artifact.
-- A2UI v1.0 changes require a deliberate migration. The current renderer and envelopes are fixed at v0.9.1.
+- A2UI v1.0 changes require a deliberate migration. The standalone renderer is fixed at v0.9.1, while Gemini Enterprise currently requires a separately tested v0.8 payload builder.
 - MCP Apps is an MCP extension and host support varies. The base web app works without it.
+- Gemini Enterprise A2UI support is Preview. It does not consume the MCP App resource, and its supported A2UI/A2A revisions can change independently.
 - YAML cannot currently express a callable OUT parameter. The sequence-plus-input-only-procedure design avoids that requirement, but sequence gaps are expected and the exact Toolkit commit remains pinned and tested.
 - The pinned Toolkit/SDK combination can emit tool-list change notifications before stdio is ready when several tools register at startup. The checked-in patch disables only those dynamic stdio notifications; static discovery and calls remain enabled, and the agent checks the exact list before serving.
 - Oracle bind support in `FETCH FIRST :maximumRows ROWS ONLY` can vary by execution path. The demo uses `ROWNUM <= :maximumRows` in an outer query.
@@ -67,3 +83,6 @@ mcp-app (recommendation dashboard; structured data only)
 - [A2UI v0.9.1 specification](https://a2ui.org/specification/v0.9.1-a2ui/)
 - [MCP Apps overview](https://modelcontextprotocol.io/extensions/apps/overview)
 - [MCP Apps build guide](https://modelcontextprotocol.io/extensions/apps/build)
+- [OpenAI: add UI to an MCP server](https://developers.openai.com/plugins/build/chatgpt-ui)
+- [Gemini Enterprise A2UI/A2A registration](https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent)
+- [Gemini Enterprise A2A registration](https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent)

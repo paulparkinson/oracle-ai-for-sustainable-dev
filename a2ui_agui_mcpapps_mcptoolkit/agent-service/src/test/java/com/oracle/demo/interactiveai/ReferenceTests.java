@@ -157,4 +157,21 @@ final class ReferenceTests {
         assertTrue(payload.contains(
                 "\"sku\":\"BAT-48V\""));
     }
+
+    @Test
+    void reviewPayloadCarriesAppOnlyApprovalHandle() {
+        TransferRecommendation recommendation =
+                new DemoSupplyChainRepository()
+                        .findTransferRecommendations(90, 1)
+                        .getFirst();
+        String payload = Main.reviewJson(
+                List.of(recommendation),
+                "test-approval-handle");
+        assertTrue(payload.contains(
+                "\"source\":\"oracle-db-mcp-java-toolkit\""));
+        assertTrue(payload.contains(
+                "\"approvalId\":\"test-approval-handle\""));
+        assertTrue(payload.contains(
+                "\"recommendationId\":\"1001:102:101\""));
+    }
 }

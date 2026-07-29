@@ -53,6 +53,7 @@ public final class Main {
                 0);
         server.createContext("/api/runs", this::run);
         server.createContext("/api/recommendations", this::recommendations);
+        server.createContext("/api/reviews", this::review);
         server.createContext("/api/approve", this::approve);
         server.createContext("/api/reject", this::reject);
         server.createContext(
@@ -139,6 +140,45 @@ public final class Main {
                         maximumRows,
                         actor);
             }
+        } catch (IllegalArgumentException exception) {
+            respond(
+                    exchange,
+                    400,
+                    "application/json",
+                    Json.value(Map.of("error", exception.getMessage())));
+        } catch (IllegalStateException exception) {
+            respond(
+                    exchange,
+                    500,
+                    "application/json",
+                    Json.value(Map.of("error", exception.getMessage())));
+        }
+    }
+
+    private void review(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, "text/plain", "POST required");
+            return;
+        }
+        try {
+            Map<String, String> form = form(exchange);
+            double minimumStockoutRisk = Double.parseDouble(
+                    form.getOrDefault("minimumStockoutRisk", "70"));
+            int maximumRows = Integer.parseInt(
+                    form.getOrDefault("maximumRows", "10"));
+            InputValidation.minimumStockoutRisk(minimumStockoutRisk);
+            InputValidation.maximumRows(maximumRows);
+            List<TransferRecommendation> recommendations =
+                    repository.findTransferRecommendations(
+                            minimumStockoutRisk,
+                            maximumRows);
+            String approvalId = approvals.issue(actor, recommendations);
+            exchange.getResponseHeaders().set("Cache-Control", "no-store");
+            respond(
+                    exchange,
+                    200,
+                    "application/json",
+                    reviewJson(recommendations, approvalId));
         } catch (IllegalArgumentException exception) {
             respond(
                     exchange,
@@ -297,6 +337,18 @@ public final class Main {
             List<TransferRecommendation> recommendations) {
         return Json.value(Map.of(
                 "source", "oracle-db-mcp-java-toolkit",
+                "recommendations",
+                recommendations.stream()
+                        .map(Json::recommendationMap)
+                        .toList()));
+    }
+
+    static String reviewJson(
+            List<TransferRecommendation> recommendations,
+            String approvalId) {
+        return Json.value(Map.of(
+                "source", "oracle-db-mcp-java-toolkit",
+                "approvalId", approvalId,
                 "recommendations",
                 recommendations.stream()
                         .map(Json::recommendationMap)

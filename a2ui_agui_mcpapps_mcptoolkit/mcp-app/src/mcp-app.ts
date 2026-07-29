@@ -25,6 +25,21 @@ const recommendationsElement =
   document.querySelector<HTMLDivElement>("#recommendations")!;
 const sourceElement =
   document.querySelector<HTMLParagraphElement>("#source")!;
+const decisionElement =
+  document.querySelector<HTMLElement>("#decision")!;
+const selectionElement =
+  document.querySelector<HTMLElement>("#selection")!;
+const notesElement =
+  document.querySelector<HTMLTextAreaElement>("#approval-notes")!;
+const approveElement =
+  document.querySelector<HTMLButtonElement>("#approve")!;
+const cancelElement =
+  document.querySelector<HTMLButtonElement>("#cancel")!;
+const statusElement =
+  document.querySelector<HTMLParagraphElement>("#status")!;
+
+let approvalId: string | undefined;
+let selectedRecommendation: TransferRecommendation | undefined;
 
 app.ontoolresult = (result) => {
   const payload = result.structuredContent as {
@@ -32,6 +47,11 @@ app.ontoolresult = (result) => {
     source?: string;
     minimumStockoutRisk?: number;
   } | undefined;
+  approvalId =
+    result._meta && typeof result._meta.approvalId === "string"
+      ? result._meta.approvalId
+      : undefined;
+  selectedRecommendation = undefined;
   sourceElement.textContent =
     payload?.source === "oracle-db-mcp-java-toolkit"
       ? "Live governed results from the Oracle Database MCP Java Toolkit"
@@ -44,6 +64,12 @@ app.connect();
 function render(recommendations: TransferRecommendation[]) {
   metrics.replaceChildren();
   recommendationsElement.replaceChildren();
+  decisionElement.hidden = recommendations.length === 0 || !approvalId;
+  selectionElement.textContent = "Select a recommendation to review.";
+  statusElement.textContent = approvalId
+    ? "No database write occurs until you select a recommendation and approve it."
+    : "This host did not provide an approval handle; the dashboard is read-only.";
+  approveElement.disabled = true;
   if (recommendations.length === 0) {
     const empty = document.createElement("p");
     empty.textContent =
@@ -111,9 +137,22 @@ function recommendationCard(
   const summary = document.createElement("p");
   summary.textContent = recommendation.rationale;
   const button = document.createElement("button");
-  button.textContent = "Send recommendation to conversation";
-  button.addEventListener("click", () =>
-    app.updateModelContext({
+  button.textContent = "Review this transfer";
+  button.addEventListener("click", () => {
+    selectedRecommendation = recommendation;
+    approveElement.disabled = false;
+    selectionElement.textContent =
+      `Selected ${recommendation.sku}: `
+      + `${recommendation.sourceLocationCode} to `
+      + `${recommendation.targetLocationCode}, `
+      + `${recommendation.recommendedTransferQuantity} units.`;
+    statusElement.textContent =
+      "Review the exact route, quantity, rationale, and notes before approval.";
+    for (const card of recommendationsElement.children) {
+      card.classList.remove("selected");
+    }
+    box.classList.add("selected");
+    void app.updateModelContext({
       content: [{
         type: "text",
         text:
@@ -123,8 +162,101 @@ function recommendationCard(
             + `${recommendation.sourceLocationCode} to `
             + `${recommendation.targetLocationCode}.`
       }]
-    })
-  );
+    });
+  });
   box.append(name, route, score, bar, summary, button);
   return box;
+}
+
+approveElement.addEventListener("click", async () => {
+  if (!approvalId || !selectedRecommendation) return;
+  const notes = notesElement.value.trim();
+  if (notes.length < 10) {
+    statusElement.textContent =
+      "Approval notes must contain at least 10 characters.";
+    return;
+  }
+  setBusy(true, "Executing the governed transfer...");
+  try {
+    const result = await app.callServerTool({
+      name: "approve-inventory-transfer",
+      arguments: {
+        approvalId,
+        recommendationId: selectedRecommendation.recommendationId,
+        approvalNotes: notes
+      }
+    });
+    const payload = result.structuredContent as {
+      transferId?: number;
+      recommendationId?: string;
+      transferQuantity?: number;
+      status?: string;
+    } | undefined;
+    if (payload?.status !== "APPROVED") {
+      throw new Error("The approval tool returned an unexpected result.");
+    }
+    statusElement.textContent =
+      `Transfer ${payload.transferId} approved and audited for `
+      + `${payload.transferQuantity} units.`;
+    approvalId = undefined;
+    approveElement.disabled = true;
+    cancelElement.disabled = true;
+    void app.updateModelContext({
+      content: [{
+        type: "text",
+        text:
+          `The user explicitly approved audited inventory transfer `
+          + `${payload.transferId} for recommendation `
+          + `${payload.recommendationId}.`
+      }]
+    });
+  } catch (error) {
+    setBusy(
+      false,
+      error instanceof Error ? error.message : "Transfer approval failed."
+    );
+  }
+});
+
+cancelElement.addEventListener("click", async () => {
+  if (!approvalId) return;
+  setBusy(true, "Cancelling this review...");
+  try {
+    await app.callServerTool({
+      name: "reject-inventory-transfer-review",
+      arguments: { approvalId }
+    });
+    statusElement.textContent =
+      "Review cancelled. No inventory-transfer write was executed.";
+    approvalId = undefined;
+    selectedRecommendation = undefined;
+    approveElement.disabled = true;
+    cancelElement.disabled = true;
+    for (const card of recommendationsElement.children) {
+      card.classList.remove("selected");
+    }
+    void app.updateModelContext({
+      content: [{
+        type: "text",
+        text:
+          "The user cancelled the inventory-transfer review. "
+          + "No database write was executed."
+      }]
+    });
+  } catch (error) {
+    setBusy(
+      false,
+      error instanceof Error ? error.message : "Review cancellation failed."
+    );
+  }
+});
+
+function setBusy(busy: boolean, message: string) {
+  statusElement.textContent = message;
+  approveElement.disabled =
+    busy || !approvalId || !selectedRecommendation;
+  cancelElement.disabled = busy || !approvalId;
+  for (const button of recommendationsElement.querySelectorAll("button")) {
+    button.disabled = busy;
+  }
 }

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Interactive AI architecture with AG-UI, A2UI, MCP Apps, and Oracle AI Database</title>
-  <desc id="desc">A browser uses AG-UI and A2UI with a Java agent service. An optional sandboxed MCP App connects through its host. The agent calls narrow Oracle Database MCP Java Toolkit tools backed by Oracle AI Database governed data and transactions.</desc>
+  <desc id="desc">A browser uses AG-UI and A2UI with a Java agent service. ChatGPT uses a sandboxed MCP App, while Gemini Enterprise uses A2A with native A2UI. Every host reaches the same governed Oracle Database MCP Java Toolkit tools and Oracle AI Database transaction.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#101820"/>
@@ -38,11 +38,17 @@
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="55" y="386" width="260" height="160" rx="18" class="box"/>
-    <text x="78" y="424" class="label">MCP-compatible host</text>
-    <text x="78" y="455" class="small">Sandboxed MCP App</text>
-    <text x="78" y="481" class="small">Dashboard + selection</text>
-    <text x="78" y="514" class="micro">OPTIONAL RICH UI</text>
+    <rect x="55" y="365" width="260" height="120" rx="18" class="box"/>
+    <text x="78" y="403" class="label">ChatGPT / MCP host</text>
+    <text x="78" y="434" class="small">Sandboxed MCP App</text>
+    <text x="78" y="460" class="small">Dashboard + app-only approval</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="505" width="260" height="105" rx="18" class="box"/>
+    <text x="78" y="543" class="label">Gemini Enterprise</text>
+    <text x="78" y="574" class="small">A2A v0.3 + native A2UI v0.8</text>
+    <text x="78" y="597" class="micro">DECLARATIVE HOST UI</text>
   </g>
 
   <g filter="url(#shadow)">
@@ -79,8 +85,10 @@
   <path d="M420 330 C370 330 360 295 315 295" class="flow"/>
   <text x="329" y="232" class="micro">AG-UI</text>
   <text x="329" y="327" class="micro">A2UI</text>
-  <path d="M315 465 C355 465 377 430 420 430" class="flow"/>
-  <text x="328" y="452" class="micro">HOST BRIDGE</text>
+  <path d="M315 425 C355 425 377 420 420 420" class="flow"/>
+  <text x="328" y="407" class="micro">MCP APP BRIDGE</text>
+  <path d="M315 558 C365 558 380 468 420 468" class="flow"/>
+  <text x="322" y="535" class="micro">A2A + A2UI</text>
   <path d="M730 285 C773 285 782 244 825 244" class="flow"/>
   <text x="747" y="267" class="micro">NARROW MCP TOOLS</text>
   <path d="M985 338 L985 373" class="flow"/>

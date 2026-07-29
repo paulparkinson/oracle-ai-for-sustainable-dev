@@ -2,7 +2,10 @@
 
 ## Trust boundaries
 
-The browser, model output, A2UI envelopes, MCP App content, and tool arguments are untrusted. The agent service is the policy point for approval and exact tool allowlisting. Oracle AI Database is the final feasibility, locking, transaction, and audit enforcement point.
+The browser, model output, A2UI envelopes, A2A messages, MCP App content, and
+tool arguments are untrusted. The agent service is the policy point for
+approval and exact tool allowlisting. Oracle AI Database is the final
+feasibility, locking, transaction, and audit enforcement point.
 
 ## Controls implemented
 
@@ -12,6 +15,10 @@ The browser, model output, A2UI envelopes, MCP App content, and tool arguments a
 - Browser approval contains no client-selected source, target, product, or quantity
 - Rejection path that never calls a write tool
 - Fixed A2UI version, catalog, surface, message, and component allowlists
+- Separate, version-pinned A2UI builders for the v0.9.1 browser and v0.8
+  Gemini Enterprise contracts
+- App-only MCP tools for approve/reject; the model-visible MCP App tool is
+  read-only
 - DOM construction with `textContent`; no generated scripts or HTML
 - Bind placeholders in Toolkit YAML
 - Tool allowlist limited to five supply-chain exchange operations

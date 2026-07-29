@@ -45,27 +45,60 @@ const GovernedRecommendationsSchema = z.object({
   source: z.literal("oracle-db-mcp-java-toolkit"),
   recommendations: z.array(TransferRecommendationSchema)
 });
+const GovernedReviewSchema = GovernedRecommendationsSchema.extend({
+  approvalId: z.string().uuid()
+});
+const TransferResultSchema = z.object({
+  transferId: z.number().int().positive(),
+  recommendationId: z.string(),
+  transferQuantity: z.number().positive(),
+  status: z.literal("APPROVED")
+});
+const RejectionResultSchema = z.object({
+  status: z.literal("REJECTED")
+});
 
-async function loadGovernedRecommendations(
+async function agentFormRequest(
+  pathName: string,
+  values: Record<string, string | number>
+) {
+  const endpoint = new URL(pathName, agentServiceUrl);
+  const body = new URLSearchParams();
+  Object.entries(values).forEach(
+    ([name, value]) => body.set(name, String(value))
+  );
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body,
+    signal: AbortSignal.timeout(agentServiceTimeoutMs)
+  });
+  const payload: unknown = await response.json();
+  if (!response.ok) {
+    const message =
+      typeof payload === "object"
+        && payload !== null
+        && "error" in payload
+        && typeof payload.error === "string"
+        ? payload.error
+        : `Governed request failed with HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  return payload;
+}
+
+async function loadGovernedReview(
   minimumStockoutRisk: number,
   maximumRows: number
 ) {
-  const endpoint = new URL("/api/recommendations", agentServiceUrl);
-  endpoint.searchParams.set(
-    "minimumStockoutRisk",
-    String(minimumStockoutRisk)
+  return GovernedReviewSchema.parse(
+    await agentFormRequest("/api/reviews", {
+      minimumStockoutRisk,
+      maximumRows
+    })
   );
-  endpoint.searchParams.set("maximumRows", String(maximumRows));
-  const response = await fetch(endpoint, {
-    signal: AbortSignal.timeout(agentServiceTimeoutMs)
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Governed recommendation request failed with HTTP ${response.status}`
-    );
-  }
-  return GovernedRecommendationsSchema.parse(await response.json())
-    .recommendations;
 }
 
 const server = new McpServer({
@@ -95,9 +128,13 @@ registerAppTool(server, "show-inventory-transfer-dashboard", {
       resourceUri,
       visibility: ["model", "app"]
     }
+  },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: false
   }
 }, async ({ minimumStockoutRisk, maximumRows }) => {
-  const recommendations = await loadGovernedRecommendations(
+  const review = await loadGovernedReview(
     minimumStockoutRisk,
     maximumRows
   );
@@ -106,14 +143,86 @@ registerAppTool(server, "show-inventory-transfer-dashboard", {
       type: "text",
       text:
         "Oracle Database MCP Java Toolkit returned "
-        + `${recommendations.length} governed inventory-transfer recommendations.`
+        + `${review.recommendations.length} governed inventory-transfer recommendations `
+        + "for explicit user review."
     }],
     structuredContent: {
-      recommendations,
+      recommendations: review.recommendations,
       source: "oracle-db-mcp-java-toolkit",
       minimumStockoutRisk,
       maximumRows
+    },
+    _meta: {
+      approvalId: review.approvalId
     }
+  };
+});
+
+registerAppTool(server, "approve-inventory-transfer", {
+  title: "Approve selected inventory transfer",
+  description:
+    "App-only action that executes one exact, previously reviewed Oracle-governed inventory transfer.",
+  inputSchema: {
+    approvalId: z.string().uuid(),
+    recommendationId: z.string().min(1).max(100),
+    approvalNotes: z.string().min(10).max(500)
+  },
+  _meta: {
+    ui: {
+      visibility: ["app"]
+    }
+  },
+  annotations: {
+    destructiveHint: true,
+    idempotentHint: false,
+    openWorldHint: false
+  }
+}, async ({ approvalId, recommendationId, approvalNotes }) => {
+  const result = TransferResultSchema.parse(
+    await agentFormRequest("/api/approve", {
+      approvalId,
+      recommendationId,
+      approvalNotes
+    })
+  );
+  return {
+    content: [{
+      type: "text",
+      text:
+        `Approved governed inventory transfer ${result.transferId} `
+        + `for recommendation ${result.recommendationId}.`
+    }],
+    structuredContent: result
+  };
+});
+
+registerAppTool(server, "reject-inventory-transfer-review", {
+  title: "Cancel inventory transfer review",
+  description:
+    "App-only action that invalidates the current approval handle without writing an inventory transfer.",
+  inputSchema: {
+    approvalId: z.string().uuid()
+  },
+  _meta: {
+    ui: {
+      visibility: ["app"]
+    }
+  },
+  annotations: {
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false
+  }
+}, async ({ approvalId }) => {
+  const result = RejectionResultSchema.parse(
+    await agentFormRequest("/api/reject", { approvalId })
+  );
+  return {
+    content: [{
+      type: "text",
+      text: "Cancelled the inventory-transfer review; no database write ran."
+    }],
+    structuredContent: result
   };
 });
 

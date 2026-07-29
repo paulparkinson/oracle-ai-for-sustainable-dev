@@ -34,6 +34,8 @@ IDs, tunnel credentials, private endpoints, or other secrets.
 - Dashboard rendered:
 - Toolkit source label visible:
 - Selection returned to conversation:
+- App-only approval returned audited transfer ID:
+- Separate cancellation performed no write:
 - Follow-up prompt result:
 - Negative prompt avoided tool invocation:
 - Dashboard screenshot:
@@ -51,6 +53,8 @@ IDs, tunnel credentials, private endpoints, or other secrets.
 - Dashboard rendered:
 - Toolkit source label visible:
 - Selection returned to conversation:
+- App-only approval returned audited transfer ID:
+- Separate cancellation performed no write:
 - Follow-up prompt result:
 - Negative prompt avoided tool invocation:
 - Dashboard screenshot:
