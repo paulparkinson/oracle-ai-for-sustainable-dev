@@ -74,6 +74,11 @@ ChatGPT can also render the same standards-based MCP App. Keep the Java service 
 
 Claude remains an optional alternative host using the same tunneled `/mcp` endpoint.
 
+For cross-machine ChatGPT or Claude validation, use the complete
+[`docs/chatgpt-claude-mcp-app-handoff.md`](docs/chatgpt-claude-mcp-app-handoff.md)
+runbook and record sanitized evidence in
+[`docs/mcp-app-host-validation-results.md`](docs/mcp-app-host-validation-results.md).
+
 ## Security posture
 
 - Only five bounded supply-chain business tools are enabled; do not use `-Dtools=*`.

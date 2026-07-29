@@ -33,4 +33,12 @@ See OpenAI's [MCP Apps compatibility](https://developers.openai.com/apps-sdk/mcp
 
 Claude web and Claude Desktop remain optional host demonstrations. Expose port 3001 through an HTTPS tunnel and add the resulting `/mcp` URL as a custom connector. Neither ChatGPT nor Claude is required for the local basic-host walkthrough.
 
+To continue the host validation on another machine or account, follow
+[`../docs/chatgpt-claude-mcp-app-handoff.md`](../docs/chatgpt-claude-mcp-app-handoff.md)
+and complete the checked-in
+[`../docs/mcp-app-host-validation-results.md`](../docs/mcp-app-host-validation-results.md)
+template. The runbook includes prerequisites, database startup, tunnel choices,
+current ChatGPT and Claude navigation, prompts, expected results, screenshot
+names, security rules, and a copy/paste prompt for the next ChatGPT session.
+
 For production, use HTTPS, authentication, an explicit origin policy, service-to-service authorization between the MCP App server and agent service, and durable user identity rather than the local loopback trust boundary.
