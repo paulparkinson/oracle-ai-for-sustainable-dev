@@ -21,6 +21,8 @@ elif [ -f "$financial_env" ]; then
 fi
 
 # The MCP Toolkit child needs a JDBC URL that points at the local wallet.
+# DB_SERVICE_NAME makes the runtime portable across Autonomous Databases while
+# retaining the financial demo as the local default.
 if [ -z "${DB_URL:-}" ] && [ -n "${TNS_ADMIN:-}" ]; then
-  export DB_URL="jdbc:oracle:thin:@financialdb_high?TNS_ADMIN=${TNS_ADMIN}"
+  export DB_URL="jdbc:oracle:thin:@${DB_SERVICE_NAME:-financialdb_high}?TNS_ADMIN=${TNS_ADMIN}"
 fi

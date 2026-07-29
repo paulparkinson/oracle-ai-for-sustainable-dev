@@ -42,7 +42,12 @@ AGENT_SERVICE_URL = os.environ.get(
     "AGENT_SERVICE_URL", "http://127.0.0.1:8080"
 ).rstrip("/")
 BIND_HOST = os.environ.get("BIND_HOST", "0.0.0.0")
-PORT = int(os.environ.get("GEMINI_ENTERPRISE_A2A_PORT", "3002"))
+PORT = int(
+    os.environ.get(
+        "GEMINI_ENTERPRISE_A2A_PORT",
+        os.environ.get("PORT", "3002"),
+    )
+)
 PUBLIC_A2A_URL = os.environ.get(
     "PUBLIC_A2A_URL", f"http://127.0.0.1:{PORT}"
 ).rstrip("/")

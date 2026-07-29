@@ -38,6 +38,20 @@ final class ReferenceTests {
     }
 
     @Test
+    void ucpConfigurationSupportsAnotherAutonomousDatabaseService()
+            throws Exception {
+        var dataSource = UcpDataSourceConfiguration.fromEnvironment(Map.of(
+                "TNS_ADMIN", "/var/run/oracle-wallet",
+                "DB_SERVICE_NAME", "paulparkdb_tp",
+                "DB_USERNAME", "FINANCIAL",
+                "DB_PASSWORD", "test-only-placeholder"));
+        assertEquals(
+                "jdbc:oracle:thin:@paulparkdb_tp"
+                        + "?TNS_ADMIN=/var/run/oracle-wallet",
+                dataSource.getURL());
+    }
+
+    @Test
     void transferRecommendationsAreBoundedAndOrdered() {
         var repository = new DemoSupplyChainRepository();
         List<TransferRecommendation> recommendations =

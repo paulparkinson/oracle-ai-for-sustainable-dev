@@ -260,6 +260,21 @@ Java agent service
   v
 Oracle AI Database</code></pre>
     <p>The adapter emits deterministic <code>beginRendering</code>, <code>surfaceUpdate</code>, and <code>dataModelUpdate</code> messages containing native cards, approval notes, and one button per exact recommendation. Gemini Enterprise resolves the button context into a v0.8 <code>userAction</code>; the adapter forwards only the approval handle, recommendation ID, and notes. The Java service recovers the immutable recommendation and Oracle revalidates it under locks. Thus ChatGPT and Gemini Enterprise share the governed workflow and transaction, but not the host UI protocol.</p>
+
+    <h3>Deploy the Gemini adapter on Google Cloud</h3>
+    <p>Gemini Enterprise requires a reachable HTTPS A2A endpoint; it does not require the agent to run on a Compute Engine VM. Google's reference integration uses Cloud Run, which supplies managed HTTPS and can reach a private VPC through Direct VPC egress when required. For this deployment, the existing <code>adb-pm-prod</code> project already contains the global <code>Inventory System</code> Gemini Enterprise app and the <code>paulparkdb</code> Autonomous Database in <code>us-east4</code>. That database advertises wallet-authenticated TCPS services, so a separate VM is unnecessary.</p>
+    <pre><code>Gemini Enterprise: Inventory System
+  |  managed HTTPS
+  v
+Cloud Run: oracle-supply-chain-a2ui
+  |  public adapter :8080
+  |  loopback Java service :8081
+  |  stdio MCP Toolkit child
+  v
+paulparkdb_tp in Oracle Database@Google Cloud</code></pre>
+    <p>The Cloud Run image contains the adapter, Java service, and pinned Toolkit but no secret. Secret Manager mounts the Oracle wallet ZIP and injects the dedicated <code>FINANCIAL</code> password at runtime. The entrypoint expands the wallet into ephemeral storage, derives the JDBC URL from <code>DB_SERVICE_NAME=paulparkdb_tp</code>, starts Java only on loopback, waits for its health check, and then exposes the A2A adapter on Cloud Run's assigned port.</p>
+    <p>The checked-in <code>deploy/gcp</code> scripts build the image with Cloud Build, create a least-purpose runtime service account, limit Cloud Run to one instance while approval handles remain in memory, set the final service URL in the agent card, and register that card through the official Discovery Engine <code>assistants/default_assistant/agents</code> REST resource. An unauthenticated Cloud Run endpoint is acceptable only for the initial host demonstration; production should use Cloud Run IAM or OAuth, durable approval state, Model Armor in the A2A application path, and explicit end-user authorization.</p>
+    <p>If a later Oracle database uses a private endpoint, keep the same application boundary but configure Cloud Run Direct VPC egress to the associated VPC and ODB network. A VM in that VPC remains a valid alternative, but the protocol and A2UI implementation do not change.</p>
   </section>
 
   <section id="transactional-approval">
@@ -367,6 +382,12 @@ cd agent-service
       <li><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt">Connect and test a ChatGPT plugin</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent">Gemini Enterprise: register an A2UI/A2A agent</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent">Gemini Enterprise: register an A2A agent</a></li>
+      <li><a href="https://cloud.google.com/blog/topics/developers-practitioners/guide-to-gemini-enterprise-and-a2ui-integration">Google Cloud: guide to Gemini Enterprise and A2UI integration</a></li>
+      <li><a href="https://github.com/google/A2UI">Google A2UI source and examples</a></li>
+      <li><a href="https://github.com/wadave/agent-a2ui-demo">A2UI reference implementation linked by Google</a></li>
+      <li><a href="https://docs.cloud.google.com/run/docs/configuring/vpc-direct-vpc">Google Cloud Run Direct VPC egress</a></li>
+      <li><a href="https://docs.oracle.com/en-us/iaas/Content/database-at-gcp-autonomous/ogadb-task-1-creating-odb-network-oracle-databasegoogle.html">Oracle Database@Google Cloud ODB network setup</a></li>
+      <li><a href="https://docs.oracle.com/en-us/iaas/Content/database-at-gcp/network-topologies.htm">Oracle Database@Google Cloud network topologies</a></li>
       <li><a href="https://modelcontextprotocol.io/specification/latest">Model Context Protocol specification</a></li>
       <li><a href="https://a2a-protocol.org/latest/">Agent2Agent protocol documentation</a></li>
       <li><a href="https://www.oracle.com/database/">Oracle AI Database</a></li>

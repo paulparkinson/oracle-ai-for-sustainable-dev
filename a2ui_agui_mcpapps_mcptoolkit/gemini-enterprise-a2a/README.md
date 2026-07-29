@@ -51,6 +51,11 @@ python3 -m unittest discover -s tests
 5. In Gemini Enterprise, register a custom agent via A2A using that agent card.
 6. Ask for stockout-risk recommendations and verify the native A2UI review.
 
+For the `adb-pm-prod` implementation, use the checked-in Cloud Run build,
+Secret Manager, deployment, and registration scripts in `../deploy/gcp/`.
+The complete runbook is
+[`../docs/gemini-enterprise-gcp-deployment.md`](../docs/gemini-enterprise-gcp-deployment.md).
+
 Gemini Enterprise A2UI support is currently Preview and limited to v0.8. The
 standalone web client intentionally remains on A2UI v0.9.1. The two payload
 builders are separate adapters over one domain API; do not silently downgrade

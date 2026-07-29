@@ -10,6 +10,8 @@ toolkit_root="$checkout_root/src/oracle-db-mcp-java-toolkit"
 toolkit_jar="$toolkit_root/target/oracle-db-mcp-toolkit-1.0.0.jar"
 toolkit_source="$toolkit_root/src/main/java/com/oracle/database/mcptoolkit/OracleDatabaseMCPToolkit.java"
 stdio_patch="$PWD/../oracle-db-mcp-toolkit/patches/stdio-tool-registration.patch"
+pki_dependencies_patch="$PWD/../oracle-db-mcp-toolkit/patches/oracle-wallet-dependencies.patch"
+pki_patch="$PWD/../oracle-db-mcp-toolkit/patches/oracle-pki-provider-registration.patch"
 
 if [ ! -d "$checkout_root/.git" ]; then
   echo "Downloading the pinned Oracle Database MCP Java Toolkit source..." >&2
@@ -22,12 +24,17 @@ if [ "$current_commit" != "$toolkit_commit" ]; then
   git -C "$checkout_root" checkout --quiet --detach "$toolkit_commit"
 fi
 
-if git -C "$checkout_root" apply --check "$stdio_patch" 2>/dev/null; then
-  git -C "$checkout_root" apply "$stdio_patch"
-elif ! git -C "$checkout_root" apply --reverse --check "$stdio_patch" 2>/dev/null; then
-  echo "Unable to apply the documented Toolkit stdio compatibility patch." >&2
-  exit 1
-fi
+for compatibility_patch in \
+    "$stdio_patch" \
+    "$pki_dependencies_patch" \
+    "$pki_patch"; do
+  if git -C "$checkout_root" apply --check "$compatibility_patch" 2>/dev/null; then
+    git -C "$checkout_root" apply "$compatibility_patch"
+  elif ! git -C "$checkout_root" apply --reverse --check "$compatibility_patch" 2>/dev/null; then
+    echo "Unable to apply Toolkit compatibility patch: $compatibility_patch" >&2
+    exit 1
+  fi
+done
 
 if [ ! -f "$toolkit_jar" ] || [ "$toolkit_source" -nt "$toolkit_jar" ]; then
   echo "Building Oracle Database MCP Java Toolkit $toolkit_commit..." >&2

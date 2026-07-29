@@ -125,7 +125,10 @@ agent card as a custom A2A agent in Gemini Enterprise. Gemini Enterprise
 currently supports A2UI v0.8 rather than the browser's v0.9.1 envelopes, so the
 adapter emits the older `beginRendering`, `surfaceUpdate`, and
 `dataModelUpdate` shapes. See
-[`gemini-enterprise-a2a/README.md`](gemini-enterprise-a2a/README.md).
+[`gemini-enterprise-a2a/README.md`](gemini-enterprise-a2a/README.md). The
+verified `adb-pm-prod` resource map, Cloud Run packaging, Secret Manager
+boundary, and registration commands are documented in
+[`docs/gemini-enterprise-gcp-deployment.md`](docs/gemini-enterprise-gcp-deployment.md).
 
 ## Security posture
 

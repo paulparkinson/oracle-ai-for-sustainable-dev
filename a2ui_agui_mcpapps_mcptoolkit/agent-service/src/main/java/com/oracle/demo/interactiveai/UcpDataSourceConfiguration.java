@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.Map;
 
 public final class UcpDataSourceConfiguration {
-    private static final String DEFAULT_ALIAS = "financialdb_high";
+    private static final String DEFAULT_SERVICE_NAME = "financialdb_high";
     private static final String DEFAULT_USER = "FINANCIAL";
 
     private UcpDataSourceConfiguration() {
@@ -18,9 +18,12 @@ public final class UcpDataSourceConfiguration {
 
     public static PoolDataSource fromEnvironment(Map<String, String> environment) {
         String tnsAdmin = firstNonBlank(environment.get("TNS_ADMIN"), defaultWalletPath());
+        String serviceName = firstNonBlank(
+                environment.get("DB_SERVICE_NAME"),
+                DEFAULT_SERVICE_NAME);
         String defaultUrl = tnsAdmin == null
                 ? null
-                : "jdbc:oracle:thin:@" + DEFAULT_ALIAS + "?TNS_ADMIN=" + tnsAdmin;
+                : "jdbc:oracle:thin:@" + serviceName + "?TNS_ADMIN=" + tnsAdmin;
         String url = required(firstNonBlank(environment.get("DB_URL"), defaultUrl), "DB_URL or TNS_ADMIN");
         String username = firstNonBlank(environment.get("DB_USERNAME"), DEFAULT_USER);
         String password = required(environment.get("DB_PASSWORD"), "DB_PASSWORD");
