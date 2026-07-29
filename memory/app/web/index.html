@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A presenter-ready Oracle AI Database demo of scoped agent memory, recall, correction, TTL, traces, and approved reusable skills.">
+  <title>Memories Are the Magic · Oracle AI Database Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <a class="brand" href="https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/memory/blog.html">MEMORIES <span>ARE THE MAGIC</span></a>
+      <div class="db-status" id="db-status"><i></i><span>Connecting to Oracle AI Database…</span></div>
+    </nav>
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Presenter mode · Starlight Springs concierge</p>
+        <h1>An agent that remembers and learns safely.</h1>
+        <p class="lede">Walk through Retain, Recall, Reuse, and Refine. Then turn audited traces into a human-approved shared skill without exposing private guest memory.</p>
+      </div>
+      <div class="loop" aria-label="Agent memory loop">
+        <div class="loop-agent">AGENT</div>
+        <div class="loop-memory">ORACLE AI<br>DATABASE</div>
+        <span class="arrow read">READ BEFORE</span>
+        <span class="arrow write">WRITE AFTER</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="taxonomy" aria-labelledby="taxonomy-title">
+      <div>
+        <p class="section-label">The four memory types</p>
+        <h2 id="taxonomy-title">Keep each kind in its proper place.</h2>
+      </div>
+      <div class="taxonomy-grid">
+        <article><span>01</span><h3>Working</h3><p>Current ask, intermediate plan, active turn. Kept in the live context.</p></article>
+        <article><span>02</span><h3>Episodic</h3><p>What happened, what was tried, and the observed outcome.</p></article>
+        <article><span>03</span><h3>Semantic</h3><p>Durable facts and preferences, scoped to the correct identity.</p></article>
+        <article><span>04</span><h3>Procedural</h3><p>An approved reusable workflow induced from successful traces.</p></article>
+      </div>
+    </section>
+
+    <section class="demo-shell">
+      <aside class="stage-rail" aria-label="Demo steps">
+        <p class="section-label">Live demo</p>
+        <h2>Seven proof points</h2>
+        <button data-action="reset" data-step="0"><b>Reset</b><span>Cold start</span></button>
+        <button data-action="retain" data-step="1"><b>1 · Retain</b><span>Write durable memory</span></button>
+        <button data-action="recall" data-step="2"><b>2 · Recall + Reuse</b><span>Build a context card</span></button>
+        <button data-action="correct" data-step="3"><b>3 · Refine</b><span>Version a correction</span></button>
+        <button data-action="expire" data-step="4"><b>4 · Expire</b><span>Enforce lifecycle</span></button>
+        <button data-action="dream" data-step="5"><b>5 · Dream</b><span>Induce a skill</span></button>
+        <button data-action="approve" data-step="6"><b>6 · Approve</b><span>Human governance</span></button>
+        <button data-action="next-day" data-step="7"><b>7 · Next guest</b><span>Reuse without leakage</span></button>
+      </aside>
+
+      <div class="workspace">
+        <div class="presenter-card">
+          <div>
+            <p class="section-label">What to say now</p>
+            <h2 id="cue-title">Begin at a cold start</h2>
+            <p id="cue-text">An agent without external memory re-onboards the user every time. Reset proves there is no hidden browser state carrying this demo.</p>
+          </div>
+          <div class="step-number" id="step-number">00</div>
+        </div>
+
+        <div class="result-banner" id="result" role="status">
+          Choose <strong>Reset</strong>, then advance through the numbered steps.
+        </div>
+
+        <div class="workspace-grid">
+          <section class="panel context-panel">
+            <div class="panel-heading">
+              <div><p class="section-label">Read path</p><h3>Context card</h3></div>
+              <span class="scope private">AVA · PRIVATE</span>
+            </div>
+            <p class="context-summary" id="context-summary">No recall has run yet.</p>
+            <ul id="context-memories" class="context-list">
+              <li class="empty">Active, unexpired, correctly scoped memories will appear here.</li>
+            </ul>
+            <div class="response" id="proposed-response">The response is assembled only after the read step.</div>
+          </section>
+
+          <section class="panel proof-panel">
+            <div class="panel-heading">
+              <div><p class="section-label">Isolation proof</p><h3>Private memory vs shared skill</h3></div>
+              <span class="scope shared">APPROVAL GATED</span>
+            </div>
+            <div class="proof-metric"><strong id="leak-count">-</strong><span>private Ava memories visible to Leo</span></div>
+            <div id="shared-skill" class="shared-skill">No approved shared skill yet.</div>
+          </section>
+        </div>
+
+        <section class="panel ledger">
+          <div class="panel-heading">
+            <div><p class="section-label">Write path</p><h3>Memory ledger</h3></div>
+            <span id="memory-count">0 records</span>
+          </div>
+          <div class="ledger-list" id="memory-ledger">
+            <p class="empty">The durable ledger is empty.</p>
+          </div>
+        </section>
+
+        <div class="workspace-grid lower">
+          <section class="panel">
+            <div class="panel-heading">
+              <div><p class="section-label">Learning material</p><h3>Experience traces</h3></div>
+              <span id="trace-count">0 traces</span>
+            </div>
+            <div id="trace-list" class="trace-list"><p class="empty">No traces yet.</p></div>
+          </section>
+          <section class="panel">
+            <div class="panel-heading">
+              <div><p class="section-label">Token-space learning</p><h3>Induced skill</h3></div>
+              <span id="skill-status" class="status-pill">NONE</span>
+            </div>
+            <pre id="skill-card">No skill has been proposed.</pre>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Demo data lives in isolated <code>AIM_DEMO_*</code> tables. The learning rule is deterministic for reproducibility; a production agent can use model-assisted extraction and induction behind the same governance boundary.</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+#!/usr/bin/env swift
+
+import AppKit
+import AVFoundation
+import Foundation
+
+let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+let video = root.appendingPathComponent("memory-agent-walkthrough.mp4")
+let sheetURL = root.appendingPathComponent(".build/contact-sheet.png")
+let asset = AVURLAsset(url: video)
+let duration = CMTimeGetSeconds(asset.duration)
+let videoTracks = asset.tracks(withMediaType: .video)
+let audioTracks = asset.tracks(withMediaType: .audio)
+
+guard let track = videoTracks.first, audioTracks.isEmpty else {
+    fputs("Expected one silent video track and no audio track.\n", stderr)
+    exit(1)
+}
+
+let size = track.naturalSize.applying(track.preferredTransform)
+let pixelWidth = Int(abs(size.width))
+let pixelHeight = Int(abs(size.height))
+guard pixelWidth == 1920, pixelHeight == 1080, duration >= 80 else {
+    fputs("Unexpected media dimensions or duration.\n", stderr)
+    exit(1)
+}
+
+let generator = AVAssetImageGenerator(asset: asset)
+generator.appliesPreferredTrackTransform = true
+generator.maximumSize = NSSize(width: 640, height: 360)
+let fractions = [0.03, 0.18, 0.34, 0.50, 0.68, 0.84, 0.96]
+let sheet = NSImage(size: NSSize(width: 1920, height: 1080))
+sheet.lockFocusFlipped(true)
+NSColor.black.setFill()
+NSBezierPath(rect: NSRect(x: 0, y: 0, width: 1920, height: 1080)).fill()
+for (index, fraction) in fractions.enumerated() {
+    let time = CMTime(seconds: duration * fraction, preferredTimescale: 600)
+    let frame = try generator.copyCGImage(at: time, actualTime: nil)
+    let row = index / 3
+    let column = index % 3
+    NSImage(cgImage: frame, size: NSSize(width: 640, height: 360)).draw(
+        in: NSRect(x: CGFloat(column) * 640, y: CGFloat(row) * 360, width: 640, height: 360)
+    )
+}
+sheet.unlockFocus()
+var rect = NSRect(origin: .zero, size: sheet.size)
+let cg = sheet.cgImage(forProposedRect: &rect, context: nil, hints: nil)!
+let rep = NSBitmapImageRep(cgImage: cg)
+try rep.representation(using: .png, properties: [:])!.write(to: sheetURL)
+
+print(String(format: "Verified silent %dx%d, %.1f seconds, %d video track, %d audio tracks", pixelWidth, pixelHeight, duration, videoTracks.count, audioTracks.count))
+print("Contact sheet: \(sheetURL.path)")

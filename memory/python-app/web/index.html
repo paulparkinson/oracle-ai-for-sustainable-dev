@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A live Oracle AI Agent Memory 26.6 demonstration using Python and Oracle AI Database.">
+  <title>Memories Are the Magic | Python SDK Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <div class="brand">MEMORIES <span>ARE THE MAGIC</span></div>
+      <div class="status" id="status"><i></i><span>Connecting</span></div>
+    </nav>
+    <div class="hero-content">
+      <div>
+        <p class="eyebrow">Python reference implementation</p>
+        <h1>Oracle AI Agent Memory, live on Oracle AI Database.</h1>
+        <p class="lede">The public Python SDK manages threads, messages, durable memories, exact scopes, keyword search, updates, TTL, metadata filters, and reusable guidelines.</p>
+      </div>
+      <div class="sdk-card">
+        <div class="sdk-logo">PY</div>
+        <div><b>oracleagentmemory</b><span>26.6.0</span></div>
+        <code>SearchStrategy.KEYWORD</code>
+        <small>No external model key required</small>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="api-strip" aria-label="Oracle AI Agent Memory APIs used">
+      <span>create_thread()</span>
+      <span>add_messages()</span>
+      <span>add_memory()</span>
+      <span>search()</span>
+      <span>update_memory()</span>
+      <span>TTL + metadata</span>
+    </section>
+
+    <section class="demo">
+      <aside>
+        <p class="eyebrow dark">Scenario controls</p>
+        <h2>Starlight Springs</h2>
+        <p class="aside-copy">Advance in order. Every button calls the public SDK and persists state in its managed Oracle schema.</p>
+        <div class="steps">
+          <button data-action="reset"><b>0</b><span><strong>Reset</strong>Cold start</span></button>
+          <button data-action="retain"><b>1</b><span><strong>Retain</strong>Thread and memories</span></button>
+          <button data-action="recall"><b>2</b><span><strong>Recall + Reuse</strong>Exact scoped search</span></button>
+          <button data-action="correct"><b>3</b><span><strong>Refine</strong>Update a fact</span></button>
+          <button data-action="expire"><b>4</b><span><strong>Expire</strong>Apply TTL</span></button>
+          <button data-action="dream"><b>5</b><span><strong>Dream</strong>Induce guideline</span></button>
+          <button data-action="approve"><b>6</b><span><strong>Approve</strong>Govern learning</span></button>
+          <button data-action="next-day"><b>7</b><span><strong>Next guest</strong>Prove isolation</span></button>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <section class="result" id="result">
+          <div>
+            <p class="eyebrow">Current proof</p>
+            <h2 id="result-title">Start with Reset</h2>
+          </div>
+          <p id="result-text">The managed memory store is connected and ready.</p>
+        </section>
+
+        <div class="metrics">
+          <article><span id="memory-count">0</span><p>active Ava memories</p></article>
+          <article><span id="trace-count">0</span><p>privacy-safe traces</p></article>
+          <article><span id="skill-count">0</span><p>shared guidelines</p></article>
+          <article class="isolation"><span id="leak-count">?</span><p>Ava memories visible to Leo</p></article>
+        </div>
+
+        <div class="grid">
+          <section class="panel context">
+            <header><div><p class="eyebrow dark">Read before</p><h3>Scoped context card</h3></div><span>AVA + CONCIERGE</span></header>
+            <p id="context-summary" class="summary">No recall has run.</p>
+            <div id="context-list" class="memory-list"><p class="empty">Search results will appear here.</p></div>
+            <blockquote id="context-response">The application assembles the prompt-ready card after scoped SDK search.</blockquote>
+          </section>
+
+          <section class="panel events">
+            <header><div><p class="eyebrow dark">Public SDK calls</p><h3>Execution trail</h3></div></header>
+            <div id="event-list"><p class="empty">No actions yet.</p></div>
+          </section>
+        </div>
+
+        <section class="panel ledger">
+          <header><div><p class="eyebrow dark">Oracle-managed records</p><h3>Durable memory ledger</h3></div><span id="strategy">KEYWORD</span></header>
+          <div id="memory-list" class="record-grid"><p class="empty">No Ava memories are currently searchable.</p></div>
+        </section>
+
+        <div class="grid lower">
+          <section class="panel">
+            <header><div><p class="eyebrow dark">Learning material</p><h3>Experience traces</h3></div></header>
+            <div id="trace-list"><p class="empty">No governed traces.</p></div>
+          </section>
+          <section class="panel skill">
+            <header><div><p class="eyebrow dark">Procedural memory</p><h3>Shared guideline</h3></div><span id="skill-status">NONE</span></header>
+            <pre id="skill-card">No guideline has been induced.</pre>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <b>Scope first.</b> Private Ava records use exact user and agent matching. Shared procedural memory is explicitly unscoped on user and separately approval filtered.
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
