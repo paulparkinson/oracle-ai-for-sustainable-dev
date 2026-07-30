@@ -28,7 +28,7 @@ The AIM_DEMO tables are empty except for Ava and Leo in AIM_DEMO_GUESTS. Browser
 
 8
 00:00:55,000 --> 00:01:03,000
-The app shows two conversation messages plus extracted durable records and the earlier rainy-visit episode.
+The app shows two current messages, extracted records, and one seeded prior-visit memory inserted by addMemory().
 
 9
 00:01:03,000 --> 00:01:11,000

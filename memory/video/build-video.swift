@@ -94,7 +94,7 @@ let scenes: [Scene] = [
         eyebrow: "STEP 1 | SCENARIO EVENT",
         title: "Ava states her\npreferences",
         subtitle: "Quiet breakfast, minimal stairs, lantern show, and bullet-point plans.",
-        caption: "The app shows two conversation messages plus extracted durable records and the earlier rainy-visit episode.",
+        caption: "The app shows two current messages, extracted records, and one seeded prior-visit memory inserted by addMemory().",
         seconds: 8),
     Scene(
         visual: .code(libraryPath, "synchronized Map<String, Object> retain()", 25),
