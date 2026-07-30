@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database, Java, and Python</title>
+  <title>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database and Java</title>
   <meta name="description" content="Build and present a runnable Oracle AI Database agent-memory demo covering working, episodic, semantic, and procedural memory; Retain, Recall, Reuse, Refine; TTL; correction; traces; and human-approved continual learning.">
   <meta name="author" content="Paul Parkinson">
   <style>
@@ -77,13 +77,13 @@
 <body>
 <main>
   <p class="eyebrow">Oracle AI Database · AI agent memory · Continual learning</p>
-  <h1>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database, Java, and Python</h1>
+  <h1>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database and Java</h1>
   <p class="subtitle">A runnable, presenter-ready demonstration of working, episodic, semantic, and procedural memory; Retain, Recall, Reuse, and Refine; lifecycle controls; and human-approved learning on Oracle AI Database.</p>
-  <p class="updated">By Paul Parkinson · Updated July 28, 2026</p>
+  <p class="updated">By Paul Parkinson · Updated July 29, 2026</p>
 
   <p class="lead">An AI agent does not become stateful because its model has a long context window. It becomes stateful when useful experience is deliberately captured, scoped, recalled, corrected, expired, and reused. This demo makes that external memory loop visible: read before the turn, write after the turn, and keep Oracle AI Database as the durable, transactional governance boundary.</p>
-  <p>The included Starlight Springs concierge remembers Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second guest can use that shared skill without seeing Ava's private data.</p>
-  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory">Python and Java source code, SQL, configuration, and browser demos</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
+  <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data.</p>
+  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory/app">Java source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
 
   <figure>
     <img src="images/memories-are-the-magic-cover.png" alt="AI agent connected to Oracle AI Database by a write-after and read-before loop, with working, episodic, semantic, and procedural memory inside the governed database layer.">
@@ -95,10 +95,10 @@
       <video controls preload="metadata" poster="video/memory-agent-walkthrough-poster.png">
         <source src="video/memory-agent-walkthrough.mp4" type="video/mp4">
         <track kind="captions" src="video/memory-agent-walkthrough.vtt" srclang="en" label="English" default>
-        Your browser does not support embedded video. Use the source repository to download the walkthrough.
+        Your browser does not support embedded video. <a href="video/memory-agent-walkthrough.mp4">Open the walkthrough video</a>.
       </video>
     </div>
-    <figcaption>Subtitle-led walkthrough of the public Python SDK, the Java implementation, the live Oracle AI Database results, and the governed learning loop. The video is intentionally silent so it can be narrated live or voiced later.</figcaption>
+    <figcaption>Java walkthrough: run every scenario action, inspect the relevant source, and verify each database transition. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
   </figure>
 
   <section class="takeaways" id="key-takeaways">
@@ -107,10 +107,27 @@
       <li>An agent is a loop with state. Durable memory is an external computational substrate, not a property of a single prompt.</li>
       <li>Memory engineering adds writes, correction, scope, retention, and governance to retrieval. Read-only retrieval is RAG; read plus write becomes a memory lifecycle.</li>
       <li>Continual learning can begin in token space: retrieve better context, induce structured skills, and require approval before reuse. Model-weight updates are a later option, not the default.</li>
-      <li>The Python reference uses the public <code>oracleagentmemory</code> SDK. The Java reference exposes the equivalent mechanics through Oracle JDBC, UCP, SQL, and JSON.</li>
-      <li>Oracle AI Database gives both demos transactions, identity scope, search, relational and JSON data, timestamps, and enforceable lifecycle state in one durable system.</li>
+      <li>The Java reference combines a live <code>ojdbc-agent-memory</code> path with a repeatable Java and SQL teaching path for correction, TTL, traces, approval, and privacy-safe reuse.</li>
     </ul>
   </section>
+
+  <h2 id="scenario-at-a-glance">Flynn's Theme Park Scenario at a Glance</h2>
+  <p>This sequence is the shortest presenter runbook for the application. The first two visitor interactions exercise the Java memory library directly. The remaining actions use fixed Java and SQL operations against application-owned <code>AIM_DEMO_*</code> tables. “Repeatable teaching path” means those actions produce the same inspectable transitions during every presentation instead of asking an LLM to improvise them. They are real database transactions, but they are demonstration code rather than hidden behavior inside the memory library.</p>
+  <table>
+    <thead>
+      <tr><th>Scenario event and observed behavior</th><th>Java memory-core action</th><th>Oracle AI Database action</th><th>Memory principle shown</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>0. Start from a provable cold state.</strong> The presenter resets both paths. The library panels become empty; the lifecycle path retains only the Ava and Leo visitor identities.</td><td><code>OracleAgentMemory.clearAll()</code> resets the library path. <code>MemoryRepository.reset()</code> resets the lifecycle path.</td><td>Deletes rows from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a> and <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>. Deletes the five <code>AIM_DEMO_*</code> tables in foreign-key-safe order, then inserts Ava and Leo into <a href="#table-aim-guests"><code>AIM_DEMO_GUESTS</code></a>.</td><td>External state and isolation. The empty UI proves that browser state is not carrying memory between runs.</td></tr>
+      <tr><td><strong>1. Returning visitor Ava states her current preferences.</strong> She wants a quiet breakfast, minimal stairs, the lantern show, and bullet-point plans. The demo also represents a completed earlier visit with one explicit episode: during rain, the covered atrium route worked well for Ava. After Retain, the UI shows the two conversation messages plus extracted and prior-visit durable records.</td><td><code>addMessages()</code> retains the current conversation and lets Ollama extract reusable facts and guidelines. <code>addMemory()</code> explicitly records the successful covered-atrium outcome from the earlier visit so the demo can distinguish current conversation extraction from episodic history.</td><td>Inserts two rows into <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. Inserts extracted and explicit records into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>; each insert calls <code>VECTOR_EMBEDDING(allminilm USING ... AS DATA)</code> to store a 384-dimensional native <code>VECTOR</code>.</td><td><strong>Retain and write after.</strong> Semantic memory captures durable preferences; episodic memory captures what happened and whether it worked. The earlier rainy-visit episode is supplied as prior experience, not inferred from Ava's current sentence.</td></tr>
+      <tr><td><strong>2. Ava asks for an accessible quiet morning and a rainy evening plan.</strong> The resulting context card includes the quiet-breakfast preference, the covered-atrium episode, recent messages, and other scoped records. A separate Leo check returns zero Ava records.</td><td><code>search()</code> applies exact Ava, concierge-agent, and thread scope, then <code>getContextCard()</code> combines durable records with recent messages for the next model turn. The corresponding lifecycle walkthrough action uses <code>MemoryRepository.recall()</code> to expose an explicit recall audit.</td><td>A common-table expression embeds the request with <code>VECTOR_EMBEDDING</code>. Oracle ranks scoped rows from <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with cosine <code>VECTOR_DISTANCE</code>. Recent messages are read from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. The lifecycle action inserts one evidence row per selected memory into <a href="#table-aim-recall"><code>AIM_DEMO_RECALL_AUDIT</code></a>.</td><td><strong>Recall, reuse, and read before.</strong> Structured identity scope limits what may be considered before vector similarity decides relevance, while the audit shows why each record entered context.</td></tr>
+      <tr><td><strong>3. Ava corrects an imperfect remembered fact.</strong> She confirms lantern show, not fireworks. The UI then shows version 1 as superseded and version 2 as the only active value.</td><td><code>MemoryRepository.correct()</code> versions the visitor-confirmed fact inside one JDBC transaction.</td><td>Inserts version 2 into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>, then updates version 1 to <code>SUPERSEDED</code> and sets <code>SUPERSEDED_BY</code> to the new <code>MEMORY_ID</code>.</td><td><strong>Refine and correct.</strong> The agent uses the confirmed value on later turns while retaining an auditable history of what was wrong.</td></tr>
+      <tr><td><strong>4. Park operations reports that tonight's temporary garden-path closure is no longer relevant.</strong> Clicking Expire simulates the path reopening or the closure's validity window ending. The record stays visible for audit but disappears from future context cards.</td><td><code>expireOperationalMemory()</code> closes the temporary operational record rather than deleting it.</td><td>Updates the matching row in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a> to <code>STATUS='EXPIRED'</code> and <code>EXPIRES_AT=SYSTIMESTAMP</code>. Later recall selects only active, unexpired rows.</td><td><strong>TTL and lifecycle management.</strong> A live closure is short-lived operational memory, unlike a durable accessibility preference.</td></tr>
+      <tr><td><strong>5. Three earlier rainy-evening assistance cases ended successfully.</strong> These are de-identified demonstration traces representing separate occasions when checking accessibility, choosing covered connectors, and resequencing dining helped a visitor reach the show. Clicking Dream finds the repeated outcome pattern and displays a pending reusable procedure.</td><td><code>retain()</code> records three fixed, privacy-safe example outcomes. <code>dream()</code> counts the successful shared pattern and proposes the generalized <code>rainy-evening-reroute</code> procedure.</td><td>Inserts the three evidence rows into <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a>. After finding three successful <code>RAINY_EVENING_REROUTE</code> rows, inserts one <code>PENDING</code> procedure with generalized JSON instructions into <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a>.</td><td><strong>Episodic learning material becomes candidate procedural memory.</strong> Continual learning here means changing future retrieved instructions, not retraining model weights.</td></tr>
+      <tr><td><strong>6. A human reviewer approves the candidate procedure.</strong> The UI changes the induced skill from pending to approved and shows the generalized steps without Ava's private details.</td><td><code>approveSkill()</code> activates the reviewed procedure for later visitors.</td><td>Updates <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> from <code>PENDING</code> to <code>APPROVED</code> and records <code>APPROVED_BY</code> plus <code>APPROVED_AT=SYSTIMESTAMP</code>.</td><td><strong>Human governance and provenance.</strong> A proposed lesson cannot enter the shared procedural-memory path until someone explicitly approves it.</td></tr>
+      <tr><td><strong>7. Leo visits on a later rainy day and asks for help reaching an evening venue.</strong> The agent can give Leo the approved general behavior: check accessibility and current closures, prefer covered connectors, resequence dining, and verify arrival time. The UI simultaneously proves that Leo receives zero of Ava's breakfast, mobility, or entertainment memories.</td><td><code>nextDay()</code> performs separate private-memory and approved-procedure reads. It reuses the generalized skill while keeping visitor-specific recall scoped to Leo.</td><td>Counts Ava rows in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a> under Leo's scope and returns zero. Separately selects only <code>APPROVED</code> rows from <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a>.</td><td><strong>Safe procedural reuse without private-memory leakage.</strong> Leo benefits from the lesson learned across prior outcomes, not from Ava's personal history.</td></tr>
+    </tbody>
+  </table>
 
   <h2 id="why-agents-forget">Why Agents Forget</h2>
   <p>A stateless agent repeatedly re-onboards users, repeats failed approaches, and forgets what produced a good outcome. Trust cannot compound because experience disappears at the end of the call. A large prompt can postpone the problem, but it does not provide identity scope, correction, deletion, expiration, transaction boundaries, or a durable audit history.</p>
@@ -131,6 +148,23 @@
   </table>
   <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
 
+  <h3 id="record-type-mapping">How <code>RECORD_TYPE</code> Maps to Memory Types</h3>
+  <p>The Java library and the conceptual memory model use related but different taxonomies. The four durable values written to <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code> are <code>preference</code>, <code>fact</code>, <code>guideline</code>, and <code>memory</code>. They describe what the extractor persisted. Working, episodic, semantic, and procedural describe how the application uses and governs remembered information.</p>
+  <table>
+    <thead>
+      <tr><th><code>RECORD_TYPE</code></th><th>What it means in the Java library</th><th>Closest conceptual memory type</th><th>Flynn's Theme Park example</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>preference</code></td><td>A like, dislike, desired recommendation, dietary choice, or response-style preference.</td><td><strong>Semantic memory.</strong> It is durable information about the visitor.</td><td>Ava prefers a quiet breakfast and short bullet-point itineraries.</td></tr>
+      <tr><td><code>fact</code></td><td>Stable factual state, such as a name, city, accessibility need, or other current visitor fact.</td><td><strong>Semantic memory.</strong> The fact should be scoped, versioned, and correctable.</td><td>Ava needs routes with minimal stairs.</td></tr>
+      <tr><td><code>guideline</code></td><td>An instruction that the assistant should follow in future responses.</td><td><strong>Procedural-like memory.</strong> It guides behavior, but an extracted visitor guideline is not automatically a globally approved skill.</td><td>Keep Ava's itineraries short and use bullet points.</td></tr>
+      <tr><td><code>memory</code></td><td>Durable context that does not fit the more specific preference, fact, or guideline categories.</td><td><strong>Semantic or episodic memory, depending on content and provenance.</strong></td><td>The covered atrium route worked well during Ava's previous rainy visit is episodic even though its stored record type is <code>memory</code>.</td></tr>
+      <tr><td><code>message</code><br><small>record interface only</small></td><td>A conversation message returned when the library presents recent messages and durable records through one record interface. It is not a value persisted in <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code>. Raw messages are stored in <code>OAMJ_CONCIERGE_MESSAGE</code>.</td><td><strong>Recent or working context.</strong> A message is not durable semantic, episodic, or procedural memory unless extraction creates a separate record.</td><td>Ava's current request and the concierge response appear in the context card beside extracted records.</td></tr>
+    </tbody>
+  </table>
+  <p>The extractor is instructed to prefer <code>preference</code>, <code>fact</code>, or <code>guideline</code> over the generic <code>memory</code> label. The demo searches the four durable types together. <code>message</code> is included only when recent conversation and durable records are presented through a common API.</p>
+  <p class="note"><strong>Two important non-equivalences:</strong> working memory is not a durable <code>RECORD_TYPE</code>, and the approved shared procedure in <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> is application-governed procedural memory rather than a library-extracted <code>guideline</code>. The <code>OPERATIONAL</code> value in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES.MEMORY_TYPE</code></a> is also application-specific and is not an <code>ojdbc-agent-memory</code> record type.</p>
+
   <h2 id="engineering-ladder">From Prompt Engineering to Memory Engineering</h2>
   <ol>
     <li><strong>Prompt engineering</strong> shapes one turn.</li>
@@ -147,67 +181,70 @@
   <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
 
   <h2 id="architecture">What the Demo Actually Implements</h2>
-  <div class="architecture" role="img" aria-label="Text architecture showing two browser demos, a Python Oracle AI Agent Memory SDK path and a Java JDBC UCP path, connected to Oracle AI Database.">Browser presentation UIs
+  <div class="architecture" role="img" aria-label="Text architecture showing a Java browser demo, the Java agent memory library and teaching path, and Oracle AI Database.">Java browser presentation UI
         │
-        ├── Python reference
-        │     Oracle AI Agent Memory SDK 26.6
-        │     threads · messages · typed memories · search
-        │     updates · TTL · metadata · shared guidelines
+        ├── Live library lane
+        │     ojdbc-agent-memory · Ollama extraction
+        │     in-database ALLMINILM vector embeddings
+        │     scoped semantic search · context cards
         │
-        └── Java reference
-              Java 21 · Oracle JDBC · UCP
-              visible SQL transactions · versions · audit
-              traces · approval-gated procedures
+        └── Repeatable lifecycle teaching path
+              visible SQL lifecycle · versions · audit
+              traces · approval-gated procedural memory
         │
         ▼
 Oracle AI Database
   ├── durable, identity-scoped memory
-  ├── Oracle Text keyword retrieval in the Python demo
+  ├── AI Vector Search in the live Java library lane
   ├── relational lifecycle and JSON metadata
   └── correction, expiry, trace, and approval evidence</div>
 
   <div class="implementation-grid">
     <section class="implementation-card">
-      <h3>Python: public Oracle AI Agent Memory SDK</h3>
-      <p>This is the primary product path. The app creates a managed memory store, thread, messages, typed memories, metadata filters, exact user and agent scopes, updates, TTL, and shared guidelines through <code>oracleagentmemory==26.6.0</code>.</p>
+      <h3>Java: live memory library</h3>
+      <p>The <code>ojdbc-agent-memory</code> lane persists messages, asks Ollama to extract typed records, creates vectors with the database-resident <code>ALLMINILM</code> model, performs identity-scoped semantic search, and builds a context card.</p>
     </section>
     <section class="implementation-card">
-      <h3>Java: transparent database mechanics</h3>
-      <p>This companion implementation uses Java 21, Oracle JDBC, and UCP. Its <code>AIM_DEMO_*</code> schema makes transactions, correction history, recall auditing, traces, and approval state easy to inspect during a presentation.</p>
+      <h3>Java: transparent lifecycle mechanics</h3>
+      <p>The separate <code>AIM_DEMO_*</code> path uses fixed Java 21, Oracle JDBC, UCP, SQL, and JSON operations to make correction history, TTL, recall auditing, traces, and approval state repeatable and easy to inspect.</p>
     </section>
   </div>
 
-  <p>Both implementations use deterministic extraction and skill induction for a repeatable live demo. They do not claim that the model retrained itself. The database behavior, SDK calls, search, transactions, identity scope, TTL, trace persistence, pooling, and human approval are real.</p>
+  <p>The seven-step teaching path uses fixed inputs and explicit Java and SQL transitions so a live talk remains repeatable. The live Java library path uses Ollama for extraction and Oracle AI Database for vector generation and similarity ranking. Neither claims that the model retrained itself. The library calls, database behavior, search, transactions, identity scope, TTL, trace persistence, pooling, and human approval are real.</p>
 
-  <h3>The Python SDK Configuration</h3>
-  <p>The Python app deliberately selects Oracle Text keyword search so the demo requires no external embedding-model or LLM key. A production deployment can choose vector or hybrid retrieval when semantic ranking is needed.</p>
-  <pre><code>self.memory = OracleAgentMemory(
-    connection=self.pool,
-    memory_extraction_config=MemoryExtractionConfig(
-        extract_memories=False,
-        enable_context_summary=False,
-    ),
-    schema_policy=SchemaPolicy.CREATE_IF_NECESSARY,
-    memory_store_id="MAGIC_PY",
-    search_strategy=SearchStrategy.KEYWORD,
-    search_index_sync=SearchIndexSyncMode.ON_COMMIT,
-)</code></pre>
-  <p>The demo calls <code>create_thread()</code>, <code>add_messages()</code>, <code>add_memory()</code>, <code>search()</code>, <code>update_memory()</code>, and SDK deletion APIs. Exact <code>user_id</code> and <code>agent_id</code> matching makes the private recall boundary explicit. Unscoped-user search is a separate, deliberate operation used only for the approved shared guideline.</p>
+  <h3>The Java Memory Library Configuration</h3>
+  <p>The builder receives the UCP data source, selects isolated table names, enables message persistence and memory extraction, and supplies the database embedder and Ollama adapter.</p>
+  <pre><code>this.memory = OracleAgentMemory.builder()
+    .dataSource(dataSource)
+    .tablePrefix("OAMJ_CONCIERGE_")
+    .autoCreateSchema(true)
+    .persistMessages(true)
+    .extractMemories(true)
+    .embedder(new DatabaseEmbedder(dataSource, "allminilm"))
+    .llm(new OllamaLlm(
+        "http://localhost:11434",
+        "llama3.2:latest",
+        0.0d))
+    .build();</code></pre>
+  <p>The demo calls <code>createThread()</code>, <code>addMessages()</code>, <code>addMemory()</code>, <code>search()</code>, and <code>getContextCard()</code>. Exact user, agent, and thread values make the private recall boundary visible.</p>
 
-  <h3>Two Implementations, One Scenario</h3>
+  <h3 id="database-objects">Database Tables and Objects Used by Oracle Agent Memory and Agent</h3>
+  <p>There are two intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent application uses additional lifecycle tables so the presentation can show history, expiry, traces, approval, and audit without depending on private library internals. The scenario table above links directly to each table below.</p>
   <table>
     <thead>
-      <tr><th>Concern</th><th>Python reference</th><th>Java reference</th></tr>
+      <tr><th>Object</th><th>Created by</th><th>Purpose</th></tr>
     </thead>
     <tbody>
-      <tr><td>Purpose</td><td>Demonstrate the supported Oracle AI Agent Memory API.</td><td>Expose underlying database patterns for teaching and inspection.</td></tr>
-      <tr><td>Database access</td><td><code>python-oracledb</code> pool supplied to the SDK.</td><td>Oracle JDBC through Universal Connection Pool.</td></tr>
-      <tr><td>Storage</td><td>SDK-managed <code>MAGIC_PY*</code> objects.</td><td>Explicit <code>AIM_DEMO_*</code> tables and sequences.</td></tr>
-      <tr><td>Recall</td><td>Oracle Text keyword search plus exact identity scopes and metadata filters.</td><td>SQL predicates for identity, status, and TTL.</td></tr>
-      <tr><td>Correction</td><td><code>update_memory()</code>.</td><td>Atomic insert of version 2 plus supersede of version 1.</td></tr>
-      <tr><td>Best use</td><td>Start here for an application using the product library.</td><td>Use to explain or customize the persistence mechanics in Java.</td></tr>
+      <tr id="table-oamj-message"><td><code>OAMJ_CONCIERGE_MESSAGE</code></td><td><code>ojdbc-agent-memory</code></td><td>Conversation messages, ordering, role, content, timestamps, and user, agent, thread, and space scope. The library also creates <code>OAMJ_CONCIERGE_MESSAGE_SCOPE_IX</code> for scoped, ordered retrieval.</td></tr>
+      <tr id="table-oamj-records"><td><code>OAMJ_CONCIERGE_RECORDS</code></td><td><code>ojdbc-agent-memory</code></td><td>Typed durable records such as memory, preference, fact, and guideline, including a native <code>VECTOR</code> embedding and identity scope. The library also creates <code>OAMJ_CONCIERGE_RECORDS_SCOPE_IX</code> for scoped record-type and creation-time retrieval.</td></tr>
+      <tr id="table-aim-guests"><td><code>AIM_DEMO_GUESTS</code></td><td>Agent application</td><td>Visitor identities used by the lifecycle walkthrough.</td></tr>
+      <tr id="table-aim-memories"><td><code>AIM_DEMO_MEMORIES</code></td><td>Agent application</td><td>Semantic, episodic, and operational records with visitor and agent scope, version, status, TTL, source, supersession link, and JSON metadata.</td></tr>
+      <tr id="table-aim-recall"><td><code>AIM_DEMO_RECALL_AUDIT</code></td><td>Agent application</td><td>Which memory was recalled, for whom, for which query, when, and why.</td></tr>
+      <tr id="table-aim-traces"><td><code>AIM_DEMO_TRACES</code></td><td>Agent application</td><td>Question, retrieved evidence, action, outcome, success, and shareable pattern used as continual-learning evidence.</td></tr>
+      <tr id="table-aim-skills"><td><code>AIM_DEMO_SKILLS</code></td><td>Agent application</td><td>Pending and approved procedural memories, generalized JSON instructions, source-episode count, approver, and approval time.</td></tr>
     </tbody>
   </table>
+  <p>The lifecycle teaching path also creates four sequences: <code>AIM_DEMO_MEMORY_SEQ</code>, <code>AIM_DEMO_RECALL_SEQ</code>, <code>AIM_DEMO_TRACE_SEQ</code>, and <code>AIM_DEMO_SKILL_SEQ</code>. The <code>ALLMINILM</code> ONNX model is loaded once into the database, but it is a database model rather than an application table. The library does not create separate user, agent, or thread tables; those identities are stored as scope columns on messages and records.</p>
 
   <h3>Why Oracle AI Database Fits the Memory Substrate</h3>
   <ul>
@@ -219,33 +256,30 @@ Oracle AI Database
   <p class="callout"><strong>Security boundary:</strong> this compact demo applies guest-and-agent scope in its SQL. A production design should also enforce authorization at the database tier, for example with separate schemas, roles, or Oracle Virtual Private Database. It should also treat stored memory as untrusted input because persistent prompt injection can survive across turns.</p>
 
   <h2 id="run-the-demo">Set Up and Run the Demo</h2>
-  <p>Both demos use an Oracle Database user and can reuse the repository's financial database wallet. The verified run shown below connected as <code>FINANCIAL</code>. Keep credentials and the wallet outside source control.</p>
+  <p>The Java demo uses an Oracle Database user and can reuse the repository's financial database wallet. The verified run shown below connected as <code>FINANCIAL</code>. Keep credentials and the wallet outside source control.</p>
 
-  <h3>1. Configure the Shared Database Connection</h3>
-  <p>If <code>financial/setup/.env</code> already works, both runners reuse it. Otherwise:</p>
+  <h3>1. Configure the Database Connection</h3>
+  <p>If <code>financial/setup/.env</code> already works, the runner reuses it. Otherwise:</p>
   <pre><code>cd memory
 cp .env.example .env
 # Edit .env with DB_USERNAME, DB_PASSWORD, DB_SERVICE, and TNS_ADMIN.
 # Do not commit the populated file or wallet.</code></pre>
 
-  <h3>2. Run the Python SDK Reference First</h3>
-  <p>Use Python 3.10 through 3.13. The runner creates <code>memory/.venv</code>, installs the pinned public package, and starts the UI on port 8092.</p>
-  <pre><code>cd memory/python-app
-./test.sh
-./run.sh</code></pre>
-  <p>Open <code>http://127.0.0.1:8092</code>. To execute all steps through the HTTP API, leave the app running and use another terminal:</p>
-  <pre><code>cd memory/python-app
-./smoke-test.sh</code></pre>
-  <p>The successful live run reported <code>oracleagentmemory 26.6.0</code>, six SDK-managed objects, four active Ava memories after correction and expiry, three privacy-safe traces, one approved guideline, and zero private Ava memories visible under Leo's exact scope.</p>
+  <h3>2. Prepare Ollama and the Database Embedding Model</h3>
+  <p>The live Java lane uses Ollama for typed-memory extraction and the database-resident <code>ALLMINILM</code> ONNX model for 384-dimensional embeddings. Install Ollama, start it, and pull the verified model:</p>
+  <pre><code>brew install ollama
+brew services start ollama
+ollama pull llama3.2</code></pre>
+  <p>Load <code>ALLMINILM</code> once for the connected database user, then verify the full library examples if desired:</p>
+  <pre><code>cd memory/test-utils
+./load-allminilm.sh
+./run-local.sh</code></pre>
+  <p class="note"><strong>Java library availability:</strong> the Java <code>ojdbc-agent-memory</code> dependency used here is a proof-of-concept snapshot, not a public Maven Central artifact. The runner expects a local library clone and accepts its location through <code>OAM_LIBRARY_DIR</code>.</p>
 
-  <figure>
-    <img src="images/python-oracle-agent-memory-demo.png" alt="Verified Python Oracle AI Agent Memory browser demo showing four active Ava memories, three privacy-safe traces, one approved guideline, and zero Ava memories visible to Leo.">
-    <figcaption>Actual Python SDK run against Oracle AI Database after correction, TTL expiry, guideline induction, approval, and the Leo isolation check.</figcaption>
-  </figure>
-
-  <h3>3. Run the Java and UCP Reference</h3>
-  <p>The Java implementation requires Java 21 and Maven. It creates only missing <code>AIM_DEMO_*</code> objects and never drops the schema objects.</p>
+  <h3>3. Run the Java Library and UCP Reference</h3>
+  <p>The Java implementation requires Java 21 and Maven. Its runner builds the local library snapshot, starts the browser app, and creates only missing library and teaching objects. It never drops schema objects.</p>
   <pre><code>cd memory/app
+export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
 ./run.sh</code></pre>
   <p>Open <code>http://127.0.0.1:8091</code>. The automated proof is:</p>
@@ -253,68 +287,87 @@ cp .env.example .env
 ./smoke-test.sh</code></pre>
 
   <figure>
-    <img src="images/java-oracle-ai-database-memory-demo.png" alt="Verified Java and Oracle UCP agent memory demo showing the next-day isolation proof and a connected Oracle AI Database financial schema.">
-    <figcaption>Actual Java 21 and UCP run against the same Oracle AI Database, with the final next-day scope proof visible.</figcaption>
+    <img src="images/java-agent-memory-library-concierge.png" alt="Verified Java theme park concierge memory flow showing Ollama extraction, 384-dimensional Oracle AI Database embeddings, exact Ava scope, semantic ranking, a generated context card, and zero Ava records returned for Leo.">
+    <figcaption>Actual Java library run: two messages became typed durable records, Oracle AI Database ranked them by vector distance, and the exact-scope isolation check returned zero Ava records for Leo.</figcaption>
   </figure>
 
-  <p>To inspect the Java implementation's versions, recall audit, traces, and approval record from SQLcl, run <a href="database/inspect_demo.sql"><code>memory/database/inspect_demo.sql</code></a> after the browser walkthrough. The Python implementation uses SDK-managed objects and should be accessed through the public APIs instead of relying on their internal schema.</p>
+  <figure>
+    <img src="images/java-oracle-ai-database-memory-demo.png" alt="Verified Java and Oracle UCP agent memory demo showing the next-day isolation proof and a connected Oracle AI Database financial schema.">
+    <figcaption>The repeatable Java lifecycle path makes correction, TTL, trace induction, approval, and the final next-day scope proof easy to narrate.</figcaption>
+  </figure>
+
+  <p>To inspect the Java lifecycle path's versions, recall audit, traces, and approval record from SQLcl, run <a href="database/inspect_demo.sql"><code>memory/database/inspect_demo.sql</code></a> after the browser walkthrough. The app now also shows all seven table contents at the bottom of the page and highlights changes after every action or manual refresh. Query the two library-managed tables only for presentation and troubleshooting; application code should use the Java APIs instead of depending on their internal schema.</p>
+
+  <figure>
+    <img src="images/java-memory-database-table-inspector.png" alt="Java memory demo database inspector showing added rows highlighted in the Oracle AI Database message and durable-record tables, followed by the application-owned lifecycle tables.">
+    <figcaption>The table inspector queries Oracle AI Database without reloading the page. Green rows were added since the previous refresh; changed rows use yellow and removed rows remain temporarily visible in red.</figcaption>
+  </figure>
+
+  <h2 id="live-library-walkthrough">Live Java Library Walkthrough</h2>
+  <p>Use this three-action lane first when presenting the Java app. It connects the memory concepts directly to the library calls and the visible database result.</p>
+  <ol>
+    <li><strong>Reset library lane:</strong> clears only the isolated <code>OAMJ_CONCIERGE_*</code> records. Point out that browser refreshes do not recreate memory because Oracle AI Database is the state source.</li>
+    <li><strong>Retain Ava's conversation:</strong> <code>addMessages()</code> persists the user and assistant messages. Ollama extracts durable <code>memory</code>, <code>preference</code>, and <code>guideline</code> records. The Java library asks Oracle AI Database to create an embedding for each record with <code>VECTOR_EMBEDDING</code>.</li>
+    <li><strong>Recall and build context:</strong> <code>search()</code> embeds the request in the database, applies Ava's exact identity scope, and ranks records by vector distance. The generated context card combines durable records with recent messages. A separate exact Leo search returns zero Ava records.</li>
+  </ol>
+  <p class="presenter"><strong>What to say:</strong> “Memory is not merely saved chat. The write path extracts typed, durable state. The read path applies authorization scope before semantic ranking, then returns compact context for the next model turn. Continual learning begins when governed experience changes future context.”</p>
 
   <h2 id="presenter-walkthrough">Presenter-Ready Walkthrough</h2>
-  <p>Use either UI's buttons in order. Start with Python to show the public Oracle AI Agent Memory API, then use Java when you want to open the SQL and explain each transaction. Each screen displays a short cue; the following script explains what to say, what executes, and what proves the concept.</p>
+  <p>After the live library lane, use the Java UI's numbered buttons in order to explain the broader governed lifecycle. Each screen displays a short cue; the following script explains what to say, what executes, and what proves the concept.</p>
 
   <article class="demo-step">
     <h3><span class="pill">0</span> Reset: Show the Stateless Starting Point</h3>
     <p class="say"><strong>Say:</strong> “A model call does not carry durable experience by itself. At this cold start, Ava and Leo exist, but the agent has no saved facts, traces, or reusable skills.”</p>
-    <p class="happens"><strong>What happens:</strong> Python calls the SDK deletion APIs for the deterministic thread and shared records. Java deletes rows only from its five demo tables and recreates the two demo guest identities.</p>
+    <p class="happens"><strong>What happens:</strong> Java deletes rows only from its five teaching tables and recreates the two demo visitor identities.</p>
     <p class="proof"><strong>Proof to point at:</strong> the memory ledger, trace panel, and skill card are empty. Browser state is not the memory source.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">1</span> Retain: Write Useful Experience</h3>
     <p class="say"><strong>Say:</strong> “We retain selected state, not an undifferentiated transcript. Working memory stays in the active turn. Semantic preferences, an episodic outcome, and one temporary operational fact become durable records.”</p>
-    <p class="happens"><strong>What happens:</strong> Python calls <code>create_thread()</code>, <code>add_messages()</code>, and typed <code>add_memory()</code> operations with metadata and TTL. Java writes the same scenario to explicit records. Both retain four durable Ava memories, one temporary route fact, and three privacy-safe successful traces.</p>
+    <p class="happens"><strong>What happens:</strong> Java writes four durable Ava memories, one temporary route fact, and three privacy-safe successful traces to explicit teaching records.</p>
     <p class="proof"><strong>Proof to point at:</strong> every ledger row shows type, <code>PRIVATE</code> scope, source, version, status, and an expiration time where appropriate.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">2</span> Recall + Reuse: Read Before the Turn</h3>
     <p class="say"><strong>Say:</strong> “The system does not search all memory. It first narrows by guest, agent, active status, and TTL, then assembles a compact context card for this request.”</p>
-    <p class="happens"><strong>What happens:</strong> Python calls <code>search()</code> with exact Ava and concierge scopes, record types, and keyword ranking. Java applies the same identity, status, and TTL constraints in SQL and inserts one recall-audit row per selected memory.</p>
+    <p class="happens"><strong>What happens:</strong> Java applies identity, status, and TTL constraints in SQL and inserts one recall-audit row per selected memory.</p>
     <p class="proof"><strong>Proof to point at:</strong> the context card contains Ava's facts and the live route closure. It also exposes a deliberately imperfect extracted fact, fireworks, so the next step can demonstrate correction.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">3</span> Refine: Correct Without Losing History</h3>
     <p class="say"><strong>Say:</strong> “Ava corrects us: lantern show, not fireworks. Durable memory must accept correction as data, not hope that a later prompt masks the error.”</p>
-    <p class="happens"><strong>What happens:</strong> Python calls <code>update_memory()</code> with guest-confirmed content and metadata. Java makes the history visible by atomically inserting version 2, marking version 1 <code>SUPERSEDED</code>, and linking the old row to its replacement.</p>
-    <p class="proof"><strong>Proof to point at:</strong> both versions remain in the ledger, but only the guest-confirmed lantern memory is active for later recall.</p>
+    <p class="happens"><strong>What happens:</strong> Java makes the history visible by atomically inserting version 2, marking version 1 <code>SUPERSEDED</code>, and linking the old row to its replacement.</p>
+    <p class="proof"><strong>Proof to point at:</strong> both record versions remain in the ledger, but only the visitor-confirmed lantern memory is active for later recall.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">4</span> Expire: Enforce the Memory Lifecycle</h3>
     <p class="say"><strong>Say:</strong> “Useful tonight does not mean true tomorrow. Retention policy is part of memory quality.”</p>
-    <p class="happens"><strong>What happens:</strong> Python uses an SDK TTL anchored to an event timestamp in the past; subsequent search excludes the record. Java marks the route row <code>EXPIRED</code> and applies the equivalent lifecycle predicate.</p>
+    <p class="happens"><strong>What happens:</strong> Java marks the route row <code>EXPIRED</code>; subsequent recall excludes it through the lifecycle predicate.</p>
     <p class="proof"><strong>Proof to point at:</strong> the temporary fact remains auditable in the ledger but cannot influence the next context card.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">5</span> Dream: Turn Traces into a Candidate Skill</h3>
     <p class="say"><strong>Say:</strong> “Traces are the raw material for continual learning: what was asked, what was retrieved, what the agent did, and what outcome followed. We learn first in token space by inducing a structured reusable procedure.”</p>
-    <p class="happens"><strong>What happens:</strong> both versions detect three successful <code>RAINY_EVENING_REROUTE</code> traces. Python uses metadata-filtered search and stores a <code>guideline</code> memory; Java writes a <code>PENDING</code> skill with the same privacy-safe steps.</p>
+    <p class="happens"><strong>What happens:</strong> Java detects three successful <code>RAINY_EVENING_REROUTE</code> traces and writes a <code>PENDING</code> skill containing generalized, privacy-safe steps.</p>
     <p class="proof"><strong>Proof to point at:</strong> the skill JSON explicitly says that no private guest data is included. No model weights changed.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">6</span> Approve: Put Governance in the Learning Loop</h3>
     <p class="say"><strong>Say:</strong> “The asleep or dream loop may propose a lesson; it may not silently promote one. A person reviews the abstraction before activation.”</p>
-    <p class="happens"><strong>What happens:</strong> Python calls <code>update_memory()</code> to promote the guideline metadata. Java updates the skill row. Both preserve the approver and timestamp.</p>
+    <p class="happens"><strong>What happens:</strong> Java updates the skill row to <code>APPROVED</code> and preserves the approver and timestamp.</p>
     <p class="proof"><strong>Proof to point at:</strong> the approval-gated badge changes and the database retains who activated the procedure.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">7</span> Next Guest: Reuse the Lesson Without Leaking the Memory</h3>
     <p class="say"><strong>Say:</strong> “The following day, Leo encounters a similar rainy evening. He can receive the approved general workflow, but he cannot see Ava's breakfast, mobility, or entertainment preferences.”</p>
-    <p class="happens"><strong>What happens:</strong> Python proves that an exact Leo search returns no Ava record, then performs a separate unscoped-user search for the approved guideline. Java executes the corresponding private-memory and approved-skill queries.</p>
+    <p class="happens"><strong>What happens:</strong> Java proves that an exact Leo search returns no Ava record, then executes a separate query for the approved shared procedure.</p>
     <p class="proof"><strong>Proof to point at:</strong> the UI displays <strong>0 private Ava memories visible to Leo</strong> beside the approved shared skill.</p>
   </article>
 
@@ -332,7 +385,7 @@ cp .env.example .env
   <p>A transcript alone does not say whether a choice worked. A useful trace connects four fields so later induction has evidence instead of anecdotes:</p>
   <table>
     <thead>
-      <tr><th>Trace field</th><th>Question</th><th>Starlight Springs example</th></tr>
+      <tr><th>Trace field</th><th>Question</th><th>Flynn's Theme Park example</th></tr>
     </thead>
     <tbody>
       <tr><td>Asked</td><td>What problem did the agent receive?</td><td>Reach the evening show during rain.</td></tr>
@@ -347,7 +400,7 @@ cp .env.example .env
 
   <h2 id="production">Taking the Pattern to Production</h2>
   <ol>
-    <li>Replace deterministic extraction with schema-constrained model extraction and validation.</li>
+    <li>Replace the fixed demonstration extraction rules with schema-constrained model extraction and validation.</li>
     <li>Use Oracle AI Agent Memory for managed threads, messages, memories, context cards, metadata filters, hybrid retrieval, updates, and TTL where its API fits the application.</li>
     <li>Add embeddings and Oracle AI Vector Search when exact and relational retrieval no longer provide sufficient semantic recall.</li>
     <li>Enforce tenant and end-user authorization in both the service and database; audit reads as well as writes.</li>
@@ -365,13 +418,10 @@ cp .env.example .env
   <p>No. Vectors help semantic recall, but production memory also needs identity and tenant scope, record types, versioning, correction, TTL, deletion, transactions, and audit. This demo begins with relational predicates and JSON; Oracle AI Vector Search is an optional ranking layer.</p>
 
   <h3>Does continual learning mean this demo retrains a model?</h3>
-  <p>No. It learns in token space by updating external state and proposing a reusable structured skill. The deterministic induction step is intentionally reproducible. Model-weight training is a separate, later decision.</p>
+  <p>No. It learns in token space by updating external state and proposing a reusable structured skill. The demonstration uses a fixed induction rule so the same traces produce the same candidate procedure in every presentation. Model-weight training is a separate, later decision.</p>
 
-  <h3>Does the demo use Oracle AI Agent Memory?</h3>
-  <p>Yes. The Python reference uses the public <code>oracleagentmemory</code> 26.6 package for managed storage, threads, messages, typed memories, search, exact scopes, updates, metadata filtering, and TTL. The separate Java reference implements the scenario directly with JDBC, UCP, and SQL so the underlying database transactions remain easy to present and inspect.</p>
-
-  <h3>Why are there both Python and Java implementations?</h3>
-  <p>Python demonstrates the current public Oracle AI Agent Memory API. Java demonstrates how the same memory lifecycle maps to explicit relational and JSON records, SQL predicates, and transactions. They are complementary references, not two services that must run together.</p>
+  <h3>Is the induced skill a context card?</h3>
+  <p>No. The context card is turn-specific recalled context assembled from scoped durable records and recent messages. The induced skill is separate procedural memory: a generalized workflow derived from successful traces and held for human approval before shared reuse.</p>
 
   <h3>How does the demo prevent Ava's memory from leaking to Leo?</h3>
   <p>Private memories carry a guest and agent scope, and recall filters on that scope before building context. The learned skill is stored separately as shared procedural memory and contains only generalized steps. Production deployments should reinforce that application rule with database authorization and row-level controls.</p>
@@ -381,7 +431,6 @@ cp .env.example .env
     <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory">Memories Are the Magic source, app, SQL, and configuration</a></li>
     <li><a href="comparisons.html">Top AI Agent Memory Platforms in 2026: technical comparison</a></li>
     <li><a href="https://www.oracle.com/database/ai-agent-memory/">Oracle AI Agent Memory product overview</a></li>
-    <li><a href="https://pypi.org/project/oracleagentmemory/">Oracle AI Agent Memory public Python package</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/get-started.html">Get started with Oracle AI Agent Memory</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/whats-new.html">Oracle AI Agent Memory 26.6: What's New</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/api/agentmemory.html">Oracle AI Agent Memory API: extraction, updates, TTL, and deletion</a></li>

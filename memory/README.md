@@ -7,13 +7,14 @@ a subtitle-led walkthrough video:
 - [`comparisons.html`](comparisons.html): comparison of commonly evaluated AI agent-memory platforms.
 - [`python-app/`](python-app/): public Oracle AI Agent Memory 26.6 SDK reference
   and browser UI.
-- [`app/`](app/): Java 21, Oracle JDBC/UCP, explicit SQL mechanics, and browser UI.
+- [`app/`](app/): Java 21, the `ojdbc-agent-memory` proof-of-concept library,
+  Oracle JDBC/UCP, explicit lifecycle mechanics, and browser UI.
 - [`database/`](database/): reference schema and SQLcl inspection queries.
 - [`video/`](video/): reproducible silent MP4, poster, SRT, WebVTT, and build source.
 
 ## What the demo proves
 
-The Starlight Springs concierge demonstrates:
+The Flynn's Theme Park concierge demonstrates:
 
 1. working, episodic, semantic, operational, and procedural state;
 2. Retain, Recall, Reuse, and Refine;
@@ -24,10 +25,12 @@ The Starlight Springs concierge demonstrates:
 7. human approval of an induced shared skill; and
 8. reuse of that skill by a second guest with zero private-memory leakage.
 
-The extraction and skill-induction rules are deterministic so a live
-presentation is reproducible. The Oracle Database operations are real. The
-Python version uses Oracle AI Agent Memory directly; the Java version exposes
-the equivalent lifecycle and transaction mechanics for teaching.
+The numbered presenter flow uses fixed Java and SQL extraction and skill
+induction steps so a live presentation is reproducible. The Oracle Database operations are
+real. The Python version uses the public Oracle AI Agent Memory SDK. The Java
+version has a live library lane that uses Ollama extraction, in-database
+`ALLMINILM` embeddings, exact scope, semantic search, and context cards. Its
+second lane exposes lifecycle and transaction mechanics for teaching.
 
 ## Run
 
@@ -53,10 +56,24 @@ cd memory/python-app
 ./smoke-test.sh
 ```
 
-Run the Java reference with Java 21 and Maven:
+Prepare the Java reference with Java 21, Maven, Ollama, and a local
+`ojdbc-agent-memory` proof-of-concept library clone:
+
+```bash
+brew install ollama
+brew services start ollama
+ollama pull llama3.2
+
+cd memory/test-utils
+./load-allminilm.sh
+```
+
+Then build and run it. Set `OAM_LIBRARY_DIR` when the clone is not at the
+default path printed by `memory/test-utils/build-library.sh`:
 
 ```bash
 cd memory/app
+export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
 ./run.sh
 ```
@@ -68,9 +85,23 @@ cd memory/app
 ./smoke-test.sh
 ```
 
-The Java service creates only missing `AIM_DEMO_*` objects. The Reset button
-deletes rows only from those demo tables; it does not drop schema objects. The
-Python service uses SDK-managed objects with the `MAGIC_PY` store ID.
+In the browser, use the live Java library controls in this order:
+
+1. **Reset library lane**
+2. **Retain Ava's conversation**
+3. **Recall and build context**
+
+The result shows extracted typed memory, 384-dimensional database embeddings,
+semantic ranking, a generated context card, and an exact-scope check that
+returns zero Ava records for Leo. Continue with the seven numbered controls to
+present correction, TTL, trace induction, human approval, and safe reuse.
+The database inspector at the bottom refreshes after each action and highlights
+added, changed, and removed rows across all seven demo tables.
+
+The Java service creates only missing `OAMJ_CONCIERGE_*` and `AIM_DEMO_*`
+objects. Reset actions delete rows only from their respective demo objects;
+they do not drop schema objects. The Python service uses SDK-managed objects
+with the `MAGIC_PY` store ID.
 
 ## Inspect the database
 

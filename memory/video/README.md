@@ -1,9 +1,10 @@
 # Memory blog walkthrough video
 
 This directory builds a silent, subtitle-led 1920x1080 MP4 for the memory article.
-The source scenes read the actual Python and Java repository files, and the
-application scenes use screenshots captured after successful Oracle AI Database
-smoke tests.
+The source scenes read the actual Java repository files. The application and
+database scenes use current Chrome captures from the verified Oracle AI Database
+run. Each numbered scenario shows the observed behavior, relevant Java method,
+database evidence, and memory principle.
 
 ```bash
 cd memory/video

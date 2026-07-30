@@ -27,7 +27,7 @@ const cues = {
   dream: {
     step: "05",
     title: "Traces become learning material",
-    text: "Three successful, privacy-safe traces share a pattern. The demo deterministically induces a candidate procedure in token space; it does not retrain model weights."
+    text: "Three successful, privacy-safe traces share a pattern. A fixed demonstration rule induces the same candidate procedure in token space for every presentation; it does not retrain model weights."
   },
   approve: {
     step: "06",
@@ -46,12 +46,119 @@ const actionBodies = {
   approve: { approver: "demo.presenter@example.com" }
 };
 
+const libraryActionBodies = {
+  recall: () => ({ query: document.getElementById("library-query").value })
+};
+
 let latestContext = null;
 let latestNextDay = null;
+let previousDatabaseSnapshot = null;
 
 document.querySelectorAll("[data-action]").forEach(button => {
   button.addEventListener("click", () => runAction(button.dataset.action, button));
 });
+
+document.querySelectorAll("[data-library-action]").forEach(button => {
+  button.addEventListener("click", () =>
+    runLibraryAction(button.dataset.libraryAction, button));
+});
+
+document.getElementById("refresh-database").addEventListener(
+  "click",
+  () => refreshDatabaseTables().catch(error =>
+    showDatabaseStatus(error.message, true))
+);
+
+async function runLibraryAction(action, button) {
+  const controls = [...document.querySelectorAll("[data-library-action]")];
+  controls.forEach(control => control.disabled = true);
+  button.classList.add("active");
+  showLibraryResult(
+    action === "retain"
+      ? "Ollama is extracting records and Oracle AI Database is embedding them…"
+      : "Working with the Java agent-memory library…"
+  );
+  try {
+    const body = libraryActionBodies[action]
+      ? libraryActionBodies[action]()
+      : {};
+    const response = await fetch(`/api/library/actions/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const value = await response.json();
+    if (!response.ok) throw new Error(value.error || `HTTP ${response.status}`);
+    renderLibraryState(value);
+    showLibraryResult(value.message || "Library step completed.");
+    await refreshDatabaseTables().catch(error =>
+      showDatabaseStatus(error.message, true));
+  } catch (error) {
+    showLibraryResult(error.message, true);
+  } finally {
+    controls.forEach(control => {
+      control.disabled = false;
+      control.classList.remove("active");
+    });
+  }
+}
+
+async function loadLibraryState() {
+  const response = await fetch("/api/library/state");
+  const state = await response.json();
+  if (!response.ok) throw new Error(state.error || "Unable to load library state");
+  renderLibraryState(state);
+}
+
+function renderLibraryState(state) {
+  const messages = state.messages || [];
+  const records = state.records || [];
+  const results = state.searchResults || [];
+  document.getElementById("library-dimensions").textContent =
+    state.embeddingDimensions || "-";
+  document.getElementById("library-message-count").textContent =
+    `${messages.length} message${messages.length === 1 ? "" : "s"}`;
+  document.getElementById("library-record-count").textContent =
+    `${records.length} record${records.length === 1 ? "" : "s"}`;
+  document.getElementById("library-leo-results").textContent =
+    state.leoPrivateResults ?? "-";
+
+  document.getElementById("library-messages").innerHTML = messages.length
+    ? messages.map(message => `
+        <article class="chat ${escapeHtml(message.role)}">
+          <b>${escapeHtml(message.role)}</b>
+          <p>${escapeHtml(message.content)}</p>
+        </article>`).join("")
+    : '<p class="empty">No messages yet.</p>';
+
+  document.getElementById("library-records").innerHTML = records.length
+    ? records.map(record => `
+        <article class="library-record">
+          <span class="tag">${escapeHtml(record.type)}</span>
+          <p>${escapeHtml(record.content)}</p>
+          <small>${escapeHtml(record.userId)} / ${escapeHtml(record.threadId)}</small>
+        </article>`).join("")
+    : '<p class="empty">No records yet.</p>';
+
+  document.getElementById("library-search").innerHTML = results.length
+    ? results.map(result => `
+        <article class="rank-row">
+          <strong>${escapeHtml(result.rank)}</strong>
+          <div><span class="tag">${escapeHtml(result.type)}</span>
+          <p>${escapeHtml(result.content)}</p></div>
+          <code>${Number(result.distance).toFixed(3)}</code>
+        </article>`).join("")
+    : '<p class="empty">Run recall to see vector-distance ranking.</p>';
+
+  document.getElementById("library-context").textContent =
+    state.contextCard || "No context card yet.";
+}
+
+function showLibraryResult(message, error = false) {
+  const root = document.getElementById("library-result");
+  root.textContent = message;
+  root.classList.toggle("error", error);
+}
 
 async function runAction(action, button) {
   setActive(button, action);
@@ -74,6 +181,8 @@ async function runAction(action, button) {
     if (action === "next-day") latestNextDay = value;
     showResult(value.message || "Step completed.");
     await loadState();
+    await refreshDatabaseTables().catch(error =>
+      showDatabaseStatus(error.message, true));
   } catch (error) {
     showResult(error.message, true);
   } finally {
@@ -212,6 +321,113 @@ function showResult(message, error = false) {
   root.classList.toggle("error", error);
 }
 
+async function refreshDatabaseTables({ baseline = false } = {}) {
+  const button = document.getElementById("refresh-database");
+  button.disabled = true;
+  button.textContent = "Refreshing…";
+  try {
+    const response = await fetch("/api/database/tables");
+    const snapshot = await response.json();
+    if (!response.ok) {
+      throw new Error(snapshot.error || "Unable to inspect database tables");
+    }
+    const changes = renderDatabaseTables(
+      snapshot,
+      baseline ? null : previousDatabaseSnapshot
+    );
+    previousDatabaseSnapshot = snapshot;
+    const refreshed = new Date(snapshot.refreshedAt).toLocaleTimeString();
+    showDatabaseStatus(
+      baseline
+        ? `Baseline loaded at ${refreshed}. Run an action or refresh again to highlight changes.`
+        : `${changes.added} added, ${changes.changed} changed, and ${changes.removed} removed since the previous refresh · ${refreshed}`
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "Refresh table contents";
+  }
+}
+
+function renderDatabaseTables(snapshot, previousSnapshot) {
+  const previousByName = new Map(
+    (previousSnapshot?.tables || []).map(table => [table.name, table])
+  );
+  const totals = { added: 0, changed: 0, removed: 0 };
+  const root = document.getElementById("database-tables");
+  root.innerHTML = (snapshot.tables || []).map(table => {
+    const previous = previousByName.get(table.name);
+    const previousRows = new Map(
+      (previous?.rows || []).map(row => [databaseRowKey(table, row), row])
+    );
+    const currentKeys = new Set();
+    const displayRows = (table.rows || []).map(row => {
+      const key = databaseRowKey(table, row);
+      currentKeys.add(key);
+      const oldRow = previousRows.get(key);
+      let change = "";
+      if (previous && !oldRow) {
+        change = "row-added";
+        totals.added++;
+      } else if (oldRow && JSON.stringify(oldRow) !== JSON.stringify(row)) {
+        change = "row-changed";
+        totals.changed++;
+      }
+      return { row, change };
+    });
+    if (previous) {
+      previousRows.forEach((row, key) => {
+        if (!currentKeys.has(key)) {
+          displayRows.push({ row, change: "row-removed" });
+          totals.removed++;
+        }
+      });
+    }
+    const rows = displayRows.length
+      ? displayRows.map(({ row, change }) => `
+          <tr class="${change}">
+            ${table.columns.map(column =>
+              `<td>${formatDatabaseValue(row[column])}</td>`
+            ).join("")}
+          </tr>`).join("")
+      : `<tr><td class="database-empty" colspan="${table.columns.length}">
+           No rows
+         </td></tr>`;
+    return `
+      <details class="database-table-card" open>
+        <summary>
+          <span><b>${escapeHtml(table.name)}</b>${escapeHtml(table.description)}</span>
+          <strong>${table.rows.length} row${table.rows.length === 1 ? "" : "s"}</strong>
+        </summary>
+        <div class="database-table-scroll">
+          <table>
+            <thead><tr>${table.columns.map(column =>
+              `<th>${escapeHtml(column)}</th>`
+            ).join("")}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </details>`;
+  }).join("");
+  return totals;
+}
+
+function databaseRowKey(table, row) {
+  const value = row[table.keyColumn];
+  return value == null ? JSON.stringify(row) : String(value);
+}
+
+function formatDatabaseValue(value) {
+  if (value == null) return '<span class="database-null">NULL</span>';
+  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+  return `<span title="${escapeHtml(text)}">${escapeHtml(text)}</span>`;
+}
+
+function showDatabaseStatus(message, error = false) {
+  const root = document.getElementById("database-refresh-status");
+  root.textContent = message;
+  root.classList.toggle("error", error);
+}
+
 function shortTime(value) {
   try { return new Date(value).toLocaleString(); } catch (_) { return value; }
 }
@@ -234,7 +450,8 @@ async function initialize() {
     status.classList.add("up");
     status.querySelector("span").textContent =
       `${health.schema}@${health.database} · ${health.pool}`;
-    await loadState();
+    await Promise.all([loadState(), loadLibraryState()]);
+    await refreshDatabaseTables({ baseline: true });
   } catch (error) {
     status.classList.add("down");
     status.querySelector("span").textContent = error.message || "Database unavailable";

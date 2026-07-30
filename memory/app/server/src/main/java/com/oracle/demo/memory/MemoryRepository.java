@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 final class MemoryRepository {
-    private static final String AGENT_ID = "STARLIGHT_CONCIERGE";
+    private static final String AGENT_ID = "FLYNNS_THEME_PARK_CONCIERGE";
     private final DataSource dataSource;
     private Map<String, Object> lastNextDay;
 
@@ -352,7 +352,7 @@ final class MemoryRepository {
             return Map.of(
                     "stage", "dream",
                     "sourceEpisodes", episodes,
-                    "message", "A deterministic induction rule found the repeated successful pattern and proposed a skill for human review.");
+                    "message", "A fixed demonstration induction rule found the repeated successful pattern and proposed a skill for human review.");
         } catch (SQLException exception) {
             throw failure("induce skill", exception);
         }

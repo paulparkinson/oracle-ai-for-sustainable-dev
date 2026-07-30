@@ -4,6 +4,15 @@ set -euo pipefail
 BASE_URL="${MEMORY_BASE_URL:-http://127.0.0.1:${MEMORY_PORT:-8091}}"
 
 curl -fsS "${BASE_URL}/api/health"
+curl -fsS "${BASE_URL}/api/database/tables"
+curl -fsS -H 'Content-Type: application/json' -d '{}' \
+  "${BASE_URL}/api/library/actions/reset"
+curl -fsS -H 'Content-Type: application/json' -d '{}' \
+  "${BASE_URL}/api/library/actions/retain"
+curl -fsS -H 'Content-Type: application/json' \
+  -d '{"query":"Plan an accessible quiet morning and rainy evening"}' \
+  "${BASE_URL}/api/library/actions/recall"
+curl -fsS "${BASE_URL}/api/library/state"
 for action in reset retain recall correct expire dream approve next-day; do
   if [[ "${action}" == "recall" ]]; then
     body='{"guestId":"AVA","query":"Build a rain-safe evening plan"}'

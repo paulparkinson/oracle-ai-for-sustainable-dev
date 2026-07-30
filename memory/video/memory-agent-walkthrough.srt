@@ -1,35 +1,139 @@
 1
 00:00:00,000 --> 00:00:08,000
-Build durable AI agent memory with Oracle AI Database, Java, and Python.
+Run every scenario action, inspect the Java implementation, and verify each change inside Oracle AI Database.
 
 2
-00:00:08,000 --> 00:00:17,000
-Working state is temporary. Episodes, facts, and approved procedures have different lifecycles.
+00:00:08,000 --> 00:00:18,000
+The library stores preference, fact, guideline, and memory records. Message represents recent conversation from a separate table.
 
 3
-00:00:17,000 --> 00:00:26,000
-Recall scoped context before a turn, then retain selected experience after the outcome.
+00:00:18,000 --> 00:00:25,000
+The library panels become empty. The lifecycle path retains only the Ava and Leo visitor identities.
 
 4
-00:00:26,000 --> 00:00:36,000
-The Python reference uses the public Oracle AI Agent Memory SDK and a real database pool.
+00:00:25,000 --> 00:00:32,000
+The Java library clears persisted messages and extracted records, then clears the in-process search result and context-card view.
 
 5
-00:00:36,000 --> 00:00:46,000
-The final SDK state contains the corrected fact, no expired route, and no Ava data in Leo's scope.
+00:00:32,000 --> 00:00:40,000
+Oracle AI Database deletes OAMJ_CONCIERGE_MESSAGE and OAMJ_CONCIERGE_RECORDS rows. Red rows show what was removed.
 
 6
-00:00:46,000 --> 00:00:56,000
-The Java reference exposes the SQL lifecycle and transaction boundaries for teaching and inspection.
+00:00:40,000 --> 00:00:47,000
+Java deletes application teaching records in foreign-key-safe order and recreates the two visitor identities.
 
 7
-00:00:56,000 --> 00:01:06,000
-Leo reuses an approved shared procedure while Ava's private memory stays outside his scope.
+00:00:47,000 --> 00:00:55,000
+The AIM_DEMO tables are empty except for Ava and Leo in AIM_DEMO_GUESTS. Browser state is not carrying memory.
 
 8
-00:01:06,000 --> 00:01:16,000
-Successful traces can propose a structured skill, but a human approval gate controls activation.
+00:00:55,000 --> 00:01:03,000
+The app shows two conversation messages plus extracted durable records and the earlier rainy-visit episode.
 
 9
-00:01:16,000 --> 00:01:25,000
-Oracle AI Database keeps agent memory durable, scoped, correctable, expirable, and auditable.
+00:01:03,000 --> 00:01:11,000
+Ollama classifies durable content and Oracle AI Database creates an ALLMINILM embedding for every stored record.
+
+10
+00:01:11,000 --> 00:01:19,000
+OAMJ_CONCIERGE_MESSAGE stores the conversation. OAMJ_CONCIERGE_RECORDS stores typed, identity-scoped records with native vectors.
+
+11
+00:01:19,000 --> 00:01:27,000
+The UI exposes type, scope, source, version, status, and expiration so the broader lifecycle is easy to explain.
+
+12
+00:01:27,000 --> 00:01:35,000
+Java inserts four durable Ava memories, one temporary route fact, and three de-identified successful traces.
+
+13
+00:01:35,000 --> 00:01:43,000
+AIM_DEMO_MEMORIES receives semantic, episodic, and operational records. AIM_DEMO_TRACES receives three shareable outcomes.
+
+14
+00:01:43,000 --> 00:01:51,000
+The library ranks only Ava's records, builds a context card, and returns zero Ava records for Leo.
+
+15
+00:01:51,000 --> 00:01:59,000
+The Java path searches four durable record types, then combines ranked memory and recent messages into reusable context.
+
+16
+00:01:59,000 --> 00:02:07,000
+Oracle AI Database generates the query vector and ranks matching OAMJ_CONCIERGE_RECORDS while Ava's scope remains enforced.
+
+17
+00:02:07,000 --> 00:02:15,000
+The deliberately imperfect fireworks fact remains visible so the next action can demonstrate correction.
+
+18
+00:02:15,000 --> 00:02:23,000
+Java reads only active, unexpired, visitor-and-agent-scoped rows and inserts one recall audit row per selected memory.
+
+19
+00:02:23,000 --> 00:02:31,000
+AIM_DEMO_RECALL_AUDIT records the query, memory identifier, recall reason, visitor, and time for every selected row.
+
+20
+00:02:31,000 --> 00:02:38,000
+The UI keeps the old version for audit and activates the guest-confirmed replacement.
+
+21
+00:02:38,000 --> 00:02:46,000
+Java locks the current fact, inserts version 2, updates version 1 to SUPERSEDED, and commits both changes atomically.
+
+22
+00:02:46,000 --> 00:02:54,000
+AIM_DEMO_MEMORIES shows the old yellow SUPERSEDED row and the new green ACTIVE version 2 row with guest-correction provenance.
+
+23
+00:02:54,000 --> 00:03:01,000
+The UI removes the temporary operational record from active recall while durable preferences remain.
+
+24
+00:03:01,000 --> 00:03:08,000
+Java updates rain-route-tonight from ACTIVE to EXPIRED and sets EXPIRES_AT to the database timestamp.
+
+25
+00:03:08,000 --> 00:03:16,000
+AIM_DEMO_MEMORIES highlights the changed EXPIRED row. Future active-and-unexpired queries no longer select it.
+
+26
+00:03:16,000 --> 00:03:24,000
+The app induces one pending rainy-evening-reroute candidate without copying Ava's private details.
+
+27
+00:03:24,000 --> 00:03:32,000
+Java counts matching episodes and inserts generalized JSON instructions with status PENDING.
+
+28
+00:03:32,000 --> 00:03:40,000
+AIM_DEMO_SKILLS receives one green PENDING row with the trigger, generalized steps, source count, and no private guest data.
+
+29
+00:03:40,000 --> 00:03:47,000
+The UI changes the induced skill from pending to approved and displays instructions that contain no Ava-specific facts.
+
+30
+00:03:47,000 --> 00:03:54,000
+Java records the approver and approval time while changing the status from PENDING to APPROVED.
+
+31
+00:03:54,000 --> 00:04:02,000
+AIM_DEMO_SKILLS highlights the changed row with APPROVED status, APPROVED_BY, and APPROVED_AT.
+
+32
+00:04:02,000 --> 00:04:10,000
+The app shows zero Ava memories visible to Leo and the approved rainy-evening-reroute behavior.
+
+33
+00:04:10,000 --> 00:04:18,000
+Java proves that Ava rows under Leo's private scope equal zero, then selects only APPROVED shared skills.
+
+34
+00:04:18,000 --> 00:04:26,000
+The final refresh reports zero added, changed, or removed rows. Leo reuses the lesson, not Ava's personal history.
+
+35
+00:04:26,000 --> 00:04:35,000
+Oracle AI Database keeps agent memory scoped, vector-searchable, versioned, expirable, transactional, approval-gated, and auditable.

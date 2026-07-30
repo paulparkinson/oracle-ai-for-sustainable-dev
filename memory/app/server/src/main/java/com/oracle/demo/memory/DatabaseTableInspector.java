@@ -1,0 +1,205 @@
+package com.oracle.demo.memory;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+final class DatabaseTableInspector {
+    private static final List<TableSpec> TABLES = List.of(
+            new TableSpec(
+                    "OAMJ_CONCIERGE_MESSAGE",
+                    "RECORD_ID",
+                    "Raw visitor and assistant messages retained by the Java memory library.",
+                    """
+                    SELECT record_id,
+                           order_seq,
+                           thread_id,
+                           user_id,
+                           agent_id,
+                           message_role,
+                           DBMS_LOB.SUBSTR(content, 1000, 1) AS content,
+                           TO_CHAR(timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS event_time,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM OAMJ_CONCIERGE_MESSAGE
+                     ORDER BY order_seq, created_at
+                    """),
+            new TableSpec(
+                    "OAMJ_CONCIERGE_RECORDS",
+                    "RECORD_ID",
+                    "Typed durable memories and their Oracle AI Database vector embeddings.",
+                    """
+                    SELECT record_id,
+                           record_type,
+                           role,
+                           DBMS_LOB.SUBSTR(content, 1000, 1) AS content,
+                           user_id,
+                           agent_id,
+                           thread_id,
+                           CASE WHEN embedding IS NULL THEN NULL
+                                ELSE VECTOR_DIMENSION_COUNT(embedding)
+                           END AS embedding_dimensions,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM OAMJ_CONCIERGE_RECORDS
+                     ORDER BY created_at, record_id
+                    """),
+            new TableSpec(
+                    "AIM_DEMO_GUESTS",
+                    "GUEST_ID",
+                    "Visitor identities used by the repeatable lifecycle walkthrough.",
+                    """
+                    SELECT guest_id,
+                           display_name,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM AIM_DEMO_GUESTS
+                     ORDER BY guest_id
+                    """),
+            new TableSpec(
+                    "AIM_DEMO_MEMORIES",
+                    "MEMORY_ID",
+                    "Versioned semantic, episodic, and operational teaching records.",
+                    """
+                    SELECT memory_id,
+                           guest_id,
+                           agent_id,
+                           memory_type,
+                           scope_type,
+                           memory_key,
+                           content,
+                           status,
+                           version_no,
+                           TO_CHAR(valid_from, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS valid_from,
+                           TO_CHAR(expires_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS expires_at,
+                           superseded_by,
+                           source,
+                           DBMS_LOB.SUBSTR(metadata_json, 1000, 1) AS metadata_json,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM AIM_DEMO_MEMORIES
+                     ORDER BY memory_id
+                    """),
+            new TableSpec(
+                    "AIM_DEMO_RECALL_AUDIT",
+                    "RECALL_ID",
+                    "Evidence of which scoped memory was recalled for a request and why.",
+                    """
+                    SELECT recall_id,
+                           guest_id,
+                           query_text,
+                           memory_id,
+                           recall_reason,
+                           TO_CHAR(recalled_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS recalled_at
+                      FROM AIM_DEMO_RECALL_AUDIT
+                     ORDER BY recall_id
+                    """),
+            new TableSpec(
+                    "AIM_DEMO_TRACES",
+                    "TRACE_ID",
+                    "Experience traces used as evidence for procedural learning.",
+                    """
+                    SELECT trace_id,
+                           guest_id,
+                           asked,
+                           retrieved_summary,
+                           action_taken,
+                           outcome,
+                           was_successful,
+                           shareable_pattern,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM AIM_DEMO_TRACES
+                     ORDER BY trace_id
+                    """),
+            new TableSpec(
+                    "AIM_DEMO_SKILLS",
+                    "SKILL_ID",
+                    "Candidate and approved procedural memories with governance evidence.",
+                    """
+                    SELECT skill_id,
+                           skill_name,
+                           trigger_text,
+                           DBMS_LOB.SUBSTR(instructions_json, 2000, 1)
+                             AS instructions_json,
+                           status,
+                           source_episode_count,
+                           approved_by,
+                           TO_CHAR(approved_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS approved_at,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
+                             AS created_at
+                      FROM AIM_DEMO_SKILLS
+                     ORDER BY skill_id
+                    """));
+
+    private final DataSource dataSource;
+
+    DatabaseTableInspector(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    Map<String, Object> snapshot() {
+        try (Connection connection = dataSource.getConnection()) {
+            List<Map<String, Object>> tables = new ArrayList<>();
+            for (TableSpec spec : TABLES) {
+                tables.add(readTable(connection, spec));
+            }
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("refreshedAt", OffsetDateTime.now().toString());
+            result.put("tables", tables);
+            return result;
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                    "Unable to inspect memory demo tables: " + exception.getMessage(),
+                    exception);
+        }
+    }
+
+    private static Map<String, Object> readTable(
+            Connection connection,
+            TableSpec spec) throws SQLException {
+        List<String> columns = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet results = statement.executeQuery(spec.sql())) {
+            ResultSetMetaData metadata = results.getMetaData();
+            for (int index = 1; index <= metadata.getColumnCount(); index++) {
+                columns.add(metadata.getColumnLabel(index));
+            }
+            while (results.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                for (int index = 1; index <= columns.size(); index++) {
+                    row.put(columns.get(index - 1), results.getObject(index));
+                }
+                rows.add(row);
+            }
+        }
+        Map<String, Object> table = new LinkedHashMap<>();
+        table.put("name", spec.name());
+        table.put("keyColumn", spec.keyColumn());
+        table.put("description", spec.description());
+        table.put("columns", columns);
+        table.put("rows", rows);
+        return table;
+    }
+
+    private record TableSpec(
+            String name,
+            String keyColumn,
+            String description,
+            String sql) {
+    }
+}

@@ -15,7 +15,7 @@
     </nav>
     <div class="hero-grid">
       <div>
-        <p class="eyebrow">Presenter mode · Starlight Springs concierge</p>
+        <p class="eyebrow">Presenter mode · Flynn's Theme Park concierge</p>
         <h1>An agent that remembers and learns safely.</h1>
         <p class="lede">Walk through Retain, Recall, Reuse, and Refine. Then turn audited traces into a human-approved shared skill without exposing private guest memory.</p>
       </div>
@@ -39,6 +39,74 @@
         <article><span>02</span><h3>Episodic</h3><p>What happened, what was tried, and the observed outcome.</p></article>
         <article><span>03</span><h3>Semantic</h3><p>Durable facts and preferences, scoped to the correct identity.</p></article>
         <article><span>04</span><h3>Procedural</h3><p>An approved reusable workflow induced from successful traces.</p></article>
+      </div>
+    </section>
+
+    <section class="library-lab" aria-labelledby="library-title">
+      <div class="library-heading">
+        <div>
+          <p class="section-label">Live Java library path</p>
+          <h2 id="library-title">Watch a conversation become scoped vector memory.</h2>
+          <p>The controls below invoke the actual <code>ojdbc-agent-memory</code> API. Ollama extracts durable records, Oracle AI Database embeds them with <code>ALLMINILM</code>, and scoped search assembles the context used by the concierge.</p>
+        </div>
+        <div class="library-model">
+          <b id="library-dimensions">-</b>
+          <span>embedding dimensions<br><code>FINANCIAL.ALLMINILM</code></span>
+        </div>
+      </div>
+
+      <div class="pipeline" aria-label="Agent memory library pipeline">
+        <article><span>1</span><b>addMessages()</b><small>Persist the guest conversation</small></article>
+        <i>→</i>
+        <article><span>2</span><b>Ollama extraction</b><small>Produce typed durable records</small></article>
+        <i>→</i>
+        <article><span>3</span><b>VECTOR_EMBEDDING</b><small>Generate vectors inside Oracle</small></article>
+        <i>→</i>
+        <article><span>4</span><b>search()</b><small>Apply identity scope and rank</small></article>
+      </div>
+
+      <div class="library-controls">
+        <button data-library-action="reset">Reset library lane</button>
+        <button data-library-action="retain">1 · Retain Ava's conversation</button>
+        <label>
+          <span>2 · Semantic recall request</span>
+          <input id="library-query" value="Plan an accessible quiet morning and rainy evening">
+        </label>
+        <button class="primary" data-library-action="recall">Recall and build context</button>
+      </div>
+      <div class="result-banner library-result" id="library-result" role="status">
+        Reset the library lane, retain Ava's conversation, then run semantic recall.
+      </div>
+
+      <div class="library-grid">
+        <section class="panel">
+          <div class="panel-heading">
+            <div><p class="section-label">Conversation</p><h3>Messages</h3></div>
+            <span id="library-message-count">0 messages</span>
+          </div>
+          <div id="library-messages" class="chat-list"><p class="empty">No messages yet.</p></div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <div><p class="section-label">Write after</p><h3>Extracted memory</h3></div>
+            <span id="library-record-count">0 records</span>
+          </div>
+          <div id="library-records" class="library-records"><p class="empty">No records yet.</p></div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <div><p class="section-label">Read before</p><h3>Semantic ranking</h3></div>
+            <span class="scope private">AVA · EXACT SCOPE</span>
+          </div>
+          <div id="library-search" class="ranking-list"><p class="empty">Run recall to see vector-distance ranking.</p></div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <div><p class="section-label">Reusable context</p><h3>Context card</h3></div>
+            <span class="scope shared">LEO RESULTS: <b id="library-leo-results">-</b></span>
+          </div>
+          <pre id="library-context">No context card yet.</pre>
+        </section>
       </div>
     </section>
 
@@ -121,10 +189,34 @@
         </div>
       </div>
     </section>
+
+    <section class="database-inspector" aria-labelledby="database-inspector-title">
+      <div class="database-inspector-heading">
+        <div>
+          <p class="section-label">Database evidence</p>
+          <h2 id="database-inspector-title">See exactly what every action changed.</h2>
+          <p>The <code>OAMJ_CONCIERGE_*</code> tables are written by the Java memory
+            library. The <code>AIM_DEMO_*</code> tables are owned by the application:
+            fixed Java and SQL actions make correction, TTL, trace induction, and
+            approval repeatable and visible for teaching. They are real database
+            transactions, but they are not hidden library tables.</p>
+        </div>
+        <button id="refresh-database" type="button">Refresh table contents</button>
+      </div>
+      <div class="database-change-legend" aria-label="Database change legend">
+        <span class="added">Added row</span>
+        <span class="changed">Changed row</span>
+        <span class="removed">Removed row</span>
+      </div>
+      <div id="database-refresh-status" class="result-banner" role="status">
+        Loading Oracle AI Database table contents…
+      </div>
+      <div id="database-tables" class="database-tables"></div>
+    </section>
   </main>
 
   <footer>
-    <p>Demo data lives in isolated <code>AIM_DEMO_*</code> tables. The learning rule is deterministic for reproducibility; a production agent can use model-assisted extraction and induction behind the same governance boundary.</p>
+    <p>The live library path uses isolated <code>OAMJ_CONCIERGE_*</code> tables. The presenter flow uses fixed Java and SQL actions against isolated <code>AIM_DEMO_*</code> tables so correction, TTL, trace induction, and human approval remain repeatable and easy to inspect.</p>
   </footer>
   <script src="app.js"></script>
 </body>

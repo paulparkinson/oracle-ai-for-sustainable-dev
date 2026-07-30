@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_DIR="${APP_DIR}/server"
+LIBRARY_BUILD="${APP_DIR}/../test-utils/build-library.sh"
 
 # shellcheck disable=SC1091
 source "${APP_DIR}/load-database-env.sh"
@@ -24,6 +25,7 @@ if ! command -v "${MAVEN_BIN}" >/dev/null 2>&1 \
 fi
 
 (
+  "${LIBRARY_BUILD}"
   cd "${SERVER_DIR}"
   "${MAVEN_BIN}" -q -DskipTests package
   export MEMORY_WEB_ROOT="${APP_DIR}/web"

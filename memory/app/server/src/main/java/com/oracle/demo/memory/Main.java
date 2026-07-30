@@ -14,11 +14,19 @@ import java.util.concurrent.Executors;
 
 public final class Main {
     private final MemoryRepository repository;
+    private final AgentMemoryLibraryDemo libraryDemo;
+    private final DatabaseTableInspector tableInspector;
     private final Path webRoot;
 
-    private Main(Path webRoot, MemoryRepository repository) {
+    private Main(
+            Path webRoot,
+            MemoryRepository repository,
+            AgentMemoryLibraryDemo libraryDemo,
+            DatabaseTableInspector tableInspector) {
         this.webRoot = webRoot.toAbsolutePath().normalize();
         this.repository = repository;
+        this.libraryDemo = libraryDemo;
+        this.tableInspector = tableInspector;
     }
 
     public static void main(String[] args) throws Exception {
@@ -27,7 +35,12 @@ public final class Main {
         PoolDataSource dataSource =
                 UcpDataSourceConfiguration.fromEnvironment(System.getenv());
         new DatabaseSetup(dataSource).initialize();
-        new Main(webRoot, new MemoryRepository(dataSource)).start(port);
+        new Main(
+                webRoot,
+                new MemoryRepository(dataSource),
+                new AgentMemoryLibraryDemo(dataSource, System.getenv()),
+                new DatabaseTableInspector(dataSource))
+                .start(port);
     }
 
     private void start(int port) throws IOException {
@@ -37,10 +50,47 @@ public final class Main {
         server.createContext("/api/health", this::health);
         server.createContext("/api/state", this::state);
         server.createContext("/api/actions", this::action);
+        server.createContext("/api/library/state", this::libraryState);
+        server.createContext("/api/library/actions", this::libraryAction);
+        server.createContext("/api/database/tables", this::databaseTables);
         server.createContext("/", this::staticFile);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.start();
         System.out.println("Memories Are the Magic listening on http://127.0.0.1:" + port);
+    }
+
+    private void libraryState(HttpExchange exchange) throws IOException {
+        if (!"GET".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, Map.of("error", "GET required"));
+            return;
+        }
+        run(exchange, libraryDemo::state);
+    }
+
+    private void libraryAction(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, Map.of("error", "POST required"));
+            return;
+        }
+        String path = exchange.getRequestURI().getPath();
+        String name = path.length() > "/api/library/actions/".length()
+                ? path.substring("/api/library/actions/".length())
+                : "";
+        try {
+            Map<String, Object> body = Json.object(exchange.getRequestBody());
+            Map<String, Object> result = switch (name) {
+                case "reset" -> libraryDemo.reset();
+                case "retain" -> libraryDemo.retain();
+                case "recall" -> libraryDemo.recall(string(body.get("query")));
+                default -> throw new IllegalArgumentException(
+                        "Unknown library action: " + name);
+            };
+            respond(exchange, 200, result);
+        } catch (IllegalArgumentException exception) {
+            respond(exchange, 400, Map.of("error", exception.getMessage()));
+        } catch (IllegalStateException exception) {
+            respond(exchange, 500, Map.of("error", exception.getMessage()));
+        }
     }
 
     private void health(HttpExchange exchange) throws IOException {
@@ -49,6 +99,14 @@ public final class Main {
             return;
         }
         run(exchange, repository::health);
+    }
+
+    private void databaseTables(HttpExchange exchange) throws IOException {
+        if (!"GET".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, Map.of("error", "GET required"));
+            return;
+        }
+        run(exchange, tableInspector::snapshot);
     }
 
     private void state(HttpExchange exchange) throws IOException {
