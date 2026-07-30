@@ -248,6 +248,16 @@ Oracle AI Database
     <figcaption>The agent loop reads governed memory while assembling context and writes selected messages, memories, traces, and outcomes after acting. Oracle AI Database provides the durable boundary around otherwise transient model execution.</figcaption>
   </figure>
 
+  <h3>What Enters the Model Context?</h3>
+  <p>The context assembler selects memory for each turn rather than sending the entire memory store to the model:</p>
+  <ul>
+    <li><strong>Working memory:</strong> the current request, recent conversation, and active task state provide immediate context.</li>
+    <li><strong>Semantic memory:</strong> relevant visitor facts and preferences are recalled within the authorized identity scope. Frequently useful facts may appear often, but semantic memory is not automatically sent in full on every turn.</li>
+    <li><strong>Procedural memory:</strong> an applicable approved guideline or skill is included only when the current task needs that procedure.</li>
+    <li><strong>Episodic memory:</strong> relevant prior experiences and outcomes are selected, commonly through scoped vector search, when they can improve the current decision.</li>
+  </ul>
+  <p>The resulting context card must also fit the model's token budget. Structured authorization and lifecycle filters decide what the agent may consider before vector similarity and task relevance decide what is useful.</p>
+
   <div class="implementation-grid">
     <section class="implementation-card">
       <h3>Java: live memory library</h3>
