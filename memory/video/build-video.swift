@@ -34,8 +34,8 @@ struct Scene {
     let seconds: Double
 }
 
-let repositoryPath = "app/server/src/main/java/com/oracle/demo/memory/MemoryRepository.java"
-let libraryPath = "app/server/src/main/java/com/oracle/demo/memory/AgentMemoryLibraryDemo.java"
+let repositoryPath = "java-agent/server/src/main/java/com/oracle/demo/memory/MemoryRepository.java"
+let libraryPath = "java-agent/server/src/main/java/com/oracle/demo/memory/AgentMemoryLibraryDemo.java"
 
 let scenes: [Scene] = [
     Scene(

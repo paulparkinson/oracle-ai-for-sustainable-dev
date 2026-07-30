@@ -5,9 +5,9 @@ a subtitle-led walkthrough video:
 
 - [`blog.html`](blog.html): presenter-ready article and walkthrough based on the “Memories Are the Magic” presentation.
 - [`comparisons.html`](comparisons.html): comparison of commonly evaluated AI agent-memory platforms.
-- [`python-app/`](python-app/): public Oracle AI Agent Memory 26.6 SDK reference
+- [`python-agent/`](python-agent/): public Oracle AI Agent Memory 26.6 SDK reference
   and browser UI.
-- [`app/`](app/): Java 21, the `ojdbc-agent-memory` proof-of-concept library,
+- [`java-agent/`](java-agent/): Java 21, the `ojdbc-agent-memory` proof-of-concept library,
   Oracle JDBC/UCP, explicit lifecycle mechanics, and browser UI.
 - [`database/`](database/): reference schema and SQLcl inspection queries.
 - [`video/`](video/): reproducible silent MP4, poster, SRT, WebVTT, and build source.
@@ -44,7 +44,7 @@ cp memory/.env.example memory/.env
 Run the public Python SDK reference first:
 
 ```bash
-cd memory/python-app
+cd memory/python-agent
 ./test.sh
 ./run.sh
 ```
@@ -52,7 +52,7 @@ cd memory/python-app
 Open <http://127.0.0.1:8092>. Its end-to-end API test is:
 
 ```bash
-cd memory/python-app
+cd memory/python-agent
 ./smoke-test.sh
 ```
 
@@ -72,7 +72,7 @@ Then build and run it. Set `OAM_LIBRARY_DIR` when the clone is not at the
 default path printed by `memory/test-utils/build-library.sh`:
 
 ```bash
-cd memory/app
+cd memory/java-agent
 export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
 ./run.sh
@@ -81,7 +81,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 Open <http://127.0.0.1:8091>. In a second terminal, run:
 
 ```bash
-cd memory/app
+cd memory/java-agent
 ./smoke-test.sh
 ```
 

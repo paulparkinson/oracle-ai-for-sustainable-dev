@@ -32,7 +32,7 @@ cd memory/test-utils
 ## Test and run
 
 ```bash
-cd memory/app
+cd memory/java-agent
 export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
 ./run.sh
@@ -41,7 +41,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 Open <http://127.0.0.1:8091>. In another terminal, run the complete API proof:
 
 ```bash
-cd memory/app
+cd memory/java-agent
 ./smoke-test.sh
 ```
 

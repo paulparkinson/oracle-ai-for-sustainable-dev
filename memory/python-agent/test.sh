@@ -6,7 +6,7 @@ MEMORY_DIR="$(cd -- "${PYTHON_APP_DIR}/.." && pwd)"
 VENV_DIR="${MEMORY_DIR}/.venv"
 
 if [[ ! -x "${VENV_DIR}/bin/python" ]]; then
-  echo "Run memory/python-app/run.sh once to create the virtual environment." >&2
+  echo "Run memory/python-agent/run.sh once to create the virtual environment." >&2
   exit 1
 fi
 

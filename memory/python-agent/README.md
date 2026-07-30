@@ -18,14 +18,14 @@ It intentionally uses:
 Run:
 
 ```bash
-cd memory/python-app
+cd memory/python-agent
 ./run.sh
 ```
 
 Open <http://127.0.0.1:8092>. In a second terminal:
 
 ```bash
-cd memory/python-app
+cd memory/python-agent
 ./smoke-test.sh
 ```
 

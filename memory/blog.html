@@ -83,7 +83,7 @@
 
   <p class="lead">An AI agent does not become stateful because its model has a long context window. It becomes stateful when useful experience is deliberately captured, scoped, recalled, corrected, expired, and reused. This demo makes that external memory loop visible: read before the turn, write after the turn, and keep Oracle AI Database as the durable, transactional governance boundary.</p>
   <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data.</p>
-  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory/app">Java source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
+  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory/java-agent">Java source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
 
   <figure>
     <img src="images/memories-are-the-magic-cover.png" alt="AI agent connected to Oracle AI Database by a write-after and read-before loop, with working, episodic, semantic, and procedural memory inside the governed database layer.">
@@ -278,12 +278,12 @@ ollama pull llama3.2</code></pre>
 
   <h3>3. Run the Java Library and UCP Reference</h3>
   <p>The Java implementation requires Java 21 and Maven. Its runner builds the local library snapshot, starts the browser app, and creates only missing library and teaching objects. It never drops schema objects.</p>
-  <pre><code>cd memory/app
+  <pre><code>cd memory/java-agent
 export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
 ./run.sh</code></pre>
   <p>Open <code>http://127.0.0.1:8091</code>. The automated proof is:</p>
-  <pre><code>cd memory/app
+  <pre><code>cd memory/java-agent
 ./smoke-test.sh</code></pre>
 
   <figure>
