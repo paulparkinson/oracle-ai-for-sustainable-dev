@@ -181,6 +181,45 @@
     <li><strong>Reuse:</strong> assemble a compact context card for the next turn.</li>
     <li><strong>Refine:</strong> correct, consolidate, version, expire, or delete state.</li>
   </ul>
+  <h3>Map the Four Rs to Java Methods</h3>
+  <p>The Java API maps the first three Rs directly to <code>OracleThread</code>. Refinement is a lifecycle operation: the application combines the library's delete and add operations, or applies its own versioning transaction when correction history must be retained.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Memory operation</th>
+        <th>Java method</th>
+        <th>What it does</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Retain</strong></td>
+        <td><code>thread.addMessages(messages)</code><br><code>thread.addMemory(memory)</code></td>
+        <td>Persists conversation messages and optionally extracts durable records, or stores an explicit memory.</td>
+      </tr>
+      <tr>
+        <td><strong>Recall</strong></td>
+        <td><code>thread.search(query, maxResults, recordTypes)</code></td>
+        <td>Finds relevant records inside the thread's user, agent, and thread scope.</td>
+      </tr>
+      <tr>
+        <td><strong>Reuse</strong></td>
+        <td><code>thread.getContextCard()</code></td>
+        <td>Packages durable records and recent messages as compact context for the next model call.</td>
+      </tr>
+      <tr>
+        <td><strong>Refine</strong></td>
+        <td><code>thread.deleteMemory(memoryId)</code> plus <code>thread.addMemory(replacement)</code><br><code>repository.correct()</code> in this demo</td>
+        <td>Replaces, expires, or versions memory. The demo uses one database transaction to preserve the superseded version and correction evidence.</td>
+      </tr>
+    </tbody>
+  </table>
+  <pre><code>thread.addMemory(memory);                              // Retain
+List&lt;OracleSearchResult&gt; hits =
+    thread.search(query, 8, recordTypes);              // Recall
+OracleContextCard card = thread.getContextCard();      // Reuse
+repository.correct();                                  // Refine with version history</code></pre>
+  <p class="note"><strong>Why Refine is different:</strong> the current Java library API does not expose a single <code>updateMemory(...)</code> method. Its primitives support delete and add. This concierge demo uses <code>MemoryRepository.correct()</code> to create a new version and mark the prior <code>AIM_DEMO_MEMORIES</code> row <code>SUPERSEDED</code>, preserving an auditable history instead of overwriting it.</p>
   <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
 
   <h2 id="architecture">What the Demo Actually Implements</h2>
