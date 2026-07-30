@@ -89,12 +89,12 @@
             <td>Mem0</td>
             <td><a href="https://docs.mem0.ai/">Mem0 Platform and Mem0 OSS</a></td>
             <td><strong>Mixed.</strong> <a href="https://github.com/mem0ai/mem0">Mem0 OSS</a> is Apache 2.0; Platform is managed.</td>
-            <td>Many vector stores, including Oracle AI Database, Qdrant, pgvector, Redis/Valkey, MongoDB, OpenSearch, Pinecone, Milvus, and Weaviate.</td>
+            <td>Many vector stores. The new Oracle provider stores embeddings in native <code>VECTOR</code> and memory payloads in <code>JSON</code>.</td>
             <td>Python, JavaScript/TypeScript, REST, and CLIs.</td>
-            <td><strong>Yes, on Mem0 OSS main.</strong> The native <code>oracledb</code> provider uses Oracle AI Vector Search; pin the July 23, 2026 merge commit until it reaches a PyPI release.</td>
+            <td><strong>Yes, for the vector store.</strong> Mem0 OSS <code>main</code> includes a native <code>oracledb</code> provider with pooled connections, metadata filters, CRUD, and HNSW or IVF indexing. Pin the <a href="https://github.com/mem0ai/mem0/commit/d6d89c987bddf580870db14c69db974edfc5263c">July 23, 2026 merge commit</a> until it reaches PyPI. See the <a href="Mem0-OracleAIDatabase/README.md">starter implementation</a>.</td>
             <td><strong>Yes.</strong> Extracts facts and handles conflicts; current Platform preserves linked history. No model-weight training.</td>
             <td>Simple API, broad integrations, managed or self-hosted, useful scopes.</td>
-            <td>OSS/Platform parity varies; model cost and quality matter; ADD-only memory can grow.</td>
+            <td>The latest PyPI release predates Oracle support. Oracle backs vectors and JSON payloads, while Mem0 operation history remains in SQLite and optional graph memory needs a separate provider.</td>
             <td>General-purpose extraction, search, metadata, and memory CRUD.</td>
           </tr>
           <tr>
