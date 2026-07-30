@@ -139,15 +139,16 @@
   <h2 id="four-memory-types">The Four Memory Types</h2>
   <table>
     <thead>
-      <tr><th>Memory type</th><th>Question it answers</th><th>Demo example</th><th>Lifecycle</th></tr>
+      <tr><th>Memory type</th><th>Question it answers</th><th>Demo example</th><th>Developer analogy</th><th>Lifecycle</th></tr>
     </thead>
     <tbody>
-      <tr><td>Working</td><td>What am I doing now?</td><td>“Build Ava a rain-safe evening plan.”</td><td>Active turn; not inserted into the durable memory table.</td></tr>
-      <tr><td>Episodic</td><td>What happened before?</td><td>The indoor mobility route worked and the lantern show was the highlight.</td><td>Durable event plus outcome; useful learning material.</td></tr>
-      <tr><td>Semantic</td><td>What facts should I know?</td><td>Ava prefers a quiet breakfast and needs a minimal-stair route.</td><td>Versioned, correctable, identity-scoped fact.</td></tr>
-      <tr><td>Procedural</td><td>How should I handle this pattern?</td><td><code>rainy-evening-reroute</code></td><td>Induced from successful traces; inactive until a person approves it.</td></tr>
+      <tr><td>Working</td><td>What am I doing now?</td><td>“Build Ava a rain-safe evening plan.”</td><td>RAM or the active context window.</td><td>Active turn; not inserted into the durable memory table.</td></tr>
+      <tr><td>Episodic</td><td>What happened before?</td><td>The indoor mobility route worked and the lantern show was the highlight.</td><td>Distilled interaction history.</td><td>Durable event plus outcome; useful learning material.</td></tr>
+      <tr><td>Semantic</td><td>What facts should I know?</td><td>Ava prefers a quiet breakfast and needs a minimal-stair route.</td><td>Project facts and conventions in <code>CLAUDE.md</code> or <code>AGENTS.md</code>.</td><td>Versioned, correctable, identity-scoped fact.</td></tr>
+      <tr><td>Procedural</td><td>How should I handle this pattern?</td><td><code>rainy-evening-reroute</code>: “When rain closes a path, check accessibility, choose covered connectors, resequence dining, and verify arrival time.”</td><td><code>SKILL.md</code> or agent skills, loaded through progressive disclosure.</td><td>Induced from successful traces; inactive until a person approves it.</td></tr>
     </tbody>
   </table>
+  <p class="note"><strong>These are analogies, not storage rules.</strong> A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions; classify each entry by what it communicates and how the agent uses it.</p>
   <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
 
   <h3 id="record-type-mapping">How <code>RECORD_TYPE</code> Maps to Memory Types</h3>
