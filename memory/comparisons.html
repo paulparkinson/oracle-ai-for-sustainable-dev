@@ -89,9 +89,9 @@
             <td>Mem0</td>
             <td><a href="https://docs.mem0.ai/">Mem0 Platform and Mem0 OSS</a></td>
             <td><strong>Mixed.</strong> <a href="https://github.com/mem0ai/mem0">Mem0 OSS</a> is Apache 2.0; Platform is managed.</td>
-            <td>Many vector stores, including Qdrant, pgvector, Redis/Valkey, MongoDB, OpenSearch, Pinecone, Milvus, and Weaviate.</td>
+            <td>Many vector stores, including Oracle AI Database, Qdrant, pgvector, Redis/Valkey, MongoDB, OpenSearch, Pinecone, Milvus, and Weaviate.</td>
             <td>Python, JavaScript/TypeScript, REST, and CLIs.</td>
-            <td><strong>Custom only.</strong> Oracle is not a documented provider; add a Mem0 vector-store adapter for Oracle AI Vector Search.</td>
+            <td><strong>Yes, on Mem0 OSS main.</strong> The native <code>oracledb</code> provider uses Oracle AI Vector Search; pin the July 23, 2026 merge commit until it reaches a PyPI release.</td>
             <td><strong>Yes.</strong> Extracts facts and handles conflicts; current Platform preserves linked history. No model-weight training.</td>
             <td>Simple API, broad integrations, managed or self-hosted, useful scopes.</td>
             <td>OSS/Platform parity varies; model cost and quality matter; ADD-only memory can grow.</td>
@@ -198,7 +198,7 @@
   <section id="references">
     <h2>Primary References</h2>
     <ul>
-      <li><a href="https://docs.mem0.ai/platform/quickstart">Mem0 Platform quickstart</a>, <a href="https://docs.mem0.ai/core-concepts/memory-operations/add">memory extraction and conflict handling</a>, and <a href="https://docs.mem0.ai/components/vectordbs/overview">supported vector databases</a></li>
+      <li><a href="https://docs.mem0.ai/platform/quickstart">Mem0 Platform quickstart</a>, <a href="https://docs.mem0.ai/core-concepts/memory-operations/add">memory extraction and conflict handling</a>, <a href="https://docs.mem0.ai/components/vectordbs/overview">supported vector databases</a>, and the <a href="https://github.com/mem0ai/mem0/commit/d6d89c987bddf580870db14c69db974edfc5263c">Oracle AI Vector Search provider merge</a></li>
       <li><a href="https://help.getzep.com/zep-vs-graphiti">Zep versus Graphiti</a>, <a href="https://github.com/getzep/graphiti">Graphiti temporal and incremental learning model</a>, and <a href="https://help.getzep.com/v2/quickstart">Zep SDK quickstart</a></li>
       <li><a href="https://github.com/letta-ai/letta">Letta open-source repository</a>, <a href="https://docs.letta.com/guides/core-concepts/memory/memory-blocks">agent-managed memory blocks</a>, and <a href="https://docs.letta.com/guides/docker/postgres/">PostgreSQL configuration</a></li>
       <li><a href="https://langchain-ai.github.io/langmem/">LangMem documentation</a>, <a href="https://langchain-ai.github.io/langmem/concepts/conceptual_guide/">continual memory and prompt optimization concepts</a>, and <a href="https://github.com/langchain-ai/langmem">open-source repository</a></li>
