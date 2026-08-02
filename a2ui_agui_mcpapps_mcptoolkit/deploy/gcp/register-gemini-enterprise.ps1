@@ -17,8 +17,13 @@ $agentsUrl = (
     "default_collection/engines/$AppId/assistants/" +
     "default_assistant/agents")
 
+$identityToken = & $gcloud auth print-identity-token
+if ($LASTEXITCODE -ne 0) {
+    throw "Unable to obtain a Google Cloud identity token."
+}
 $agentCard = Invoke-RestMethod -Method Get -Uri (
-    $AgentBaseUrl.TrimEnd("/") + "/.well-known/agent-card.json")
+    $AgentBaseUrl.TrimEnd("/") + "/.well-known/agent-card.json") `
+    -Headers @{ Authorization = "Bearer $identityToken" }
 if ($agentCard.protocolVersion -ne "0.3.0") {
     throw "Gemini Enterprise requires the A2A v0.3 compatibility card."
 }

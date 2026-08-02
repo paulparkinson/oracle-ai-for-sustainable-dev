@@ -28,6 +28,18 @@ function Invoke-Gcloud {
     }
 }
 
+function Test-GcloudResource {
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & $gcloud @args *> $null
+        return $LASTEXITCODE -eq 0
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
+}
+
 Invoke-Gcloud config set account paul.parkinson@oracle.com
 Invoke-Gcloud config set project $ProjectId
 Invoke-Gcloud services enable `
@@ -37,9 +49,8 @@ Invoke-Gcloud services enable `
     secretmanager.googleapis.com `
     --project=$ProjectId
 
-& $gcloud artifacts repositories describe $Repository `
-    --project=$ProjectId --location=$Region *> $null
-if ($LASTEXITCODE -ne 0) {
+if (-not (Test-GcloudResource artifacts repositories describe $Repository `
+        --project=$ProjectId --location=$Region)) {
     Invoke-Gcloud artifacts repositories create $Repository `
         --project=$ProjectId `
         --location=$Region `
@@ -47,18 +58,16 @@ if ($LASTEXITCODE -ne 0) {
         --description="A2A and A2UI agent images"
 }
 
-& $gcloud iam service-accounts describe $serviceAccountEmail `
-    --project=$ProjectId *> $null
-if ($LASTEXITCODE -ne 0) {
+if (-not (Test-GcloudResource iam service-accounts describe `
+        $serviceAccountEmail --project=$ProjectId)) {
     Invoke-Gcloud iam service-accounts create $RuntimeServiceAccount `
         --project=$ProjectId `
         --display-name="Gemini Enterprise A2UI runtime"
 }
 
 foreach ($secret in @($WalletSecret, $DatabasePasswordSecret)) {
-    & $gcloud secrets versions describe latest `
-        --secret=$secret --project=$ProjectId *> $null
-    if ($LASTEXITCODE -ne 0) {
+    if (-not (Test-GcloudResource secrets versions describe latest `
+            --secret=$secret --project=$ProjectId)) {
         throw (
             "Secret $secret has no accessible latest version. Run " +
             "prepare-secrets.ps1 first.")
@@ -101,6 +110,9 @@ $commonArguments = @(
     "--max-instances=1",
     "--timeout=300",
     "--port=8080",
+    "--network=default",
+    "--subnet=default",
+    "--vpc-egress=private-ranges-only",
     "--set-env-vars=DB_SERVICE_NAME=$DatabaseServiceName,DB_USERNAME=$DatabaseUsername,AGENT_PORT=8081,AGENT_SERVICE_URL=http://127.0.0.1:8081,PUBLIC_A2A_URL=https://pending.invalid",
     "--set-secrets=/var/run/secrets/oracle-wallet/wallet.zip=$WalletSecret`:latest,DB_PASSWORD=$DatabasePasswordSecret`:latest",
     $accessFlag

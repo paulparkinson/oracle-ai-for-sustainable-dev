@@ -2,9 +2,11 @@ package com.oracle.demo.interactiveai;
 
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
+import oracle.security.pki.OraclePKIProvider;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Security;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Map;
@@ -17,6 +19,9 @@ public final class UcpDataSourceConfiguration {
     }
 
     public static PoolDataSource fromEnvironment(Map<String, String> environment) {
+        if (Security.getProvider("OraclePKI") == null) {
+            Security.addProvider(new OraclePKIProvider());
+        }
         String tnsAdmin = firstNonBlank(environment.get("TNS_ADMIN"), defaultWalletPath());
         String serviceName = firstNonBlank(
                 environment.get("DB_SERVICE_NAME"),

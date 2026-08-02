@@ -74,6 +74,13 @@ final class ReferenceTests {
                         null,
                         "bad",
                         "planner@example.com"));
+        assertEquals(
+                "FINANCIAL",
+                DatabaseUserBootstrap.validatedIdentifier("financial"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DatabaseUserBootstrap.validatedIdentifier(
+                        "FINANCIAL; DROP USER ADMIN"));
     }
 
     @Test

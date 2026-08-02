@@ -2,31 +2,29 @@
 
 This runbook deploys the supply-chain A2A/A2UI adapter and its private Java
 service as one Cloud Run container. It targets the existing Google Cloud and
-Oracle Database@Google Cloud resources discovered on 2026-07-29:
+Oracle Database@Google Cloud resources validated on 2026-08-01:
 
 - Google Cloud project: `adb-pm-prod`
 - region: `us-east4`
-- Autonomous Database: `paulparkdb` (`23ai`, `OLTP`)
+- Autonomous Database: `paulparkdb` (`26ai` in OCI, `OLTP`)
 - wallet service: `paulparkdb_tp`
 - Gemini Enterprise app: `Inventory System`
 - Gemini Enterprise app ID: `inventory-system_1775523930395`
 - Gemini Enterprise location: `global`
 
-The existing `paulpark-instance` VM and its four registered A2A agents are not
-modified by this deployment.
+The existing `paulpark-instance` VM remains separate from this deployment.
 
 ## Why Cloud Run instead of another VM
 
 Gemini Enterprise requires a reachable HTTPS A2A endpoint, not a VM. Cloud Run
-provides the managed certificate and public service URL required for agent
-discovery. The selected `paulparkdb` exposes wallet-authenticated TCPS
-connection strings, so this first deployment does not need a new VM or VPC
-connector.
+provides managed HTTPS and an IAM-protected service URL for agent discovery.
+The selected `paulparkdb` private endpoint is reachable through Cloud Run
+Direct VPC egress on the project's `default` network and subnet, so this
+deployment does not need a new VM or Serverless VPC Access connector.
 
-If the database is later changed to a private endpoint, add Cloud Run Direct
-VPC egress to the database's VPC/subnet, or place the same container on a VM
-inside that VPC. Oracle Database@Google Cloud requires the ODB network and
-associated VPC to be in the same project.
+Oracle Database@Google Cloud requires the ODB network and associated VPC to be
+in the same project. A VM in that VPC remains an alternative hosting model,
+but is not required for this service.
 
 ## Runtime and secret boundaries
 
@@ -56,9 +54,12 @@ records to a durable store before enabling multiple instances.
 
 1. Authenticate `gcloud` as `paul.parkinson@oracle.com`.
 2. Activate the dedicated `a2ui-adb-pm-prod` gcloud configuration.
-3. Confirm that the `FINANCIAL` application user exists in `paulparkdb` and
-   that its password is known.
-4. Confirm that the supply-chain database setup has been run in that schema.
+3. Put the one-time `ADMIN` credential in the ignored local `.env` without
+   surrounding quote characters.
+4. Run `deploy/gcp/initialize-database.ps1`. It creates the dedicated
+   `FINANCIAL` user, installs the schema, stores its generated password in
+   Secret Manager, updates the ignored local `.env`, and deletes the temporary
+   ADMIN secret and bootstrap job.
 
 Do not deploy with the `ADMIN` database user.
 
@@ -76,17 +77,17 @@ password, creates secret versions, and erases its temporary plaintext file.
 
 ## Build and deploy
 
-For a first Gemini Enterprise demo, the agent card must be fetchable by the
-host. This command creates an unauthenticated Cloud Run endpoint:
+Deploy with Cloud Run IAM authentication (the script's default):
 
 ```powershell
-.\deploy\gcp\deploy-cloud-run.ps1 -AllowUnauthenticated
+.\deploy\gcp\deploy-cloud-run.ps1
 ```
 
-Unauthenticated access is a demo setting, not the production target. Replace
-it with Cloud Run IAM or OAuth authorization after the host validation.
-The application still exposes only its bounded workflow: no general SQL tool,
-wallet, password, Java port, or Toolkit transport is public.
+Grant `roles/run.invoker` on this service only to Gemini Enterprise's Discovery
+Engine service agent, `service-1093068138027@gcp-sa-discoveryengine.iam.gserviceaccount.com`.
+OAuth client credentials are not required because the agent does not access
+Google resources on behalf of an end user. No general SQL tool, wallet,
+password, Java port, or Toolkit transport is public.
 
 Verify:
 
@@ -94,7 +95,9 @@ Verify:
 $serviceUrl = gcloud run services describe oracle-supply-chain-a2ui `
   --project=adb-pm-prod --region=us-east4 `
   --format="value(status.url)"
-Invoke-RestMethod "$serviceUrl/.well-known/agent-card.json"
+$identityToken = gcloud auth print-identity-token
+Invoke-RestMethod "$serviceUrl/.well-known/agent-card.json" `
+  -Headers @{ Authorization = "Bearer $identityToken" }
 ```
 
 ## Register in Gemini Enterprise
@@ -111,11 +114,23 @@ The registration script uses the official Discovery Engine
 agent card, checks A2A protocol `0.3.0`, refuses to create a duplicate display
 name, and registers it in the existing `Inventory System` app.
 
+Validated deployment evidence on 2026-08-01:
+
+- Cloud Run service: `oracle-supply-chain-a2ui`
+- active tested endpoint: `https://oracle-supply-chain-a2ui-54d5grsrkq-uk.a.run.app`
+- Gemini Enterprise agent ID: `10914982377308290813`
+- anonymous agent-card request: HTTP `403`
+- authenticated agent-card request: HTTP `200`
+- registered state: `ENABLED`
+- read-only A2A smoke test: result returned with A2UI v0.8 content and no error
+
 ## Source material
 
 - [Google Cloud: Gemini Enterprise and A2UI integration guide](https://cloud.google.com/blog/topics/developers-practitioners/guide-to-gemini-enterprise-and-a2ui-integration)
 - [Google Cloud: register and manage an A2UI agent](https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent)
 - [Google Cloud: register and manage an A2A agent](https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent)
+- [Google Cloud: deploy A2A agents to Cloud Run](https://docs.cloud.google.com/run/docs/deploy-a2a-agents)
+- [Google Cloud: host an A2UI agent with Cloud Run](https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/tutorial-host-agent-cloud-run)
 - [Google A2UI source and examples](https://github.com/google/A2UI)
 - [A2UI reference implementation linked by Google](https://github.com/wadave/agent-a2ui-demo)
 - [Google Cloud: Direct VPC egress](https://docs.cloud.google.com/run/docs/configuring/vpc-direct-vpc)

@@ -34,18 +34,24 @@ WORKDIR /opt/app
 COPY gemini-enterprise-a2a/requirements.txt ./gemini-enterprise-a2a/
 RUN python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --disable-pip-version-check \
-        --no-cache-dir -r gemini-enterprise-a2a/requirements.txt
+        --no-cache-dir -r gemini-enterprise-a2a/requirements.txt \
+    && /opt/venv/bin/python -c \
+        "from a2ui.a2a.extension import get_a2ui_agent_extension; from a2ui.a2a.parts import create_a2ui_part"
 
 COPY --from=java-build /out/interactive-ai-agent-service.jar ./
 COPY --from=java-build /out/oracle-db-mcp-toolkit.jar ./
 COPY oracle-db-mcp-toolkit/config/tools.yaml ./oracle-db-mcp-toolkit/config/tools.yaml
+COPY database ./database
 COPY web-client ./web-client
 COPY gemini-enterprise-a2a/main.py gemini-enterprise-a2a/a2ui_payloads.py \
     ./gemini-enterprise-a2a/
 COPY deploy/gcp/container-entrypoint.sh /usr/local/bin/container-entrypoint
+COPY deploy/gcp/database-job-entrypoint.sh /usr/local/bin/database-job-entrypoint
 
 RUN sed -i 's/\r$//' /usr/local/bin/container-entrypoint \
+        /usr/local/bin/database-job-entrypoint \
     && chmod 0555 /usr/local/bin/container-entrypoint \
+        /usr/local/bin/database-job-entrypoint \
     && chown -R app:app /opt/app
 
 ENV AGENT_PORT=8081 \

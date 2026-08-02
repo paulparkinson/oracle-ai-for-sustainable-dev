@@ -267,14 +267,14 @@ Oracle AI Database</code></pre>
   |  managed HTTPS
   v
 Cloud Run: oracle-supply-chain-a2ui
-  |  public adapter :8080
+  |  IAM-authenticated adapter :8080
   |  loopback Java service :8081
   |  stdio MCP Toolkit child
   v
 paulparkdb_tp in Oracle Database@Google Cloud</code></pre>
     <p>The Cloud Run image contains the adapter, Java service, and pinned Toolkit but no secret. Secret Manager mounts the Oracle wallet ZIP and injects the dedicated <code>FINANCIAL</code> password at runtime. The entrypoint expands the wallet into ephemeral storage, derives the JDBC URL from <code>DB_SERVICE_NAME=paulparkdb_tp</code>, starts Java only on loopback, waits for its health check, and then exposes the A2A adapter on Cloud Run's assigned port.</p>
-    <p>The checked-in <code>deploy/gcp</code> scripts build the image with Cloud Build, create a least-purpose runtime service account, limit Cloud Run to one instance while approval handles remain in memory, set the final service URL in the agent card, and register that card through the official Discovery Engine <code>assistants/default_assistant/agents</code> REST resource. An unauthenticated Cloud Run endpoint is acceptable only for the initial host demonstration; production should use Cloud Run IAM or OAuth, durable approval state, Model Armor in the A2A application path, and explicit end-user authorization.</p>
-    <p>If a later Oracle database uses a private endpoint, keep the same application boundary but configure Cloud Run Direct VPC egress to the associated VPC and ODB network. A VM in that VPC remains a valid alternative, but the protocol and A2UI implementation do not change.</p>
+    <p>The checked-in <code>deploy/gcp</code> scripts build the image with Cloud Build, create a least-purpose runtime service account, limit Cloud Run to one instance while approval handles remain in memory, set the final service URL in the agent card, and register that card through the official Discovery Engine <code>assistants/default_assistant/agents</code> REST resource. The deployed endpoint rejects anonymous calls and grants <code>roles/run.invoker</code> only to Gemini Enterprise's Discovery Engine service agent. Google's Cloud Run guidance recommends this IAM model for internal clients such as Gemini Enterprise; an OAuth client is needed only when the agent must access Google resources on behalf of the end user.</p>
+    <p>The <code>paulparkdb</code> private endpoint is reached through Cloud Run Direct VPC egress on the associated <code>default</code> VPC and subnet. A VM in that VPC remains a valid alternative, but the protocol and A2UI implementation do not change. The deployment was validated end to end on August 1, 2026: anonymous discovery returned HTTP 403, authenticated discovery returned HTTP 200, Gemini Enterprise reported the agent <code>ENABLED</code>, and a read-only A2A request returned A2UI v0.8 content from the Oracle-backed workflow.</p>
   </section>
 
   <section id="transactional-approval">
@@ -363,7 +363,7 @@ cd agent-service
 
   <section id="limitations">
     <h2>Limitations and Next Steps</h2>
-    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. ChatGPT and Gemini Enterprise still require account-level host validation and sanitized evidence before publication claims should say that either remote host was tested end to end.</p>
+    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. Gemini Enterprise discovery and a read-only A2A/A2UI request have been validated end to end; ChatGPT still requires account-level host validation and sanitized evidence before publication claims say that host was tested end to end.</p>
     <p>Gemini Enterprise's A2UI support is Preview and currently limited to v0.8. The browser's v0.9.1 payload and Gemini Enterprise's v0.8 payload are intentionally separate builders over one domain API. Future host upgrades should be handled by explicit capability/version negotiation and compatibility tests rather than silently changing every client at once.</p>
     <p>Production next steps include authenticated identity, durable approvals and idempotency, Oracle row-level authorization, Streamable HTTP with TLS and OAuth 2.0, Model Armor configured in the A2A application path, location and value authority limits, concurrent-transfer testing, richer forecasting, and an optimizer that evaluates multiple interacting transfers. Gemini Enterprise's console-level Model Armor settings do not automatically protect a separately hosted A2A agent. Vector search or retrieval-augmented generation could add policy and disruption explanations, while the deterministic database operation remains the final execution boundary.</p>
   </section>
@@ -382,6 +382,8 @@ cd agent-service
       <li><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt">Connect and test a ChatGPT plugin</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent">Gemini Enterprise: register an A2UI/A2A agent</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent">Gemini Enterprise: register an A2A agent</a></li>
+      <li><a href="https://docs.cloud.google.com/run/docs/deploy-a2a-agents">Google Cloud: deploy A2A agents to Cloud Run with IAM</a></li>
+      <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/tutorial-host-agent-cloud-run">Gemini Enterprise: host an A2UI agent on Cloud Run</a></li>
       <li><a href="https://cloud.google.com/blog/topics/developers-practitioners/guide-to-gemini-enterprise-and-a2ui-integration">Google Cloud: guide to Gemini Enterprise and A2UI integration</a></li>
       <li><a href="https://github.com/google/A2UI">Google A2UI source and examples</a></li>
       <li><a href="https://github.com/wadave/agent-a2ui-demo">A2UI reference implementation linked by Google</a></li>
