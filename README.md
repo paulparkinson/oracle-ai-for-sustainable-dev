@@ -6,7 +6,7 @@ You can also contact Paul Parkinson with any questions [here](https://www.linked
 
 ## Content
 
-1. **Build a Governed Supply-Chain Inventory Exchange with A2UI, AG-UI, MCP Apps, the Oracle Database MCP Java Toolkit, and Oracle AI Database**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/a2ui_agui_mcpapps_mcptoolkit/blog.html) | [Source](a2ui_agui_mcpapps_mcptoolkit/)
+1. **Build a Governed Supply-Chain Inventory Exchange with A2UI, AG-UI, MCP Apps, the Oracle Database MCP Java Toolkit, and Oracle AI Database**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/a2ui_mcpapps_mcptoolkit/blog.html) | [Source](a2ui_mcpapps_mcptoolkit/)
 2. **End-to-End Agentic AI Observability: Tracing from Agents INTO the Oracle AI Database**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/observability/blog.html) | [Source](observability/)
 3. **Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/security/blog.html) | [Source](security/)
 4. **Build a Spring Boot Lakehouse App with Oracle AI Database, Oracle JDBC, and Iceberg Tables**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/lakehouse/blog.html) | [Source](lakehouse/)

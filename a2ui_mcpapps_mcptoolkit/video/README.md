@@ -3,7 +3,7 @@
 This directory contains the reproducible source and publication assets for the silent, captioned blog walkthrough. It deliberately has no voice track so narration can be recorded and mixed later.
 
 ```bash
-cd a2ui_agui_mcpapps_mcptoolkit/video
+cd a2ui_mcpapps_mcptoolkit/video
 ./build-video.swift
 ./verify-video.swift
 ```

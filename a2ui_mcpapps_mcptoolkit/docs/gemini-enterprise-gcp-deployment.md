@@ -68,7 +68,7 @@ Do not deploy with the `ADMIN` database user.
 From PowerShell:
 
 ```powershell
-cd a2ui_agui_mcpapps_mcptoolkit
+cd a2ui_mcpapps_mcptoolkit
 .\deploy\gcp\prepare-secrets.ps1
 ```
 

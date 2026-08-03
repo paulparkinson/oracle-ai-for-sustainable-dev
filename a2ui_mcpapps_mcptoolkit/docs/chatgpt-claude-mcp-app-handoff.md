@@ -28,7 +28,7 @@ session will use that evidence to finish the article.
 - Repository:
   `https://github.com/paulparkinson/oracle-ai-for-sustainable-dev`
 - Branch: `main`
-- Project: `a2ui_agui_mcpapps_mcptoolkit`
+- Project: `a2ui_mcpapps_mcptoolkit`
 - Main application: Java service and web client on port `8080`
 - MCP App server: TypeScript Streamable HTTP server on port `3001`
 - Local account-free MCP Apps host: port `8082`
@@ -94,7 +94,7 @@ cd oracle-ai-for-sustainable-dev
 git switch main
 git pull --ff-only
 
-cd a2ui_agui_mcpapps_mcptoolkit
+cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
 ```
 
@@ -115,7 +115,7 @@ to build clean local runtimes.
 Run the database setup once:
 
 ```bash
-cd a2ui_agui_mcpapps_mcptoolkit/agent-service
+cd a2ui_mcpapps_mcptoolkit/agent-service
 ./setup-database.sh
 ./test.sh
 ./run.sh
@@ -151,7 +151,7 @@ expected; they are live database results, not static fixture data.
 In a second long-running terminal:
 
 ```bash
-cd a2ui_agui_mcpapps_mcptoolkit/mcp-app
+cd a2ui_mcpapps_mcptoolkit/mcp-app
 ./run.sh
 ```
 
@@ -175,7 +175,7 @@ curl --fail --silent --show-error \
 Optionally run the official local host before involving a remote product:
 
 ```bash
-cd a2ui_agui_mcpapps_mcptoolkit/mcp-app
+cd a2ui_mcpapps_mcptoolkit/mcp-app
 ./run-basic-host.sh
 ```
 
@@ -444,7 +444,7 @@ capturing the evidence.
 Clone or update
 https://github.com/paulparkinson/oracle-ai-for-sustainable-dev on branch main.
 Read
-a2ui_agui_mcpapps_mcptoolkit/docs/chatgpt-claude-mcp-app-handoff.md completely
+a2ui_mcpapps_mcptoolkit/docs/chatgpt-claude-mcp-app-handoff.md completely
 and follow it. Validate the existing supply-chain MCP App in ChatGPT and, if
 available, Claude. Do not redesign the app and do not rewrite blog.html.
 Diagnose and make only the minimal compatibility fixes required for the

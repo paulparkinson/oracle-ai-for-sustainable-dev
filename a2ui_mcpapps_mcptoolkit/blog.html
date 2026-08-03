@@ -39,7 +39,7 @@
   <p>How can an AI agent investigate stockout risk and safely initiate an inventory transfer? This runnable reference application uses Oracle AI Database to calculate feasible source-to-target recommendations from inventory, forecast, safety stock, and transfer-lane data. The Oracle Database MCP Java Toolkit exposes those recommendations as allowlisted tools, AG-UI streams the workflow, A2UI renders native approval controls, and a separate MCP App displays the same governed results in compatible conversational hosts.</p>
   <p>The key design choice is that the model and browser do not invent the transfer. Oracle SQL determines the product, source, target, and safe quantity. A person explicitly approves one returned recommendation, and an Oracle stored procedure locks both inventory positions and revalidates the quantities before it reserves stock and records the audited transfer.</p>
   <p>I prefer the MCP Toolkit approach for this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. Every application database read and approved write uses the Toolkit; only the separate one-time schema installer connects directly through UCP.</p>
-  <p>All Java, JavaScript, TypeScript, SQL, YAML, security notes, and setup instructions are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
+  <p>All Java, JavaScript, TypeScript, SQL, YAML, security notes, and setup instructions are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
 
   <figure class="cover">
     <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI, ChatGPT using an MCP App, and Gemini Enterprise using A2A plus native A2UI, all reaching one Java service, Oracle Database MCP Java Toolkit, and Oracle AI Database transaction layer.">
@@ -274,7 +274,20 @@ Cloud Run: oracle-supply-chain-a2ui
 paulparkdb_tp in Oracle Database@Google Cloud</code></pre>
     <p>The Cloud Run image contains the adapter, Java service, and pinned Toolkit but no secret. Secret Manager mounts the Oracle wallet ZIP and injects the dedicated <code>FINANCIAL</code> password at runtime. The entrypoint expands the wallet into ephemeral storage, derives the JDBC URL from <code>DB_SERVICE_NAME=paulparkdb_tp</code>, starts Java only on loopback, waits for its health check, and then exposes the A2A adapter on Cloud Run's assigned port.</p>
     <p>The checked-in <code>deploy/gcp</code> scripts build the image with Cloud Build, create a least-purpose runtime service account, limit Cloud Run to one instance while approval handles remain in memory, set the final service URL in the agent card, and register that card through the official Discovery Engine <code>assistants/default_assistant/agents</code> REST resource. The deployed endpoint rejects anonymous calls and grants <code>roles/run.invoker</code> only to Gemini Enterprise's Discovery Engine service agent. Google's Cloud Run guidance recommends this IAM model for internal clients such as Gemini Enterprise; an OAuth client is needed only when the agent must access Google resources on behalf of the end user.</p>
-    <p>The <code>paulparkdb</code> private endpoint is reached through Cloud Run Direct VPC egress on the associated <code>default</code> VPC and subnet. A VM in that VPC remains a valid alternative, but the protocol and A2UI implementation do not change. The deployment was validated end to end on August 1, 2026: anonymous discovery returned HTTP 403, authenticated discovery returned HTTP 200, Gemini Enterprise reported the agent <code>ENABLED</code>, and a read-only A2A request returned A2UI v0.8 content from the Oracle-backed workflow.</p>
+    <p>The <code>paulparkdb</code> private endpoint is reached through Cloud Run Direct VPC egress on the associated <code>default</code> VPC and subnet. A VM in that VPC remains a valid alternative, but the protocol and A2UI implementation do not change. The deployment was validated end to end on August 3, 2026: anonymous discovery returned HTTP 403, authenticated discovery returned HTTP 200, Gemini Enterprise reported the agent <code>ENABLED</code>, and a live A2A streaming request returned native A2UI v0.8 content from the Oracle-backed workflow.</p>
+
+    <h3>Register, share, and invoke the custom agent</h3>
+    <p>The deployed agent card was registered with the global <code>Inventory System</code> app as the custom A2A agent <code>Oracle Supply-Chain A2UI</code>. Registration is app- and location-specific: the Discovery Engine resource path names <code>adb-pm-prod</code>, <code>global</code>, the app ID, <code>default_assistant</code>, and the agent. The agent was then shared with the test user using the per-agent <code>Agent User</code> role. A Gemini Enterprise Standard license was distributed to the same project and global location and assigned to that user; licensing is an account prerequisite, not part of the application architecture.</p>
+    <figure>
+      <img src="images/gemini-enterprise-agent-registration.png" alt="Google Cloud Gemini Enterprise Agents page showing Oracle Supply-Chain A2UI as an enabled custom A2A agent in the Inventory System app.">
+      <figcaption>The Google Cloud administration view confirms that <code>Oracle Supply-Chain A2UI</code> is registered and enabled as a custom A2A agent for the app.</figcaption>
+    </figure>
+    <p>In the Gemini Enterprise web app, the shared agent appears under <em>From your organization</em>. The prompt <q>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations</q> invokes the agent over authenticated A2A streaming. Oracle returned the one row in the sample data that met that threshold: a 42-unit <code>WATER-SENSE</code> transfer from <code>PHX-DC</code> to <code>SEA-FC</code> with a stockout-risk score of 74.6. Gemini Enterprise rendered the returned A2UI DataParts as a native card, approval-notes field, exact-transfer approval button, and cancel-without-writing button. The host never loaded the MCP App iframe.</p>
+    <figure>
+      <img src="images/gemini-enterprise-a2ui-review.png" alt="Gemini Enterprise rendering an Oracle-backed A2UI inventory-transfer recommendation with approval notes, approve, and cancel controls.">
+      <figcaption>A live Oracle Database MCP Toolkit result rendered natively by Gemini Enterprise from A2UI v0.8 delivered over A2A v0.3.</figcaption>
+    </figure>
+    <p>The first interactive request also exposed an operational detail worth retaining in the runbook. With Cloud Run scaled to zero, the combined Java, Toolkit, and Python container took long enough to start that Cloud Run aborted the waiting request and Gemini reported an invalid SSE response with an HTML content type. Cloud Run logs showed the aborted request followed by successful initialization of all five allowlisted Oracle MCP tools. Retrying against the warm instance returned HTTP 200 with <code>text/event-stream</code> and rendered correctly. For a scheduled demonstration, warm the service immediately beforehand or configure a minimum instance, understanding that a minimum instance adds continuous Cloud Run cost.</p>
   </section>
 
   <section id="transactional-approval">
@@ -301,7 +314,7 @@ UPDATE inventory_positions
   <section id="run">
     <h2>Run the Supply-Chain Exchange</h2>
     <p>The default configuration reuses the <code>financialdb_high</code> database alias and <code>FINANCIAL</code> schema from the observability demo. Copy the environment template, point it at the wallet, and supply the password locally:</p>
-    <pre><code>cd a2ui_agui_mcpapps_mcptoolkit
+    <pre><code>cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
 # Set DB_PASSWORD and confirm WALLET_DIR.
 
@@ -328,7 +341,7 @@ cd agent-service
       <li><strong>Run the smoke test.</strong> From another terminal, run <code>scripts/smoke-test.sh</code>. It exercises the live recommendation, approval, rejection, and health paths.</li>
       <li><strong>Open the MCP App locally.</strong> Keep the Java service running. Run <code>mcp-app/run.sh</code>, then <code>mcp-app/run-basic-host.sh</code> in a third terminal. Open <code>http://127.0.0.1:8082</code>, select <code>show-inventory-transfer-dashboard</code>, and invoke it. Select a card and verify both explicit approval and cancel paths.</li>
       <li><strong>Use ChatGPT.</strong> Expose port 3001 through an HTTPS tunnel, enable ChatGPT Developer Mode, and register the URL ending in <code>/mcp</code>. Select the plugin and ask: “Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 10 recommendations.” Select an exact recommendation and approve it in the MCP App. ChatGPT cannot connect directly to <code>127.0.0.1</code>.</li>
-      <li><strong>Optionally use Gemini Enterprise.</strong> Run <code>gemini-enterprise-a2a/run.sh</code>, publish its A2A endpoint through authenticated HTTPS, and register its agent card as a custom A2A agent. Gemini Enterprise renders the A2UI v0.8 review natively; it does not consume the MCP App.</li>
+      <li><strong>Use Gemini Enterprise.</strong> Deploy the adapter to authenticated Cloud Run, register its card as a custom A2A agent in the same app and location as the user license, and grant the user the per-agent <code>Agent User</code> role. Open the shared agent under <em>From your organization</em> and submit the stockout-risk prompt. Gemini Enterprise renders the A2UI v0.8 review natively; it does not consume the MCP App.</li>
       <li><strong>Optionally use Claude.</strong> Register the same tunneled <code>/mcp</code> endpoint as a custom connector in a supported Claude plan. The official local basic host remains the reproducible, account-free path.</li>
     </ol>
   </section>
@@ -363,7 +376,7 @@ cd agent-service
 
   <section id="limitations">
     <h2>Limitations and Next Steps</h2>
-    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. Gemini Enterprise discovery and a read-only A2A/A2UI request have been validated end to end; ChatGPT still requires account-level host validation and sanitized evidence before publication claims say that host was tested end to end.</p>
+    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. Gemini Enterprise discovery, authenticated A2A streaming, the Oracle-backed query, and native A2UI rendering have been validated end to end; ChatGPT still requires account-level host validation and sanitized evidence before publication claims say that host was tested end to end.</p>
     <p>Gemini Enterprise's A2UI support is Preview and currently limited to v0.8. The browser's v0.9.1 payload and Gemini Enterprise's v0.8 payload are intentionally separate builders over one domain API. Future host upgrades should be handled by explicit capability/version negotiation and compatibility tests rather than silently changing every client at once.</p>
     <p>Production next steps include authenticated identity, durable approvals and idempotency, Oracle row-level authorization, Streamable HTTP with TLS and OAuth 2.0, Model Armor configured in the A2A application path, location and value authority limits, concurrent-transfer testing, richer forecasting, and an optimizer that evaluates multiple interacting transfers. Gemini Enterprise's console-level Model Armor settings do not automatically protect a separately hosted A2A agent. Vector search or retrieval-augmented generation could add policy and disruption explanations, while the deterministic database operation remains the final execution boundary.</p>
   </section>
@@ -371,7 +384,7 @@ cd agent-service
   <section id="references">
     <h2>References</h2>
     <ul>
-      <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_agui_mcpapps_mcptoolkit">Source code for this supply-chain reference application</a></li>
+      <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit">Source code for this supply-chain reference application</a></li>
       <li><a href="https://github.com/oracle/mcp/blob/main/src/oracle-db-mcp-java-toolkit/README.md">Oracle Database MCP Java Toolkit README</a></li>
       <li><a href="https://docs.ag-ui.com/introduction">AG-UI protocol overview</a></li>
       <li><a href="https://a2ui.org/">A2UI project and specification</a></li>
