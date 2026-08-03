@@ -18,6 +18,14 @@ Verified privately on August 3, 2026 in `adb-pm-prod/us-east4`:
 
 ChatGPT host rendering is not yet verified.
 
+After explicit authorization, revision
+`oracle-supply-chain-mcp-app-00003-dkl` was opened temporarily for anonymous
+read-only access with one warm instance. An unauthenticated external preflight
+returned HTTP 200, exactly one dashboard tool, the MCP App resource, and the
+same live Toolkit result. It returned no approval handle and exposed no write
+or rejection tool. Public access must be revoked after the ChatGPT screenshots
+are captured.
+
 ## Topology and sizing
 
 The MCP App does not run on a Compute Engine VM. It has a dedicated Cloud Run
