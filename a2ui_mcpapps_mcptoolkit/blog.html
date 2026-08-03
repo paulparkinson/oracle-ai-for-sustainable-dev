@@ -52,7 +52,7 @@
       <li>Oracle AI Database computes deterministic inventory-transfer recommendations from governed operational data instead of asking the model to guess a movement.</li>
       <li>The Oracle Database MCP Java Toolkit exposes five bounded business operations that can be reused by multiple agents and MCP-compatible clients.</li>
       <li>AG-UI streams agent progress and tool activity; A2UI describes trusted, client-rendered recommendation and approval controls.</li>
-      <li>ChatGPT renders the dashboard as a sandboxed MCP App; Gemini Enterprise renders the same governed workflow as native A2UI delivered over A2A.</li>
+      <li>The MCP App is designed for ChatGPT and Claude interactive connectors; those host integrations are the next validation steps. Gemini Enterprise already renders the same governed workflow as native A2UI delivered over A2A.</li>
       <li>Approval is bound to the exact database recommendation, and the stored procedure revalidates it under locks before making an atomic write.</li>
     </ul>
   </section>
@@ -77,7 +77,7 @@
       <tr><th>Layer</th><th>Primary job</th><th>In this application</th></tr>
       <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, text, MCP tool activity, A2UI messages, state, and recoverable errors over SSE.</td></tr>
       <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders trusted native components.</td><td>Describes inventory-transfer recommendation cards, notes, approve, and cancel controls with v0.9.1 envelopes.</td></tr>
-      <tr><td>MCP Apps</td><td>Render rich HTML interfaces inside a host-controlled sandboxed iframe and communicate through the host bridge.</td><td>ChatGPT displays recommendation metrics and executes explicit app-only approve or reject actions.</td></tr>
+      <tr><td>MCP Apps</td><td>Render rich HTML interfaces inside a host-controlled sandboxed iframe and communicate through the host bridge.</td><td>The package is prepared to display recommendation metrics and explicit app-only approve or reject actions in ChatGPT and Claude; host validation is still pending.</td></tr>
       <tr><td>MCP</td><td>Standardize how an AI application discovers and invokes tools and resources.</td><td>Connects the Java agent service to five governed Oracle Database operations.</td></tr>
       <tr><td>A2A</td><td>Standardize agent discovery, requests, and results across hosts and agents.</td><td>Gemini Enterprise invokes the supply-chain adapter over A2A v0.3; that adapter returns A2UI v0.8 DataParts.</td></tr>
       <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities to agents and MCP-compatible clients.</td><td>Runs an exact allowlist of YAML-defined recommendation reads, ID reservation, procedure-backed approval, and verification.</td></tr>
@@ -245,6 +245,59 @@ registerAppTool(server, "approve-inventory-transfer", {
     <p>The model-visible tool calls <code>/api/reviews</code> on the Java service. The service invokes the Toolkit's allowlisted read tool and binds a short-lived approval handle to the exact returned rows. The handle travels in widget-only result metadata rather than model-visible content. Selecting a card calls <code>updateModelContext</code>; approving or canceling calls an app-only tool that the model cannot invoke. The iframe receives neither wallet files nor database credentials.</p>
   </section>
 
+  <section id="chatgpt-mcp-app-plan">
+    <h2>Planned MCP App Validation in ChatGPT</h2>
+    <p class="callout"><strong>Status: planned, not yet host-validated.</strong> The implementation and steps below follow the current official OpenAI MCP App and plugin documentation. The illustration is a concept mockup, not evidence that this application has already run in ChatGPT.</p>
+    <p>OpenAI's current flow calls the host integration a <em>plugin</em> backed by an MCP connection. The server exposes the component as a <code>ui://</code> resource with media type <code>text/html;profile=mcp-app</code>, while its public Streamable HTTP endpoint normally ends in <code>/mcp</code>. This repository already implements that resource, tool metadata, host bridge, read-only dashboard tool, and app-only approval and rejection tools.</p>
+    <pre><code>ChatGPT plugin / MCP connection
+  |  public HTTPS Streamable HTTP: /mcp
+  v
+TypeScript MCP App server
+  |  ui:// resource + app-only action tools
+  v
+Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre>
+    <h3>Setup and verification plan</h3>
+    <ol>
+      <li>Start the Java service and the <code>mcp-app/</code> server, then verify the endpoint and discovered tools with the latest MCP Inspector.</li>
+      <li>Expose <code>http://127.0.0.1:3001/mcp</code> through a public HTTPS endpoint, or use OpenAI's Secure MCP Tunnel. ChatGPT cannot connect to a loopback URL.</li>
+      <li>In ChatGPT, open <em>Settings &gt; Security and login</em> and enable <em>Developer mode</em>. Workspace policy can control whether this setting is available.</li>
+      <li>Open <em>Plugins</em>, select the plus button, enter a user-facing name and description, and connect the public URL ending in <code>/mcp</code> (or the Secure MCP Tunnel ID). Review the discovered tools and metadata before saving.</li>
+      <li>Start a new conversation, add the new MCP connection from the tools menu, and request the inventory-transfer dashboard.</li>
+      <li>Verify tool selection, bounded arguments, the embedded component, model-readable results, and confirmation behavior. Exercise cancel first, then approve one exact recommendation and verify its Oracle audit row.</li>
+      <li>Capture a sanitized ChatGPT screenshot, server logs, and database evidence. Refresh the connection whenever tool or resource metadata changes.</li>
+    </ol>
+    <figure>
+      <img src="images/chatgpt-mcp-app-planned-mockup.png" alt="Clearly labeled concept mockup of a planned ChatGPT MCP connection rendering the Oracle supply-chain MCP App with transfer approval controls.">
+      <figcaption><strong>Concept mockup—not validation evidence.</strong> This shows the interaction we intend to verify in ChatGPT and will be replaced or supplemented with a sanitized host screenshot after the live test.</figcaption>
+    </figure>
+  </section>
+
+  <section id="claude-mcp-app-plan">
+    <h2>Planned MCP App Validation in Claude</h2>
+    <p class="callout"><strong>Status: planned, after ChatGPT validation.</strong> Anthropic documents custom remote MCP servers as connectors and explicitly documents interactive connectors that can render an MCP App inline or fullscreen. We have not yet confirmed this application's component and action behavior in Claude.</p>
+    <p>Claude connects to a remote MCP server from Anthropic's cloud, including when the user runs Claude Desktop. Therefore the same public HTTPS <code>/mcp</code> endpoint can be reused, but a private, VPN-only, or loopback endpoint is insufficient unless the network is configured for Anthropic's published access requirements.</p>
+    <pre><code>Claude interactive connector
+  |  public remote MCP endpoint: /mcp
+  v
+Same TypeScript MCP App server
+  |  same governed review and app-only action tools
+  v
+Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre>
+    <h3>Setup and verification plan</h3>
+    <ol>
+      <li>Complete the ChatGPT test first so the public MCP endpoint and MCP App contract are already known-good.</li>
+      <li>For an individual supported plan, open <em>Customize &gt; Connectors</em>, select the plus button and <em>Add custom connector</em>, then enter the public remote MCP URL. Add OAuth client details under advanced settings if the deployment requires them.</li>
+      <li>For Team or Enterprise, an Owner or Primary Owner instead adds the custom web connector under <em>Organization settings &gt; Connectors</em>; members then connect it from <em>Customize &gt; Connectors</em>.</li>
+      <li>In a new conversation, use the plus menu to enable the connector and submit the same bounded inventory-transfer prompt.</li>
+      <li>Confirm that Claude recognizes the server's interactive interface, renders it inline or fullscreen, preserves app-only action boundaries, and prompts for the applicable connector permissions.</li>
+      <li>Exercise cancel before approval, approve one exact recommendation, verify the Oracle audit row, and capture sanitized host, server, and database evidence.</li>
+    </ol>
+    <figure>
+      <img src="images/claude-mcp-app-planned-mockup.png" alt="Clearly labeled concept mockup of a planned Claude interactive connector rendering the Oracle supply-chain MCP App with transfer approval controls.">
+      <figcaption><strong>Concept mockup—not validation evidence.</strong> The final blog evidence will come from a live Claude interactive-connector test after ChatGPT validation.</figcaption>
+    </figure>
+  </section>
+
   <section id="gemini-enterprise">
     <h2>Use the Same Workflow in Gemini Enterprise without MCP Apps</h2>
     <p>Gemini Enterprise does not need to render the <code>ui://</code> HTML resource. Its native custom-agent path uses A2A as the conversation transport and A2UI as declarative UI cargo. As of July 28, 2026, the feature is Preview, Gemini Enterprise supports A2A v0.3 compatibility, and its native renderer supports A2UI v0.8 rather than the v0.9.1 envelopes used by this application's standalone browser.</p>
@@ -340,9 +393,9 @@ cd agent-service
       <li><strong>Commit through MCP.</strong> The Toolkit reserves an ID and invokes <code>APPROVE_INVENTORY_TRANSFER_MCP</code>. Oracle locks and revalidates both positions, writes <code>INVENTORY_TRANSFERS</code>, reserves the source quantity, and commits only the successful statement.</li>
       <li><strong>Run the smoke test.</strong> From another terminal, run <code>scripts/smoke-test.sh</code>. It exercises the live recommendation, approval, rejection, and health paths.</li>
       <li><strong>Open the MCP App locally.</strong> Keep the Java service running. Run <code>mcp-app/run.sh</code>, then <code>mcp-app/run-basic-host.sh</code> in a third terminal. Open <code>http://127.0.0.1:8082</code>, select <code>show-inventory-transfer-dashboard</code>, and invoke it. Select a card and verify both explicit approval and cancel paths.</li>
-      <li><strong>Use ChatGPT.</strong> Expose port 3001 through an HTTPS tunnel, enable ChatGPT Developer Mode, and register the URL ending in <code>/mcp</code>. Select the plugin and ask: “Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 10 recommendations.” Select an exact recommendation and approve it in the MCP App. ChatGPT cannot connect directly to <code>127.0.0.1</code>.</li>
+      <li><strong>Plan the ChatGPT validation.</strong> Expose port 3001 through an HTTPS tunnel, enable ChatGPT Developer Mode, and register the public URL ending in <code>/mcp</code> as a plugin/MCP connection. Select it and ask: “Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 10 recommendations.” Test cancel before approving an exact recommendation. This host step is documented but not yet validated for this application.</li>
       <li><strong>Use Gemini Enterprise.</strong> Deploy the adapter to authenticated Cloud Run, register its card as a custom A2A agent in the same app and location as the user license, and grant the user the per-agent <code>Agent User</code> role. Open the shared agent under <em>From your organization</em> and submit the stockout-risk prompt. Gemini Enterprise renders the A2UI v0.8 review natively; it does not consume the MCP App.</li>
-      <li><strong>Optionally use Claude.</strong> Register the same tunneled <code>/mcp</code> endpoint as a custom connector in a supported Claude plan. The official local basic host remains the reproducible, account-free path.</li>
+      <li><strong>Plan the Claude validation.</strong> After ChatGPT succeeds, register the same public <code>/mcp</code> endpoint as a custom connector in a supported Claude plan, enable it for the conversation, and test its interactive MCP App. This host step is documented but not yet validated for this application.</li>
     </ol>
   </section>
 
@@ -376,7 +429,7 @@ cd agent-service
 
   <section id="limitations">
     <h2>Limitations and Next Steps</h2>
-    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. Gemini Enterprise discovery, authenticated A2A streaming, the Oracle-backed query, and native A2UI rendering have been validated end to end; ChatGPT still requires account-level host validation and sanitized evidence before publication claims say that host was tested end to end.</p>
+    <p>This reference application uses a transparent single-transfer heuristic. It does not claim to replace supply-network optimization, order management, transportation planning, or warehouse execution. It also uses in-process approval state and a local stdio Toolkit child process. Gemini Enterprise discovery, authenticated A2A streaming, the Oracle-backed query, and native A2UI rendering have been validated end to end. ChatGPT and Claude still require host validation and sanitized evidence before publication claims say either MCP App integration was tested end to end. The two labeled concept mockups above are planning aids, not test evidence.</p>
     <p>Gemini Enterprise's A2UI support is Preview and currently limited to v0.8. The browser's v0.9.1 payload and Gemini Enterprise's v0.8 payload are intentionally separate builders over one domain API. Future host upgrades should be handled by explicit capability/version negotiation and compatibility tests rather than silently changing every client at once.</p>
     <p>Production next steps include authenticated identity, durable approvals and idempotency, Oracle row-level authorization, Streamable HTTP with TLS and OAuth 2.0, Model Armor configured in the A2A application path, location and value authority limits, concurrent-transfer testing, richer forecasting, and an optimizer that evaluates multiple interacting transfers. Gemini Enterprise's console-level Model Armor settings do not automatically protect a separately hosted A2A agent. Vector search or retrieval-augmented generation could add policy and disruption explanations, while the deterministic database operation remains the final execution boundary.</p>
   </section>
@@ -393,6 +446,9 @@ cd agent-service
       <li><a href="https://github.com/modelcontextprotocol/ext-apps/">Official MCP Apps SDK, examples, and basic host</a></li>
       <li><a href="https://developers.openai.com/plugins/build/chatgpt-ui">OpenAI: add UI to an MCP server</a></li>
       <li><a href="https://developers.openai.com/plugins/deploy/connect-chatgpt">Connect and test a ChatGPT plugin</a></li>
+      <li><a href="https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp">Anthropic: get started with custom connectors using remote MCP</a></li>
+      <li><a href="https://support.claude.com/en/articles/13454812-use-interactive-connectors-in-claude">Anthropic: use interactive connectors in Claude</a></li>
+      <li><a href="https://support.claude.com/en/articles/11176164-use-connectors-to-extend-claude-s-capabilities">Anthropic: use connectors to extend Claude's capabilities</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent">Gemini Enterprise: register an A2UI/A2A agent</a></li>
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent">Gemini Enterprise: register an A2A agent</a></li>
       <li><a href="https://docs.cloud.google.com/run/docs/deploy-a2a-agents">Google Cloud: deploy A2A agents to Cloud Run with IAM</a></li>
@@ -421,8 +477,8 @@ cd agent-service
     <h3>Does the MCP App replace the web client?</h3>
     <p>No. The custom web client demonstrates AG-UI and A2UI. The separate MCP App renders the same Toolkit-backed recommendations inside a compatible conversational host.</p>
 
-    <h3>Can the same application run in ChatGPT and Gemini Enterprise?</h3>
-    <p>Yes at the workflow level, not by sending the same UI artifact. ChatGPT renders the <code>ui://</code> MCP App and its app-only action tools. Gemini Enterprise calls an A2A adapter and renders native A2UI v0.8 controls. Both adapters use the same Java approval service, Toolkit tools, recommendation IDs, and Oracle transaction.</p>
+    <h3>Can the same application run in ChatGPT, Claude, and Gemini Enterprise?</h3>
+    <p>That is the target architecture, but only Gemini Enterprise is currently validated end to end. ChatGPT and Claude are expected to render the <code>ui://</code> MCP App and use its app-only action tools; Gemini Enterprise calls an A2A adapter and renders native A2UI v0.8 controls. All three adapters use the same Java approval service, Toolkit tools, recommendation IDs, and Oracle transaction. The next tests will confirm the host-specific ChatGPT and Claude behavior.</p>
 
     <h3>Does Gemini Enterprise need MCP Apps support?</h3>
     <p>No. Gemini Enterprise supplies its own chat shell and native A2UI renderer. The adapter sends declarative A2UI over A2A, so no sandboxed MCP App HTML is required there.</p>
