@@ -16,6 +16,9 @@ const agentServiceUrl =
   process.env.AGENT_SERVICE_URL ?? "http://127.0.0.1:8080";
 const agentServiceTimeoutMs =
   Number(process.env.AGENT_SERVICE_TIMEOUT_MS ?? "30000");
+const bindHost = process.env.MCP_BIND_HOST ?? "127.0.0.1";
+const port = Number(process.env.PORT ?? "3001");
+const writesEnabled = process.env.MCP_WRITES_ENABLED === "true";
 
 const TransferRecommendationSchema = z.object({
   recommendationId: z.string(),
@@ -152,79 +155,79 @@ registerAppTool(server, "show-inventory-transfer-dashboard", {
       minimumStockoutRisk,
       maximumRows
     },
+    _meta: writesEnabled ? { approvalId: review.approvalId } : {}
+  };
+});
+
+if (writesEnabled) {
+  registerAppTool(server, "approve-inventory-transfer", {
+    title: "Approve selected inventory transfer",
+    description:
+      "App-only action that executes one exact, previously reviewed Oracle-governed inventory transfer.",
+    inputSchema: {
+      approvalId: z.string().uuid(),
+      recommendationId: z.string().min(1).max(100),
+      approvalNotes: z.string().min(10).max(500)
+    },
     _meta: {
-      approvalId: review.approvalId
+      ui: {
+        visibility: ["app"]
+      }
+    },
+    annotations: {
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false
     }
-  };
-});
+  }, async ({ approvalId, recommendationId, approvalNotes }) => {
+    const result = TransferResultSchema.parse(
+      await agentFormRequest("/api/approve", {
+        approvalId,
+        recommendationId,
+        approvalNotes
+      })
+    );
+    return {
+      content: [{
+        type: "text",
+        text:
+          `Approved governed inventory transfer ${result.transferId} `
+          + `for recommendation ${result.recommendationId}.`
+      }],
+      structuredContent: result
+    };
+  });
 
-registerAppTool(server, "approve-inventory-transfer", {
-  title: "Approve selected inventory transfer",
-  description:
-    "App-only action that executes one exact, previously reviewed Oracle-governed inventory transfer.",
-  inputSchema: {
-    approvalId: z.string().uuid(),
-    recommendationId: z.string().min(1).max(100),
-    approvalNotes: z.string().min(10).max(500)
-  },
-  _meta: {
-    ui: {
-      visibility: ["app"]
+  registerAppTool(server, "reject-inventory-transfer-review", {
+    title: "Cancel inventory transfer review",
+    description:
+      "App-only action that invalidates the current approval handle without writing an inventory transfer.",
+    inputSchema: {
+      approvalId: z.string().uuid()
+    },
+    _meta: {
+      ui: {
+        visibility: ["app"]
+      }
+    },
+    annotations: {
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: false
     }
-  },
-  annotations: {
-    destructiveHint: true,
-    idempotentHint: false,
-    openWorldHint: false
-  }
-}, async ({ approvalId, recommendationId, approvalNotes }) => {
-  const result = TransferResultSchema.parse(
-    await agentFormRequest("/api/approve", {
-      approvalId,
-      recommendationId,
-      approvalNotes
-    })
-  );
-  return {
-    content: [{
-      type: "text",
-      text:
-        `Approved governed inventory transfer ${result.transferId} `
-        + `for recommendation ${result.recommendationId}.`
-    }],
-    structuredContent: result
-  };
-});
-
-registerAppTool(server, "reject-inventory-transfer-review", {
-  title: "Cancel inventory transfer review",
-  description:
-    "App-only action that invalidates the current approval handle without writing an inventory transfer.",
-  inputSchema: {
-    approvalId: z.string().uuid()
-  },
-  _meta: {
-    ui: {
-      visibility: ["app"]
-    }
-  },
-  annotations: {
-    destructiveHint: false,
-    idempotentHint: false,
-    openWorldHint: false
-  }
-}, async ({ approvalId }) => {
-  const result = RejectionResultSchema.parse(
-    await agentFormRequest("/api/reject", { approvalId })
-  );
-  return {
-    content: [{
-      type: "text",
-      text: "Cancelled the inventory-transfer review; no database write ran."
-    }],
-    structuredContent: result
-  };
-});
+  }, async ({ approvalId }) => {
+    const result = RejectionResultSchema.parse(
+      await agentFormRequest("/api/reject", { approvalId })
+    );
+    return {
+      content: [{
+        type: "text",
+        text: "Cancelled the inventory-transfer review; no database write ran."
+      }],
+      structuredContent: result
+    };
+  });
+}
 
 registerAppResource(
   server,
@@ -249,7 +252,11 @@ app.use(express.json({ limit: "256kb" }));
 app.get(
   "/health",
   (_request, response) =>
-    response.json({ status: "UP", dataSource: agentServiceUrl })
+    response.json({
+      status: "UP",
+      dataSource: "oracle-db-mcp-java-toolkit",
+      writeActionsEnabled: writesEnabled
+    })
 );
 app.post("/mcp", async (request, response) => {
   const transport = new StreamableHTTPServerTransport({
@@ -261,10 +268,10 @@ app.post("/mcp", async (request, response) => {
   await transport.handleRequest(request, response, request.body);
 });
 app.listen(
-  3001,
-  "127.0.0.1",
+  port,
+  bindHost,
   () => console.log(
     "Supply-chain MCP App server listening on "
-      + "http://127.0.0.1:3001/mcp"
+      + `http://${bindHost}:${port}/mcp`
   )
 );

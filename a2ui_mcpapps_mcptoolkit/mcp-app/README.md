@@ -74,3 +74,28 @@ For production, use HTTPS, authentication, an explicit origin policy,
 service-to-service authorization between the MCP App server and agent service,
 durable approval/idempotency storage, and durable user identity rather than
 the local loopback trust boundary.
+
+## Cloud Run deployment for ChatGPT
+
+The repository now includes a separate Cloud Run image and deployment script:
+
+```powershell
+.\deploy\gcp\deploy-chatgpt-mcp.ps1
+```
+
+This service packages the MCP App, Java service, Oracle Database MCP Java
+Toolkit, and wallet mount in one container. It uses the same Direct VPC egress
+and `paulparkdb_tp` secrets as the Gemini deployment, but it does not modify or
+proxy the Gemini A2A service.
+
+The safe default is private and read-only. Set `MCP_WRITES_ENABLED=true` only
+behind an MCP-compatible OAuth 2.1 resource server. The deployment script
+refuses `-AllowUnauthenticated -EnableWriteActions` because app-only visibility
+is host metadata, not an authorization boundary. For a time-bounded
+developer-mode rendering test with synthetic data, `-AllowUnauthenticated`
+keeps write tools unregistered. Remove public invocation immediately after the
+test.
+
+See
+[`../docs/chatgpt-cloud-run-deployment.md`](../docs/chatgpt-cloud-run-deployment.md)
+for the verified preflight, sizing decision, commands, and access choices.
