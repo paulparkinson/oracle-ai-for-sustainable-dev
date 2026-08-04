@@ -80,10 +80,10 @@
   <p class="eyebrow">Oracle AI Database · AI agent memory · Continual learning</p>
   <h1>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database and Java</h1>
   <p class="subtitle">Develop agents with working, episodic, semantic, and procedural memory; Retain, Recall, Reuse, and Refine; lifecycle controls; and human-approved learning on Oracle AI Database.</p>
-  <p class="updated">By Paul Parkinson · Updated July 30, 2026</p>
+  <p class="updated">By Paul Parkinson · Updated August 3, 2026</p>
 
   <p class="lead">An AI agent does not become stateful because its model has a long context window. It becomes stateful when useful experience is deliberately captured, scoped, recalled, corrected, expired, and reused. This demo makes that external memory loop visible: read before the turn, write after the turn, and keep Oracle AI Database as the durable, transactional governance boundary.</p>
-  <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data.</p>
+  <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data. A separate Memory Quest lane then combines those memory principles with SQL Property Graph, Oracle Spatial, AI Vector Search, and transactional gamification.</p>
   <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory/java-agent">Java source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
 
   <figure>
@@ -109,6 +109,7 @@
       <li>Memory engineering adds writes, correction, scope, retention, and governance to retrieval. Read-only retrieval is RAG; read plus write becomes a memory lifecycle.</li>
       <li>Continual learning can begin in token space: retrieve better context, induce structured skills, and require approval before reuse. Model-weight updates are a later option, not the default.</li>
       <li>The Java reference combines a live <code>ojdbc-agent-memory</code> path with a repeatable Java and SQL teaching path for correction, TTL, traces, approval, and privacy-safe reuse.</li>
+      <li>The Memory Quest extension uses one converged Oracle AI Database for consent-bounded party relationships, park connectivity, physical distance, vector-retrieved lore, checkpoint progress, points, badges, and reward audit.</li>
     </ul>
   </section>
 
@@ -119,7 +120,7 @@
       <tr><th>Scenario event and observed behavior</th><th>Java memory-core action</th><th>Oracle AI Database action</th><th>Memory principle shown</th></tr>
     </thead>
     <tbody>
-      <tr><td><strong>0. Reset both paths.</strong> Library memory becomes empty; only Ava and Leo remain in the lifecycle path.</td><td><code>OracleAgentMemory.clearAll()</code> resets the library path. <code>MemoryRepository.reset()</code> resets the lifecycle path.</td><td>Deletes rows from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a> and <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>. Deletes the five <code>AIM_DEMO_*</code> tables in foreign-key-safe order, then inserts Ava and Leo into <a href="#table-aim-guests"><code>AIM_DEMO_GUESTS</code></a>.</td><td>External state and isolation. The empty UI proves that browser state is not carrying memory between runs.</td></tr>
+      <tr><td><strong>0. Reset both paths.</strong> Library memory becomes empty; only Ava and Leo remain in the lifecycle path.</td><td><code>OracleAgentMemory.clearAll()</code> resets the library path. <code>MemoryRepository.reset()</code> resets the lifecycle path.</td><td>Deletes rows from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a> and <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>. Clears the four mutable lifecycle tables in foreign-key-safe order while preserving Ava and Leo in <a href="#table-aim-guests"><code>AIM_DEMO_GUESTS</code></a>, which are also graph vertices in the Memory Quest lane.</td><td>External state and isolation. The empty UI proves that browser state is not carrying memory between runs.</td></tr>
       <tr><td><strong>1. Retain Ava's current conversation and one seeded prior episode.</strong> The UI shows two messages, extracted preferences and guidelines, and the explicit covered-atrium memory.</td><td><code>addMessages()</code> retains the current conversation and lets Ollama extract reusable facts and guidelines. <code>addMemory()</code> inserts the simulated prior-visit outcome so the demo can distinguish current conversation extraction from episodic history.</td><td>Inserts two rows into <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. Inserts extracted and explicit records into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>; each insert calls <code>VECTOR_EMBEDDING(allminilm USING ... AS DATA)</code> to store a 384-dimensional native <code>VECTOR</code>.</td><td><strong>Retain and write after.</strong> Semantic memory captures durable preferences; episodic memory captures what happened and whether it worked. The seeded rainy-visit episode is supplied as prior experience, not inferred from Ava's current sentence.</td></tr>
       <tr><td><strong>2. Recall a scoped plan for Ava.</strong> The context card includes her records and recent messages; the Leo scope check returns zero Ava records.</td><td><code>search()</code> applies exact Ava, concierge-agent, and thread scope, then <code>getContextCard()</code> combines durable records with recent messages for the next model turn. The corresponding lifecycle walkthrough action uses <code>MemoryRepository.recall()</code> to expose an explicit recall audit.</td><td>A common-table expression embeds the request with <code>VECTOR_EMBEDDING</code>. Oracle ranks scoped rows from <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with cosine <code>VECTOR_DISTANCE</code>. Recent messages are read from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. The lifecycle action inserts one evidence row per selected memory into <a href="#table-aim-recall"><code>AIM_DEMO_RECALL_AUDIT</code></a>.</td><td><strong>Recall, reuse, and read before.</strong> Structured identity scope limits what may be considered before vector similarity decides relevance, while the audit shows why each record entered context.</td></tr>
       <tr><td><strong>3. Correct a remembered fact.</strong> Ava confirms lantern show, not fireworks; version 1 becomes superseded and version 2 becomes active.</td><td><code>MemoryRepository.correct()</code> versions the visitor-confirmed fact inside one JDBC transaction.</td><td>Inserts version 2 into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>, then updates version 1 to <code>SUPERSEDED</code> and sets <code>SUPERSEDED_BY</code> to the new <code>MEMORY_ID</code>.</td><td><strong>Refine and correct.</strong> The agent uses the confirmed value on later turns while retaining an auditable history of what was wrong.</td></tr>
@@ -291,7 +292,7 @@ Oracle AI Database
   <p>Oracle Agent Memory sits around the agent loop: recall scoped context before execution, then retain selected messages, memories, and outcomes afterward. <strong>Python integrations</strong> include LangGraph, the Claude Agent SDK, the OpenAI Agents SDK, Oracle WayFlow, and custom harnesses. <strong>Java integrations</strong> include LangChain4j, Spring AI, Oracle WayFlow, Semantic Kernel for Java, Java MCP clients or servers, and custom Java agent loops. Each integration uses framework lifecycle hooks, tools, services, or direct library calls; the framework orchestrates the agent while Oracle Agent Memory provides durable, scoped memory.</p>
 
   <h3 id="database-objects">Database Tables and Objects Used by Oracle Agent Memory and Agent</h3>
-  <p>There are two intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent application uses additional lifecycle tables so the presentation can show history, expiry, traces, approval, and audit without depending on private library internals. The scenario table above links directly to each table below.</p>
+  <p>There are three intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent lifecycle lane uses <code>AIM_DEMO_*</code> tables for history, expiry, traces, approval, and audit. The Memory Quest lane uses <code>AIM_PARK_*</code> tables for graph, spatial, vector, and transactional game state. The scenario table above links directly to the memory tables below.</p>
   <table>
     <thead>
       <tr><th>Object</th><th>Created by</th><th>Purpose</th></tr>
@@ -304,15 +305,37 @@ Oracle AI Database
       <tr id="table-aim-recall"><td><code>AIM_DEMO_RECALL_AUDIT</code></td><td>Agent application</td><td>Which memory was recalled, for whom, for which query, when, and why.</td></tr>
       <tr id="table-aim-traces"><td><code>AIM_DEMO_TRACES</code></td><td>Agent application</td><td>Question, retrieved evidence, action, outcome, success, and shareable pattern used as continual-learning evidence.</td></tr>
       <tr id="table-aim-skills"><td><code>AIM_DEMO_SKILLS</code></td><td>Agent application</td><td>Pending and approved procedural memories, generalized JSON instructions, source-episode count, approver, and approval time.</td></tr>
+      <tr><td><code>AIM_PARK_PARTIES</code><br><code>AIM_PARK_PARTY_MEMBERS</code></td><td>Memory Quest application</td><td>Party vertices and consent-bounded guest-to-party edges. Ava and Leo are related for the current experience without merging their private memory scopes.</td></tr>
+      <tr><td><code>AIM_PARK_PLACES</code><br><code>AIM_PARK_PATHS</code></td><td>Memory Quest application</td><td>Park vertices with <code>SDO_GEOMETRY</code> locations and directed connectivity edges with distance, accessibility, cover, and open or closed status.</td></tr>
+      <tr><td><code>AIM_PARK_QUESTS</code><br><code>AIM_PARK_QUEST_STEPS</code></td><td>Memory Quest application</td><td>Quest definitions and ordered quest-to-place graph edges for the three Covered Constellations checkpoints.</td></tr>
+      <tr><td><code>AIM_PARK_KNOWLEDGE</code></td><td>Memory Quest application</td><td>Grounded park facts and lore stored with 384-dimensional native <code>VECTOR</code> embeddings for GraphRAG retrieval.</td></tr>
+      <tr><td><code>AIM_PARK_PROGRESS</code><br><code>AIM_PARK_GUEST_BADGES</code><br><code>AIM_PARK_REWARD_AUDIT</code></td><td>Memory Quest application</td><td>Transactional checkpoint state, badge ownership, point deltas, and immutable demonstration evidence.</td></tr>
+      <tr><td><code>AIM_PARK_GRAPH</code></td><td>Memory Quest application</td><td>SQL property graph over guests, parties, places, quests, badges, memberships, paths, quest steps, and earned badges.</td></tr>
     </tbody>
   </table>
-  <p>The lifecycle teaching path also creates four sequences: <code>AIM_DEMO_MEMORY_SEQ</code>, <code>AIM_DEMO_RECALL_SEQ</code>, <code>AIM_DEMO_TRACE_SEQ</code>, and <code>AIM_DEMO_SKILL_SEQ</code>. The <code>ALLMINILM</code> ONNX model is loaded once into the database, but it is a database model rather than an application table. The library does not create separate user, agent, or thread tables; those identities are stored as scope columns on messages and records.</p>
+  <p>The application also creates sequences for lifecycle, path, quest-progress, badge, and reward identifiers. The <code>ALLMINILM</code> ONNX model is loaded once into the database, but it is a database model rather than an application table. The library does not create separate user, agent, or thread tables; those identities are stored as scope columns on messages and records.</p>
+
+  <h3 id="memory-quest-architecture">Memory Quest: Graph, Spatial, Gamification, and GraphRAG</h3>
+  <p>The extension deliberately assigns one job to each database capability:</p>
+  <table>
+    <thead><tr><th>Capability</th><th>Question answered</th><th>Verified implementation</th></tr></thead>
+    <tbody>
+      <tr><td>SQL Property Graph</td><td>Who is in the consented party? Which places connect? Which places belong to this quest?</td><td><code>GRAPH_TABLE</code> matches <code>member_of</code>, <code>connects</code>, and <code>quest_step</code> edges in <code>AIM_PARK_GRAPH</code>.</td></tr>
+      <tr><td>Oracle Spatial</td><td>How far apart are two physically positioned places?</td><td><code>SDO_GEOMETRY</code> stores local park coordinates and <code>SDO_GEOM.SDO_DISTANCE</code> compares entrance and destination separation.</td></tr>
+      <tr><td>AI Vector Search</td><td>Which grounded park facts best match the visitor's request?</td><td><code>VECTOR_EMBEDDING</code> embeds the request and cosine <code>VECTOR_DISTANCE</code> ranks three knowledge records.</td></tr>
+      <tr><td>GraphRAG</td><td>What connected places and quest context surround each retrieved fact?</td><td>Java expands each vector hit through property-graph paths and quest edges, retaining both retrieval distance and relationship evidence.</td></tr>
+      <tr><td>Transactions</td><td>Did progress, points, badges, and audit agree?</td><td>A row lock protects quest progress; each checkpoint commits progress, points, and audit together. The final transaction also awards the badge.</td></tr>
+    </tbody>
+  </table>
+  <p>This is not a 3D simulation. The app renders a responsive 2D SVG map from the same <code>X_M</code> and <code>Y_M</code> coordinates stored with each spatial place. A 3D or game-engine client could consume the APIs later, but it is unnecessary for demonstrating the data and agent patterns.</p>
+  <p class="callout"><strong>Social graph versus GraphRAG:</strong> the party graph models consented guest relationships and must not weaken memory isolation. GraphRAG begins with semantically relevant park knowledge, then follows place and quest relationships to add grounded context. They use the same graph technology for different policy and retrieval purposes.</p>
 
   <h3>Why Oracle AI Database Fits the Memory Substrate</h3>
   <ul>
     <li><strong>Atomic correction:</strong> the app inserts a new fact version and supersedes the old one in the same transaction.</li>
     <li><strong>Structured scope before similarity:</strong> guest, agent, status, and expiration predicates are applied before context is built. At larger scale, <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/vecse/ai-vector-search-users-guide.pdf">Oracle AI Vector Search</a> can add semantic or hybrid ranking alongside relational filters.</li>
     <li><strong>Relational plus JSON:</strong> enforceable lifecycle columns coexist with JSON metadata and skill instructions.</li>
+    <li><strong>Converged graph, spatial, and vector operations:</strong> relationship traversal, physical distance, and semantic retrieval stay near the transactional source of truth instead of requiring three independently synchronized stores.</li>
     <li><strong>Operational governance:</strong> the database is the appropriate place to add least-privilege schemas, row-level controls, backup, and <a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/dbseg/keeping-your-oracle-database-secure.html">unified auditing</a> for production.</li>
   </ul>
   <p class="callout"><strong>Security boundary:</strong> this compact demo applies guest-and-agent scope in its SQL. A production design should also enforce authorization at the database tier, for example with separate schemas, roles, or Oracle Virtual Private Database. It should also treat stored memory as untrusted input because persistent prompt injection can survive across turns.</p>
@@ -339,7 +362,7 @@ ollama pull llama3.2</code></pre>
   <p class="note"><strong>Java library availability:</strong> the Java <code>ojdbc-agent-memory</code> dependency used here is a proof-of-concept snapshot, not a public Maven Central artifact. The runner expects a local library clone and accepts its location through <code>OAM_LIBRARY_DIR</code>.</p>
 
   <h3>3. Run the Java Library and UCP Reference</h3>
-  <p>The Java implementation requires Java 21 and Maven. Its runner builds the local library snapshot, starts the browser app, and creates only missing library and teaching objects. It never drops schema objects.</p>
+  <p>The Java implementation requires Java 21 and Maven. Its runner builds the local library snapshot, starts the browser app, and creates only missing library, lifecycle, and Memory Quest objects. It never drops schema objects. Startup creates <code>AIM_PARK_GRAPH</code> over the seeded graph tables, stores park points as <code>SDO_GEOMETRY</code>, and embeds the grounded knowledge rows with the existing <code>ALLMINILM</code> model.</p>
   <pre><code>cd memory/java-agent
 export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
 ./test.sh
@@ -441,6 +464,43 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <p class="proof"><strong>Proof to point at:</strong> the UI displays <strong>0 private Ava memories visible to Leo</strong> beside the approved shared skill.</p>
   </article>
 
+  <h2 id="memory-quest-walkthrough">Memory Quest Walkthrough</h2>
+  <p>Use this separate lane after the governed-memory walkthrough. It turns remembered needs into a safe, playful experience without changing the original two memory paths. The fictional quest takes inspiration from the <a href="https://disneyworld.disney.go.com/guest-services/play-app/">Play Disney Parks app</a>, where location-aware activities, achievements, and themed interactions enrich a physical visit. The goal here is not to copy a specific game. It is to show how an agent can personalize a quest while Oracle AI Database keeps relationships, geometry, knowledge, and rewards consistent.</p>
+
+  <article class="demo-step">
+    <h3><span class="pill">1</span> Plan an Accessible Route</h3>
+    <p class="say">“A remembered accessibility need is a constraint, not merely a recommendation hint. The route must satisfy it before the experience begins.”</p>
+    <p class="action"><strong>Action:</strong> Click <strong>Reset quest lane</strong>, then <strong>1 · Plan accessible route</strong>. Notice the orange route on the 2D map and the inaccessible dotted path to Sky Coaster.</p>
+    <p class="happens"><strong>What happens:</strong> <code>GRAPH_TABLE</code> returns open park edges with accessibility and cover properties. Java finds the shortest accessible path. <code>SDO_GEOM.SDO_DISTANCE</code> independently measures straight-line separation between entrance and Lantern Garden.</p>
+    <p class="proof"><strong>Proof to point at:</strong> the verified route traverses four graph edges and 675 path meters while avoiding Summit Steps. The map is rendered from database coordinates, not hard-coded screen positions.</p>
+  </article>
+
+  <article class="demo-step">
+    <h3><span class="pill">2</span> Start the Covered Constellations Quest</h3>
+    <p class="say">“Ava and Leo may share this party experience because the membership edges carry a current consent window. That party relationship does not merge their private memories.”</p>
+    <p class="action"><strong>Action:</strong> Click <strong>2 · Start quest</strong>. Notice Ava and Leo in the consent-bounded party, the three checkpoints, zero points, and the first reward-audit event.</p>
+    <p class="happens"><strong>What happens:</strong> one transaction creates Ava's active <code>AIM_PARK_PROGRESS</code> row and inserts <code>QUEST_STARTED</code> into <code>AIM_PARK_REWARD_AUDIT</code>.</p>
+    <p class="proof"><strong>Proof to point at:</strong> party membership, guest memory scope, and quest progress remain separate records with different purposes.</p>
+  </article>
+
+  <article class="demo-step">
+    <h3><span class="pill">3</span> Complete Checkpoints and Award a Badge</h3>
+    <p class="say">“Gamification is trustworthy only when progress and rewards agree. The database transaction is the authority, not a browser animation.”</p>
+    <p class="action"><strong>Action:</strong> Click <strong>3 · Complete next checkpoint</strong> three times. Watch Quiet Café, Covered Atrium, and Lantern Garden change state on the map.</p>
+    <p class="happens"><strong>What happens:</strong> Java locks Ava's progress row. The first two checkpoint transactions add 50 points each. The final transaction adds 300 points, marks the quest complete, issues <strong>Lantern Pathfinder</strong>, and writes the completion audit.</p>
+    <p class="proof"><strong>Proof to point at:</strong> the verified UI shows three completed steps, <strong>400 audited points</strong>, one badge, and four reward-audit events.</p>
+  </article>
+
+  <article class="demo-step">
+    <h3><span class="pill">4</span> Retrieve Park Knowledge and Expand the Graph</h3>
+    <p class="say">“Vector search finds relevant evidence. Graph traversal explains what that evidence connects to. This is the useful distinction between semantic retrieval and GraphRAG.”</p>
+    <p class="action"><strong>Action:</strong> Keep the sample request, then click <strong>Retrieve + expand graph</strong>. Compare each cosine distance with its connected places and quest relationships.</p>
+    <p class="happens"><strong>What happens:</strong> Oracle AI Database embeds the request and returns three nearest knowledge rows. For every hit, SQL Property Graph adds neighboring places and any quest that uses the place. Java returns the evidence and a grounded answer together.</p>
+    <p class="proof"><strong>Proof to point at:</strong> the verified run displays three vector-ranked cards and seven graph-expansion chips. Retrieval distance and relationship evidence remain visible instead of being hidden inside generated prose.</p>
+  </article>
+
+  <p class="note"><strong>How memory improves the game:</strong> semantic memory supplies Ava's durable accessibility and quiet-morning needs; episodic memory can retain whether a route or quest worked; procedural memory can hold an approved recovery workflow; operational memory carries temporary path status. The quest does not reward private facts or expose them to another guest.</p>
+
   <h2 id="continual-learning">Continual Learning: Token Space Before Weight Space</h2>
   <p>The Monday–Tuesday–Wednesday progression is simple: on Monday an agent explores and makes a recoverable mistake; on Tuesday a stateless agent repeats it; by Wednesday an agent with governed memory recalls the trap or approved procedure and avoids it. The fastest safe improvement is often external:</p>
   <ul>
@@ -476,12 +536,13 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <li>Enforce tenant and end-user authorization in both the service and database; audit reads as well as writes.</li>
     <li>Run skill induction asynchronously, strip private details before generalization, require evaluation and approval, and retain rollback history.</li>
     <li>Define deletion semantics carefully. Deleting a thread may need to remove or re-derive memories and summaries created from it.</li>
+    <li>Keep gamification abuse-resistant: authorize checkpoint evidence, make reward writes idempotent, cap point issuance, and monitor anomalous completion patterns.</li>
   </ol>
   <p class="note">Background extraction is generally eventually visible rather than immediately available. Applications that require read-your-write consistency should use an inline path or explicitly wait for the extraction job before relying on the new memory.</p>
 
   <h2 id="conclusion">The Database Is the Memory System of Record</h2>
   <p>The model supplies reasoning; memory engineering supplies continuity. When identities, facts, episodes, traces, and procedures live in a governed database layer, an agent can improve without turning every prior interaction into an unbounded prompt or every private experience into a shared lesson.</p>
-  <p>The practical sequence is straightforward: retain deliberately, recall within scope, reuse compactly, refine continuously, and approve what becomes shared procedural memory. That is how experience compounds without giving up correction, lifecycle, or trust.</p>
+  <p>The practical sequence is straightforward: retain deliberately, recall within scope, reuse compactly, refine continuously, and approve what becomes shared procedural memory. Graph, Spatial, vectors, and transactions can then turn that governed context into experiences that are connected, physically feasible, grounded, and auditable. That is how experience compounds without giving up correction, lifecycle, or trust.</p>
 
   <h2 id="faq">Frequently Asked Questions</h2>
   <h3>Is AI agent memory just a vector database?</h3>
@@ -496,6 +557,15 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   <h3>How does the demo prevent Ava's memory from leaking to Leo?</h3>
   <p>Private memories carry a guest and agent scope, and recall filters on that scope before building context. The learned skill is stored separately as shared procedural memory and contains only generalized steps. Production deployments should reinforce that application rule with database authorization and row-level controls.</p>
 
+  <h3>What is the difference between the party graph and GraphRAG?</h3>
+  <p>The party graph answers an authorization-sensitive relationship question: which guests have consented to share this experience? GraphRAG answers a retrieval question: which places and quests connect to semantically relevant park knowledge? They share graph infrastructure but must use different scopes and policies.</p>
+
+  <h3>Why use Oracle Spatial if the graph already stores path distance?</h3>
+  <p>Graph distance represents traversable route cost, while Spatial represents physical geometry and proximity. Comparing both helps distinguish a short straight-line separation from a longer accessible route through permitted connectors.</p>
+
+  <h3>Does the quest require Unreal Engine or another 3D client?</h3>
+  <p>No. The reference app uses a responsive 2D SVG map because it exposes the graph and spatial evidence clearly. A 3D client could consume the same APIs later without moving the source of truth out of Oracle AI Database.</p>
+
   <h2 id="references">References and Further Reading</h2>
   <ul class="links">
     <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory">Memories Are the Magic source, app, SQL, and configuration</a></li>
@@ -509,6 +579,10 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <li><a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/int-customize-context-card-content.html">Customize Oracle AI Agent Memory context cards</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/agent-memory/26.6/guide/security.html">Oracle AI Agent Memory security considerations</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/vecse/ai-vector-search-users-guide.pdf">Oracle AI Vector Search User's Guide</a></li>
+    <li><a href="https://docs.oracle.com/en/database/oracle/property-graph/26.1/spgdg/sql-property-graphs.html">SQL Property Graphs in Oracle AI Database</a></li>
+    <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/spatl/spatial-relationships-and-filtering.html">Oracle Spatial relationships and filtering</a></li>
+    <li><a href="https://disneyworld.disney.go.com/guest-services/play-app/">Play Disney Parks app overview</a></li>
+    <li><a href="https://disneyland.disney.go.com/attractions/disneyland/star-wars-batuu-bounty-hunters/">Star Wars: Batuu Bounty Hunters location-linked experience</a></li>
   </ul>
 </main>
 </body>

@@ -47,14 +47,17 @@ final class MemoryRepository {
                     "AIM_DEMO_RECALL_AUDIT",
                     "AIM_DEMO_SKILLS",
                     "AIM_DEMO_TRACES",
-                    "AIM_DEMO_MEMORIES",
-                    "AIM_DEMO_GUESTS")) {
+                    "AIM_DEMO_MEMORIES")) {
                 try (Statement statement = connection.createStatement()) {
                     statement.executeUpdate("DELETE FROM " + table);
                 }
             }
-            insertGuest(connection, "AVA", "Ava");
-            insertGuest(connection, "LEO", "Leo");
+            if (count(connection, "SELECT COUNT(*) FROM AIM_DEMO_GUESTS WHERE guest_id='AVA'") == 0) {
+                insertGuest(connection, "AVA", "Ava");
+            }
+            if (count(connection, "SELECT COUNT(*) FROM AIM_DEMO_GUESTS WHERE guest_id='LEO'") == 0) {
+                insertGuest(connection, "LEO", "Leo");
+            }
             connection.commit();
             lastNextDay = null;
             return Map.of(

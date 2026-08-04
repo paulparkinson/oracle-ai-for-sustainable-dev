@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 public final class Main {
     private final MemoryRepository repository;
     private final AgentMemoryLibraryDemo libraryDemo;
+    private final ParkExperienceRepository parkRepository;
     private final DatabaseTableInspector tableInspector;
     private final Path webRoot;
 
@@ -22,10 +23,12 @@ public final class Main {
             Path webRoot,
             MemoryRepository repository,
             AgentMemoryLibraryDemo libraryDemo,
+            ParkExperienceRepository parkRepository,
             DatabaseTableInspector tableInspector) {
         this.webRoot = webRoot.toAbsolutePath().normalize();
         this.repository = repository;
         this.libraryDemo = libraryDemo;
+        this.parkRepository = parkRepository;
         this.tableInspector = tableInspector;
     }
 
@@ -35,10 +38,12 @@ public final class Main {
         PoolDataSource dataSource =
                 UcpDataSourceConfiguration.fromEnvironment(System.getenv());
         new DatabaseSetup(dataSource).initialize();
+        new ParkDatabaseSetup(dataSource).initialize();
         new Main(
                 webRoot,
                 new MemoryRepository(dataSource),
                 new AgentMemoryLibraryDemo(dataSource, System.getenv()),
+                new ParkExperienceRepository(dataSource),
                 new DatabaseTableInspector(dataSource))
                 .start(port);
     }
@@ -52,6 +57,8 @@ public final class Main {
         server.createContext("/api/actions", this::action);
         server.createContext("/api/library/state", this::libraryState);
         server.createContext("/api/library/actions", this::libraryAction);
+        server.createContext("/api/park/state", this::parkState);
+        server.createContext("/api/park/actions", this::parkAction);
         server.createContext("/api/database/tables", this::databaseTables);
         server.createContext("/", this::staticFile);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
@@ -99,6 +106,40 @@ public final class Main {
             return;
         }
         run(exchange, repository::health);
+    }
+
+    private void parkState(HttpExchange exchange) throws IOException {
+        if (!"GET".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, Map.of("error", "GET required"));
+            return;
+        }
+        run(exchange, parkRepository::state);
+    }
+
+    private void parkAction(HttpExchange exchange) throws IOException {
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            respond(exchange, 405, Map.of("error", "POST required"));
+            return;
+        }
+        String path = exchange.getRequestURI().getPath();
+        String name = path.length() > "/api/park/actions/".length()
+                ? path.substring("/api/park/actions/".length()) : "";
+        try {
+            Map<String, Object> body = Json.object(exchange.getRequestBody());
+            Map<String, Object> result = switch (name) {
+                case "reset" -> parkRepository.reset();
+                case "plan" -> parkRepository.plan();
+                case "start" -> parkRepository.startQuest();
+                case "complete-step" -> parkRepository.completeNextStep();
+                case "graphrag" -> parkRepository.graphRag(string(body.get("query")));
+                default -> throw new IllegalArgumentException("Unknown Memory Quest action: " + name);
+            };
+            respond(exchange, 200, result);
+        } catch (IllegalArgumentException exception) {
+            respond(exchange, 400, Map.of("error", exception.getMessage()));
+        } catch (IllegalStateException exception) {
+            respond(exchange, 500, Map.of("error", exception.getMessage()));
+        }
     }
 
     private void databaseTables(HttpExchange exchange) throws IOException {

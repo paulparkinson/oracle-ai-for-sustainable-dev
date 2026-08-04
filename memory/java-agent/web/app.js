@@ -53,6 +53,7 @@ const libraryActionBodies = {
 let latestContext = null;
 let latestNextDay = null;
 let previousDatabaseSnapshot = null;
+let parkRoute = [];
 
 document.querySelectorAll("[data-action]").forEach(button => {
   button.addEventListener("click", () => runAction(button.dataset.action, button));
@@ -61,6 +62,10 @@ document.querySelectorAll("[data-action]").forEach(button => {
 document.querySelectorAll("[data-library-action]").forEach(button => {
   button.addEventListener("click", () =>
     runLibraryAction(button.dataset.libraryAction, button));
+});
+
+document.querySelectorAll("[data-park-action]").forEach(button => {
+  button.addEventListener("click", () => runParkAction(button.dataset.parkAction));
 });
 
 document.getElementById("refresh-database").addEventListener(
@@ -158,6 +163,113 @@ function showLibraryResult(message, error = false) {
   const root = document.getElementById("library-result");
   root.textContent = message;
   root.classList.toggle("error", error);
+}
+
+async function runParkAction(action) {
+  const controls = [...document.querySelectorAll("[data-park-action]")];
+  controls.forEach(control => control.disabled = true);
+  showParkResult("Working with Oracle AI Database graph, spatial, vector, and transactional services…");
+  try {
+    const response = await fetch(`/api/park/actions/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(action === "graphrag"
+        ? { query: document.getElementById("park-query").value } : {})
+    });
+    const state = await response.json();
+    if (!response.ok) throw new Error(state.error || `HTTP ${response.status}`);
+    if (action === "reset") parkRoute = [];
+    if (state.route?.placeIds) parkRoute = state.route.placeIds;
+    renderParkState(state);
+    showParkResult(state.message || "Memory Quest action completed.");
+    await refreshDatabaseTables().catch(error => showDatabaseStatus(error.message, true));
+  } catch (error) {
+    showParkResult(error.message, true);
+  } finally {
+    controls.forEach(control => control.disabled = false);
+  }
+}
+
+async function loadParkState() {
+  const response = await fetch("/api/park/state");
+  const state = await response.json();
+  if (!response.ok) throw new Error(state.error || "Unable to load Memory Quest state");
+  renderParkState(state);
+}
+
+function renderParkState(state) {
+  const progress = (state.progress || [])[0];
+  const steps = state.quest || [];
+  const completed = Number(progress?.CURRENT_STEP || 0);
+  document.getElementById("quest-points").textContent = progress?.POINTS_EARNED || 0;
+  document.getElementById("quest-badge").textContent =
+    state.badges?.[0]?.BADGE_NAME || "No badge yet";
+  const status = document.getElementById("quest-status");
+  status.textContent = progress?.STATUS || "NOT STARTED";
+  status.className = `status-pill ${(progress?.STATUS || "").toLowerCase()}`;
+
+  document.getElementById("park-party").innerHTML = (state.party || []).map(member => `
+    <article class="party-member"><span>${escapeHtml(member.DISPLAY_NAME?.slice(0, 1))}</span>
+      <div><b>${escapeHtml(member.DISPLAY_NAME)}</b><small>${escapeHtml(member.PARTY_NAME)} · consent until ${shortTime(member.CONSENT_UNTIL)}</small></div>
+    </article>`).join("");
+
+  document.getElementById("quest-steps").innerHTML = steps.map(step => {
+    const order = Number(step.STEP_ORDER);
+    const stepState = order <= completed ? "done" : order === completed + 1 && progress ? "current" : "";
+    return `<li class="${stepState}"><b>${order}. ${escapeHtml(step.PLACE_NAME)}</b><span>${escapeHtml(step.CLUE_TEXT)}</span></li>`;
+  }).join("");
+
+  document.getElementById("quest-audit").innerHTML = (state.audit || []).length
+    ? state.audit.slice().reverse().map(event => `<article><b>${escapeHtml(event.EVENT_TYPE)}</b><span>${Number(event.POINTS_DELTA) >= 0 ? "+" : ""}${escapeHtml(event.POINTS_DELTA)} points</span><small>${escapeHtml(event.DETAILS)}</small></article>`).join("")
+    : '<p class="empty">No reward events yet.</p>';
+
+  renderParkMap(state.places || [], state.paths || [], steps, completed);
+  if (state.route) {
+    document.getElementById("route-explanation").textContent =
+      `${state.route.explanation} Graph distance: ${state.route.distanceMeters} m. Spatial straight-line distance: ${Number(state.route.spatialStraightLineMeters).toFixed(1)} m.`;
+  }
+  if (state.graphRag) renderGraphRag(state.graphRag);
+}
+
+function renderParkMap(places, paths, steps, completed) {
+  const svg = document.getElementById("park-map");
+  const byId = new Map(places.map(place => [place.PLACE_ID, place]));
+  const checkpointById = new Map(steps.map(step => [step.PLACE_ID, Number(step.STEP_ORDER)]));
+  const uniquePaths = paths.filter(path => String(path.FROM_PLACE_ID) < String(path.TO_PLACE_ID));
+  const routeEdges = new Set(parkRoute.slice(1).map((id, index) =>
+    [parkRoute[index], id].sort().join("|")));
+  const edgeMarkup = uniquePaths.map(path => {
+    const from = byId.get(path.FROM_PLACE_ID); const to = byId.get(path.TO_PLACE_ID);
+    if (!from || !to) return "";
+    const key = [path.FROM_PLACE_ID, path.TO_PLACE_ID].sort().join("|");
+    const classes = [Number(path.COVERED) ? "covered" : "", Number(path.ACCESSIBLE) ? "accessible" : "inaccessible", routeEdges.has(key) ? "planned" : ""].filter(Boolean).join(" ");
+    return `<line class="park-path ${classes}" x1="${from.X_M}" y1="${720 - from.Y_M}" x2="${to.X_M}" y2="${720 - to.Y_M}"><title>${escapeHtml(path.PATH_NAME)} · ${path.DISTANCE_M} m</title></line>`;
+  }).join("");
+  const nodeMarkup = places.map(place => {
+    const step = checkpointById.get(place.PLACE_ID);
+    const nodeState = step && step <= completed ? "done" : step === completed + 1 ? "current" : "";
+    return `<g class="park-node ${step ? "checkpoint" : ""} ${nodeState}" transform="translate(${place.X_M} ${720 - place.Y_M})">
+      <circle r="${step ? 19 : 13}"></circle>${step ? `<text class="step" text-anchor="middle" y="5">${step}</text>` : ""}
+      <text class="label" text-anchor="middle" y="36">${escapeHtml(place.PLACE_NAME)}</text>
+      <title>${escapeHtml(place.LORE_SUMMARY)} · ${Number(place.ACCESSIBLE) ? "Accessible" : "Not accessible"}${Number(place.COVERED) ? " · Covered" : ""}</title>
+    </g>`;
+  }).join("");
+  svg.innerHTML = `<defs><pattern id="map-grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#dcd8ce" stroke-width="1"/></pattern></defs><rect width="760" height="720" rx="18" fill="url(#map-grid)"/>${edgeMarkup}${nodeMarkup}`;
+}
+
+function renderGraphRag(graphRag) {
+  document.getElementById("graphrag-answer").textContent = graphRag.answer;
+  document.getElementById("graphrag-hits").innerHTML = (graphRag.hits || []).map((hit, index) => `
+    <article>
+      <header><strong>${index + 1}</strong><div><b>${escapeHtml(hit.title)}</b><small>${escapeHtml(hit.placeId)} · cosine distance ${Number(hit.distance).toFixed(3)}</small></div></header>
+      <p>${escapeHtml(hit.content)}</p>
+      <div class="graph-expansion"><b>Graph expansion</b>${(hit.graphNeighbors || []).map(node => `<span>${escapeHtml(node.PLACE_NAME)} via ${escapeHtml(node.RELATIONSHIP)}</span>`).join("")}${(hit.quests || []).map(quest => `<span>${escapeHtml(quest.QUEST_NAME)} · step ${escapeHtml(quest.STEP_ORDER)}</span>`).join("")}</div>
+    </article>`).join("");
+}
+
+function showParkResult(message, error = false) {
+  const root = document.getElementById("park-result");
+  root.textContent = message; root.classList.toggle("error", error);
 }
 
 async function runAction(action, button) {
@@ -450,7 +562,7 @@ async function initialize() {
     status.classList.add("up");
     status.querySelector("span").textContent =
       `${health.schema}@${health.database} · ${health.pool}`;
-    await Promise.all([loadState(), loadLibraryState()]);
+    await Promise.all([loadState(), loadLibraryState(), loadParkState()]);
     await refreshDatabaseTables({ baseline: true });
   } catch (error) {
     status.classList.add("down");

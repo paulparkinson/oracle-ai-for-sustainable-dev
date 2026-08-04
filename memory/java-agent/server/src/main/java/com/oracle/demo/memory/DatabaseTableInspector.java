@@ -143,6 +143,70 @@ final class DatabaseTableInspector {
                              AS created_at
                       FROM AIM_DEMO_SKILLS
                      ORDER BY skill_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_PARTY_MEMBERS", "MEMBERSHIP_ID",
+                    "Consent-bounded guest-to-party edges used by the SQL property graph.",
+                    """
+                    SELECT membership_id, party_id, guest_id,
+                           TO_CHAR(consent_until, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS consent_until
+                      FROM AIM_PARK_PARTY_MEMBERS ORDER BY membership_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_PLACES", "PLACE_ID",
+                    "Spatial park nodes with local map coordinates and accessibility properties.",
+                    """
+                    SELECT place_id, place_name, place_type, zone_name, x_m, y_m,
+                           accessible, covered, quiet_score, lore_summary
+                      FROM AIM_PARK_PLACES ORDER BY place_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_PATHS", "PATH_ID",
+                    "Directed connectivity edges traversed by SQL Property Graph route planning.",
+                    """
+                    SELECT path_id, from_place_id, to_place_id, path_name, distance_m,
+                           accessible, covered, status
+                      FROM AIM_PARK_PATHS ORDER BY path_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_QUEST_STEPS", "STEP_ID",
+                    "Ordered quest-to-place relationships exposed in the park property graph.",
+                    """
+                    SELECT step_id, quest_id, place_id, step_order, clue_text
+                      FROM AIM_PARK_QUEST_STEPS ORDER BY step_order
+                    """),
+            new TableSpec(
+                    "AIM_PARK_KNOWLEDGE", "KNOWLEDGE_ID",
+                    "Park knowledge embedded in Oracle AI Database for vector retrieval before graph expansion.",
+                    """
+                    SELECT knowledge_id, place_id, title, content,
+                           VECTOR_DIMENSION_COUNT(embedding) AS embedding_dimensions
+                      FROM AIM_PARK_KNOWLEDGE ORDER BY knowledge_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_PROGRESS", "PROGRESS_ID",
+                    "Transactional per-guest quest state, checkpoint progress, and points.",
+                    """
+                    SELECT progress_id, guest_id, quest_id, current_step, status, points_earned,
+                           TO_CHAR(started_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS started_at,
+                           TO_CHAR(completed_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS completed_at
+                      FROM AIM_PARK_PROGRESS ORDER BY progress_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_GUEST_BADGES", "GUEST_BADGE_ID",
+                    "Badge awards linked to guests and the quest that earned them.",
+                    """
+                    SELECT guest_badge_id, guest_id, badge_id, quest_id,
+                           TO_CHAR(awarded_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS awarded_at
+                      FROM AIM_PARK_GUEST_BADGES ORDER BY guest_badge_id
+                    """),
+            new TableSpec(
+                    "AIM_PARK_REWARD_AUDIT", "AUDIT_ID",
+                    "Immutable teaching evidence for quest, checkpoint, points, and reward events.",
+                    """
+                    SELECT audit_id, guest_id, quest_id, event_type, points_delta, details,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS created_at
+                      FROM AIM_PARK_REWARD_AUDIT ORDER BY audit_id
                     """));
 
     private final DataSource dataSource;
