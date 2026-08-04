@@ -19,6 +19,7 @@ const agentServiceTimeoutMs =
 const bindHost = process.env.MCP_BIND_HOST ?? "127.0.0.1";
 const port = Number(process.env.PORT ?? "3001");
 const writesEnabled = process.env.MCP_WRITES_ENABLED === "true";
+const appDomain = process.env.MCP_APP_DOMAIN?.trim();
 
 const TransferRecommendationSchema = z.object({
   recommendationId: z.string(),
@@ -241,7 +242,17 @@ registerAppResource(
       text: await readFile(
         path.join(import.meta.dirname, "dist", "mcp-app.html"),
         "utf8"
-      )
+      ),
+      _meta: {
+        ui: {
+          prefersBorder: true,
+          ...(appDomain ? { domain: appDomain } : {}),
+          csp: {
+            connectDomains: [],
+            resourceDomains: []
+          }
+        }
+      }
     }]
   })
 );

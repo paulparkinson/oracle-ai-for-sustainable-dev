@@ -17,8 +17,9 @@ Verified privately on August 3, 2026 in `adb-pm-prod/us-east4`:
   registered.
 
 ChatGPT host rendering was verified on August 3, 2026. The connection discovered
-only `show-inventory-transfer-dashboard`, invoked it with risk `70` and limit
-`3`, and rendered the live `WATER-SENSE` MCP App inline with the Toolkit source
+only `show-inventory-transfer-dashboard`, invoked it with
+`minimumStockoutRisk=70` and `maximumRows=3`, and rendered the live
+`WATER-SENSE` MCP App inline with the Toolkit source
 label and model-readable result.
 
 After explicit authorization, revision
@@ -135,8 +136,10 @@ The verified plugin used:
 
 The first UI attempt reported `Failed to fetch template`; a retry rendered the
 component. Developer-mode CSP enforcement was off during this validation.
-Before publication or authenticated actions, declare narrow `_meta.ui.domain`
-and `_meta.ui.csp` metadata, turn enforcement on, and repeat the evaluation.
+Private revision `oracle-supply-chain-mcp-app-00005-lxc` subsequently declared
+the canonical `_meta.ui.domain` and a self-contained `_meta.ui.csp` with empty
+external-domain allowlists. Turn enforcement on and repeat the host evaluation
+before publication or authenticated actions.
 
 ## Official OpenAI references
 

@@ -26,7 +26,7 @@ tunnel IDs, tunnel credentials, private endpoints, or other secrets.
 - Connection created: yes, `Supply-Chain Inventory Exchange`
 - Discovered tool: `show-inventory-transfer-dashboard` only
 - Direct prompt: `Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 3 recommendations.`
-- Tool arguments: minimum risk `70`, limit `3`
+- Tool arguments: `minimumStockoutRisk=70`, `maximumRows=3`
 - Dashboard rendered: yes, inline
 - Toolkit source label visible: yes
 - Live result: `WATER-SENSE`, `PHX-DC` to `SEA-FC`, 42 units, risk 74.6
@@ -34,7 +34,7 @@ tunnel IDs, tunnel credentials, private endpoints, or other secrets.
 - Separate cancellation performed no write: not tested in this read-only phase
 - Dashboard screenshot: `images/chatgpt-mcp-app-dashboard.png`
 - Setup screenshots: `images/chatgpt-developer-mode.png`, `images/chatgpt-plugin-connection.png`, `images/chatgpt-plugin-tool-discovery.png`
-- Errors and minimal fixes: first load reported `Failed to fetch template`; retry rendered successfully. CSP enforcement was off and production CSP/domain metadata remains a hardening task.
+- Errors and minimal fixes: first load reported `Failed to fetch template`; retry rendered successfully. CSP enforcement was off. Private revision `00005-lxc` added domain/CSP metadata; a CSP-enforced ChatGPT retest remains pending.
 
 ## Claude
 

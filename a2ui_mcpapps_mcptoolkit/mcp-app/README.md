@@ -45,18 +45,21 @@ ChatGPT can render this same portable MCP App without a separate UI implementati
 2. Make port 3001 reachable through HTTPS. Use OpenAI Secure MCP Tunnel when available, or an HTTPS development tunnel such as ngrok or Cloudflare Tunnel. ChatGPT cannot connect directly to `127.0.0.1`.
 3. In ChatGPT, enable **Developer mode** under **Settings → Security and login**. If the setting is unavailable, the account or workspace administrator must allow it.
 4. Open **Settings → Plugins** or `https://chatgpt.com/plugins`, select **+**, and create a developer-mode app using the tunnel URL ending in `/mcp`.
-5. Start a new chat, select the app from **+ → More**, and prompt: `Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 10 recommendations.`
+5. Start a new chat, select the app from **+ → More**, and prompt: `Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 3 recommendations.`
 6. Confirm that ChatGPT calls `show-inventory-transfer-dashboard`, renders the
    dashboard, and that selecting a recommendation sends its structured source,
    target, SKU, and quantity back to the conversation.
-7. Select one recommendation, review the approval notes, and click **Approve
-   and execute transfer**. Confirm the audited transfer ID appears in the app
-   and conversation. Run a second review and choose **Cancel review** to verify
-   that no write occurs.
+7. For an anonymous synthetic-data test, verify that the server exposes no
+   approval handle or action tool, then revoke public invocation. Test approval
+   and cancellation only after MCP-compatible OAuth is installed and writes
+   are explicitly enabled.
 
 See OpenAI's [MCP Apps compatibility](https://developers.openai.com/apps-sdk/mcp-apps-in-chatgpt), [Connect from ChatGPT](https://developers.openai.com/apps-sdk/deploy/connect-chatgpt), and [testing](https://developers.openai.com/apps-sdk/deploy/testing) guidance. Developer Mode availability and permissions depend on the account and workspace policy.
 
-Claude web and Claude Desktop remain optional host demonstrations. Expose port 3001 through an HTTPS tunnel and add the resulting `/mcp` URL as a custom connector. Neither ChatGPT nor Claude is required for the local basic-host walkthrough.
+Claude web and Claude Desktop can use the same remote `/mcp` endpoint as a
+custom interactive connector. Remote connector traffic originates from
+Anthropic's cloud, so a private or loopback-only endpoint is insufficient.
+Neither host is required for the local basic-host walkthrough.
 
 To continue the host validation on another machine or account, follow
 [`../docs/chatgpt-claude-mcp-app-handoff.md`](../docs/chatgpt-claude-mcp-app-handoff.md)
@@ -87,6 +90,11 @@ This service packages the MCP App, Java service, Oracle Database MCP Java
 Toolkit, and wallet mount in one container. It uses the same Direct VPC egress
 and `paulparkdb_tp` secrets as the Gemini deployment, but it does not modify or
 proxy the Gemini A2A service.
+
+Pass the service's stable HTTPS origin as `-McpAppDomain` when deploying. The
+resource advertises that origin plus an explicit CSP. This self-contained
+single-file UI uses empty connection and resource allowlists because it loads
+no external content.
 
 The safe default is private and read-only. Set `MCP_WRITES_ENABLED=true` only
 behind an MCP-compatible OAuth 2.1 resource server. The deployment script
