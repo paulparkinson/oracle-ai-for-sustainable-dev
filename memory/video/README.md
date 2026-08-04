@@ -3,8 +3,10 @@
 This directory builds a silent, subtitle-led 1920x1080 MP4 for the memory article.
 The source scenes read the actual Java repository files. The application and
 database scenes use current Chrome captures from the verified Oracle AI Database
-run. Each numbered scenario shows the observed behavior, relevant Java method,
-database evidence, and memory principle.
+run. All thirteen numbered scenario states, steps 0 through 12, show the
+observed behavior, relevant Java method, database evidence, and memory
+principle. The final five steps cover SQL Property Graph, Oracle Spatial,
+consent-bounded party relationships, transactional gamification, and GraphRAG.
 
 ```bash
 cd memory/video

@@ -16,7 +16,7 @@ The Java library clears persisted messages and extracted records, then clears th
 Oracle AI Database deletes OAMJ_CONCIERGE_MESSAGE and OAMJ_CONCIERGE_RECORDS rows. Red rows show what was removed.
 
 00:00:40.000 --> 00:00:47.000
-Java deletes application teaching records in foreign-key-safe order and recreates the two visitor identities.
+Java deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.
 
 00:00:47.000 --> 00:00:55.000
 The AIM_DEMO tables are empty except for Ava and Leo in AIM_DEMO_GUESTS. Browser state is not carrying memory.
@@ -102,5 +102,50 @@ Java proves that Ava rows under Leo's private scope equal zero, then selects onl
 00:04:18.000 --> 00:04:26.000
 The final refresh reports zero added, changed, or removed rows. Leo reuses the lesson, not Ava's personal history.
 
-00:04:26.000 --> 00:04:35.000
-Oracle AI Database keeps agent memory scoped, vector-searchable, versioned, expirable, transactional, approval-gated, and auditable.
+00:04:26.000 --> 00:04:34.000
+The park graph, spatial map, consented party, quest, and knowledge remain reusable while visitor-specific quest results return to zero.
+
+00:04:34.000 --> 00:04:42.000
+Java deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.
+
+00:04:42.000 --> 00:04:50.000
+AIM_PARK_PROGRESS, AIM_PARK_GUEST_BADGES, and AIM_PARK_REWARD_AUDIT show no rows; graph and knowledge tables remain populated.
+
+00:04:50.000 --> 00:04:58.000
+The map highlights a 675-meter accessible route and keeps the inaccessible Summit Steps visible. Spatial straight-line distance is 592 meters.
+
+00:04:58.000 --> 00:05:06.000
+Java filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.
+
+00:05:06.000 --> 00:05:14.000
+AIM_PARK_PATHS exposes directed connects edges with distance, accessibility, cover, and status used by AIM_PARK_GRAPH.
+
+00:05:14.000 --> 00:05:22.000
+The app activates three ordered checkpoints and records the quest start while points remain zero.
+
+00:05:22.000 --> 00:05:30.000
+One transaction creates Ava's active progress and the QUEST_STARTED audit event; party consent is read from member_of graph edges.
+
+00:05:30.000 --> 00:05:38.000
+AIM_PARK_PROGRESS shows step zero and ACTIVE status while AIM_PARK_REWARD_AUDIT records QUEST_STARTED with a zero-point delta.
+
+00:05:38.000 --> 00:05:46.000
+The verified UI shows three completed checkpoints, 400 audited points, the Lantern Pathfinder badge, and four reward events.
+
+00:05:46.000 --> 00:05:55.000
+Java locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.
+
+00:05:55.000 --> 00:06:03.000
+Progress is COMPLETED with 400 points; the badge row and four audit events provide consistent, inspectable evidence.
+
+00:06:03.000 --> 00:06:11.000
+The app preserves cosine distance, connected places, and quest membership before presenting the grounded park answer.
+
+00:06:11.000 --> 00:06:20.000
+Java embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.
+
+00:06:20.000 --> 00:06:28.000
+AIM_PARK_KNOWLEDGE stores grounded content with 384-dimensional vectors; AIM_PARK_GRAPH supplies the connected place and quest structure.
+
+00:06:28.000 --> 00:06:37.000
+Oracle AI Database keeps agent memory scoped and auditable, then combines graph, Spatial, vectors, and transactions for a safe playable experience.

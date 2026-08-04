@@ -25,6 +25,23 @@ guard pixelWidth == 1920, pixelHeight == 1080, duration >= 80 else {
     exit(1)
 }
 
+let reader = try AVAssetReader(asset: asset)
+let readerOutput = AVAssetReaderTrackOutput(track: track, outputSettings: nil)
+guard reader.canAdd(readerOutput) else {
+    fputs("Unable to read the complete video track.\n", stderr)
+    exit(1)
+}
+reader.add(readerOutput)
+reader.startReading()
+var decodedSamples = 0
+while readerOutput.copyNextSampleBuffer() != nil {
+    decodedSamples += 1
+}
+guard reader.status == .completed, decodedSamples >= Int(duration * 20) else {
+    fputs("The complete video track did not decode successfully.\n", stderr)
+    exit(1)
+}
+
 let generator = AVAssetImageGenerator(asset: asset)
 generator.appliesPreferredTrackTransform = true
 generator.maximumSize = NSSize(width: 640, height: 360)
@@ -49,4 +66,5 @@ let rep = NSBitmapImageRep(cgImage: cg)
 try rep.representation(using: .png, properties: [:])!.write(to: sheetURL)
 
 print(String(format: "Verified silent %dx%d, %.1f seconds, %d video track, %d audio tracks", pixelWidth, pixelHeight, duration, videoTracks.count, audioTracks.count))
+print("Decoded complete track: \(decodedSamples) video samples")
 print("Contact sheet: \(sheetURL.path)")

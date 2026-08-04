@@ -16,7 +16,12 @@ burned-in text plus matching SRT and WebVTT captions.
 | 5. Dream | Pending rainy-evening skill | `MemoryRepository.dream()` | Added `PENDING` skill from three traces | Episodic evidence becomes candidate procedural memory |
 | 6. Approve | Approved generalized procedure | `MemoryRepository.approveSkill()` | Status, approver, and approval time changed | Human governance |
 | 7. Next guest | Leo gets the skill and zero Ava private records | `MemoryRepository.nextDay()` | Read-only proof; zero database changes | Safe reuse without private-memory leakage |
-| Recap | Retain, Recall, Reuse, Refine | Not applicable | Not applicable | Governed continual learning |
+| 8. Reset quest | World, party, map, quest, and knowledge remain; progress and rewards are empty | `ParkExperienceRepository.reset()` | Empty `AIM_PARK_PROGRESS`, `AIM_PARK_GUEST_BADGES`, and `AIM_PARK_REWARD_AUDIT` | World state is separate from per-visitor experience |
+| 9. Plan route | Four-edge accessible route, inaccessible Summit Steps, and graph-versus-Spatial distance | `ParkExperienceRepository.plan()` | `AIM_PARK_PATHS`, `AIM_PARK_GRAPH`, and `SDO_GEOM.SDO_DISTANCE` | Graph topology plus physical geometry |
+| 10. Start quest | Consented Ava and Leo party, three checkpoints, zero points, and active status | `ParkExperienceRepository.startQuest()` | Progress and `QUEST_STARTED` audit rows in one transaction | Shared experience without private-memory leakage |
+| 11. Complete quest | Three completed checkpoints, 400 points, four audits, and Lantern Pathfinder | `ParkExperienceRepository.completeNextStep()` | Locked progress, point deltas, badge, and completion audit | Transactional gamification |
+| 12. GraphRAG | Three vector hits, seven graph expansions, and a grounded answer | `ParkExperienceRepository.graphRag()` | 384-dimensional knowledge vectors plus `connects` and `quest_step` graph edges | Semantic relevance plus explainable relationships |
+| Recap | Retain, Recall, Reuse, Refine, graph, Spatial, vectors, and transactions | Not applicable | Not applicable | Governed continual learning and safe playable experiences |
 
 The application captures are generated in `video/.build/captures/` and are not
 published separately. The final MP4, poster, SRT, and WebVTT assets are

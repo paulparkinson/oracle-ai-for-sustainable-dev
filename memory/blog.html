@@ -99,7 +99,7 @@
         Your browser does not support embedded video. <a href="video/memory-agent-walkthrough.mp4">Open the walkthrough video</a>.
       </video>
     </div>
-    <figcaption>Java walkthrough: run every scenario action, inspect the relevant source, and verify each database transition. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
+    <figcaption>Complete Java walkthrough: run scenario steps 0 through 12, inspect the relevant source, and verify each memory, graph, Spatial, vector, quest, and reward transition. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
   </figure>
 
   <section class="takeaways" id="key-takeaways">
@@ -108,13 +108,12 @@
       <li>An agent is a loop with state. Durable memory is an external computational substrate, not a property of a single prompt.</li>
       <li>Memory engineering adds writes, correction, scope, retention, and governance to retrieval. Read-only retrieval is RAG; read plus write becomes a memory lifecycle.</li>
       <li>Continual learning can begin in token space: retrieve better context, induce structured skills, and require approval before reuse. Model-weight updates are a later option, not the default.</li>
-      <li>The Java reference combines a live <code>ojdbc-agent-memory</code> path with a repeatable Java and SQL teaching path for correction, TTL, traces, approval, and privacy-safe reuse.</li>
-      <li>The Memory Quest extension uses one converged Oracle AI Database for consent-bounded party relationships, park connectivity, physical distance, vector-retrieved lore, checkpoint progress, points, badges, and reward audit.</li>
+      <li>The Java reference combines live <code>ojdbc-agent-memory</code>, a repeatable lifecycle path, and a Memory Quest that uses one converged Oracle AI Database for graph relationships, Spatial distance, vector-retrieved lore, transactional points, badges, and reward audit.</li>
     </ul>
   </section>
 
   <h2 id="scenario-at-a-glance">Flynn's Theme Park Scenario at a Glance</h2>
-  <p>This sequence is the shortest presenter runbook for the application. The first two visitor interactions exercise the Java memory library directly. The remaining actions use fixed Java and SQL operations against application-owned <code>AIM_DEMO_*</code> tables. “Repeatable teaching path” means those actions produce the same inspectable transitions during every presentation instead of asking an LLM to improvise them. They are real database transactions, but they are demonstration code rather than hidden behavior inside the memory library.</p>
+  <p>This sequence is the shortest presenter runbook for the complete application. The first two visitor interactions exercise the Java memory library directly. Steps 3 through 7 use fixed Java and SQL operations against application-owned <code>AIM_DEMO_*</code> tables. Steps 8 through 12 add the <code>AIM_PARK_*</code> graph, spatial, vector, quest, and reward lane. “Repeatable teaching path” means those actions produce the same inspectable transitions during every presentation instead of asking an LLM to improvise them. They are real database transactions, but they are demonstration code rather than hidden behavior inside the memory library.</p>
   <table>
     <thead>
       <tr><th>Scenario event and observed behavior</th><th>Java memory-core action</th><th>Oracle AI Database action</th><th>Memory principle shown</th></tr>
@@ -128,6 +127,11 @@
       <tr><td><strong>5. Induce a skill from three successful traces.</strong> Dream finds the repeated rainy-reroute pattern and proposes a pending procedure.</td><td><code>retain()</code> records three fixed, privacy-safe example outcomes. <code>dream()</code> counts the successful shared pattern and proposes the generalized <code>rainy-evening-reroute</code> procedure.</td><td>Inserts the three evidence rows into <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a>. After finding three successful <code>RAINY_EVENING_REROUTE</code> rows, inserts one <code>PENDING</code> procedure with generalized JSON instructions into <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a>.</td><td><strong>Episodic learning material becomes candidate procedural memory.</strong> Continual learning here means changing future retrieved instructions, not retraining model weights.</td></tr>
       <tr><td><strong>6. Approve the candidate procedure.</strong> The UI shows its generalized, privacy-safe steps as approved.</td><td><code>approveSkill()</code> activates the reviewed procedure for later visitors.</td><td>Updates <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> from <code>PENDING</code> to <code>APPROVED</code> and records <code>APPROVED_BY</code> plus <code>APPROVED_AT=SYSTIMESTAMP</code>.</td><td><strong>Human governance and provenance.</strong> A proposed lesson cannot enter the shared procedural-memory path until someone explicitly approves it.</td></tr>
       <tr><td><strong>7. Reuse the skill for Leo.</strong> Leo receives the general rainy-reroute procedure and zero of Ava's private memories.</td><td><code>nextDay()</code> performs separate private-memory and approved-procedure reads. It reuses the generalized skill while keeping visitor-specific recall scoped to Leo.</td><td>Counts Ava rows in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a> under Leo's scope and returns zero. Separately selects only <code>APPROVED</code> rows from <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a>.</td><td><strong>Safe procedural reuse without private-memory leakage.</strong> Leo benefits from the lesson learned across prior outcomes, not from Ava's personal history.</td></tr>
+      <tr><td><strong>8. Reset the Memory Quest lane.</strong> The park, party, knowledge, and quest definitions remain, while Ava's progress, badge, points, and reward history become empty.</td><td><code>ParkExperienceRepository.reset()</code> clears only guest-specific quest results. It leaves reusable park topology and grounded knowledge intact.</td><td>One transaction deletes <code>AIM_PARK_GUEST_BADGES</code>, <code>AIM_PARK_REWARD_AUDIT</code>, and <code>AIM_PARK_PROGRESS</code> in foreign-key-safe order. <code>AIM_PARK_GRAPH</code>, places, paths, parties, quests, and vector knowledge remain queryable.</td><td><strong>Separate durable world state from per-visitor experience state.</strong> Resetting the demonstration does not destroy the graph, spatial map, or reusable knowledge.</td></tr>
+      <tr><td><strong>9. Plan Ava's accessible quest route.</strong> The 2D map highlights four graph edges from Park Entrance through Quiet Café, Covered Atrium, and Meeting Plaza to Lantern Garden. Summit Steps remains visibly inaccessible.</td><td><code>ParkExperienceRepository.plan()</code> reads graph edges, filters closed or inaccessible relationships, and runs shortest-path logic over the permitted topology.</td><td><code>GRAPH_TABLE(AIM_PARK_GRAPH MATCH ... connects ...)</code> supplies path relationships. <code>SDO_GEOM.SDO_DISTANCE</code> measures physical separation between entrance and destination, showing that route cost and straight-line distance answer different questions.</td><td><strong>Graph plus Spatial reasoning.</strong> Relationships determine where the party can travel; geometry determines where places are and how far apart they are.</td></tr>
+      <tr><td><strong>10. Start Covered Constellations.</strong> Ava and Leo appear as a consent-bounded party, the three ordered checkpoints become active, and the reward audit records the start with zero points.</td><td><code>ParkExperienceRepository.startQuest()</code> checks for existing progress and creates Ava's active quest state without merging Ava's and Leo's private memory scopes.</td><td>Inserts one <code>AIM_PARK_PROGRESS</code> row and one <code>QUEST_STARTED</code> row in <code>AIM_PARK_REWARD_AUDIT</code> in the same transaction. Party membership comes from <code>member_of</code> edges with <code>CONSENT_UNTIL</code>.</td><td><strong>Relationship does not erase authorization scope.</strong> Guests may share a quest while private agent memory remains identity-scoped.</td></tr>
+      <tr><td><strong>11. Complete three checkpoints and award the badge.</strong> Quiet Café, Covered Atrium, and Lantern Garden change to completed. The UI finishes at 400 points with the Lantern Pathfinder badge and four audit events.</td><td><code>ParkExperienceRepository.completeNextStep()</code> locks Ava's progress row, validates the next ordered checkpoint, and performs each state transition atomically.</td><td>The first two transactions add 50 points each. The final transaction adds 300 points, changes progress to <code>COMPLETED</code>, inserts <code>LANTERN_PATHFINDER</code> into <code>AIM_PARK_GUEST_BADGES</code>, and records <code>QUEST_COMPLETED</code>.</td><td><strong>Transactional gamification.</strong> Progress, points, badges, and audit evidence cannot disagree because each checkpoint commits as one database unit.</td></tr>
+      <tr><td><strong>12. Retrieve grounded park knowledge and expand it through the graph.</strong> The app displays three vector-ranked evidence cards and seven connected-place or quest chips before presenting the grounded answer.</td><td><code>ParkExperienceRepository.graphRag()</code> preserves vector distance and calls graph expansion for every retrieved place instead of hiding the evidence inside generated prose.</td><td><code>VECTOR_EMBEDDING(ALLMINILM USING ...)</code> embeds the request; cosine <code>VECTOR_DISTANCE</code> ranks <code>AIM_PARK_KNOWLEDGE</code>. <code>GRAPH_TABLE</code> then follows <code>connects</code> and <code>quest_step</code> edges around each vector hit.</td><td><strong>GraphRAG combines semantic relevance with explicit relationships.</strong> Vector search finds likely evidence; graph traversal adds connected facts and explainable structure.</td></tr>
     </tbody>
   </table>
   <p class="note"><strong>What the prior rainy-visit episode means:</strong> the blog and video refer to the same seeded demonstration record. It is not evidence that an earlier live app session occurred. When you click <strong>Retain Ava's conversation</strong>, <code>AgentMemoryLibraryDemo.retain()</code> calls <code>addMemory()</code> and inserts “The covered atrium route worked well during Ava's previous rainy visit” into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with <code>RECORD_TYPE='memory'</code>. The lifecycle lane separately inserts a comparable <code>last-visit</code> episodic row into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>. The three de-identified rows in <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a> are separate seeded examples used for skill induction.</p>
@@ -468,15 +472,23 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   <p>Use this separate lane after the governed-memory walkthrough. It turns remembered needs into a safe, playful experience without changing the original two memory paths. The fictional quest takes inspiration from the <a href="https://disneyworld.disney.go.com/guest-services/play-app/">Play Disney Parks app</a>, where location-aware activities, achievements, and themed interactions enrich a physical visit. The goal here is not to copy a specific game. It is to show how an agent can personalize a quest while Oracle AI Database keeps relationships, geometry, knowledge, and rewards consistent.</p>
 
   <article class="demo-step">
-    <h3><span class="pill">1</span> Plan an Accessible Route</h3>
+    <h3><span class="pill">8</span> Reset the Visitor's Quest Results</h3>
+    <p class="say">“The reusable park model is not the same thing as one visitor's progress. Reset only the state that belongs to this quest run.”</p>
+    <p class="action"><strong>Action:</strong> Click <strong>Reset quest lane</strong>. Notice that points return to zero, the badge disappears, checkpoints become incomplete, and the map, party, and quest still exist.</p>
+    <p class="happens"><strong>What happens:</strong> Java deletes guest badges, reward audits, and progress in one transaction while preserving graph, spatial, quest, party, and knowledge records.</p>
+    <p class="proof"><strong>Proof to point at:</strong> the app still renders seven places, path relationships, two party members, and three checkpoints with empty visitor result tables.</p>
+  </article>
+
+  <article class="demo-step">
+    <h3><span class="pill">9</span> Plan an Accessible Route</h3>
     <p class="say">“A remembered accessibility need is a constraint, not merely a recommendation hint. The route must satisfy it before the experience begins.”</p>
-    <p class="action"><strong>Action:</strong> Click <strong>Reset quest lane</strong>, then <strong>1 · Plan accessible route</strong>. Notice the orange route on the 2D map and the inaccessible dotted path to Sky Coaster.</p>
+    <p class="action"><strong>Action:</strong> Click <strong>1 · Plan accessible route</strong>. Notice the orange route on the 2D map and the inaccessible dotted path to Sky Coaster.</p>
     <p class="happens"><strong>What happens:</strong> <code>GRAPH_TABLE</code> returns open park edges with accessibility and cover properties. Java finds the shortest accessible path. <code>SDO_GEOM.SDO_DISTANCE</code> independently measures straight-line separation between entrance and Lantern Garden.</p>
     <p class="proof"><strong>Proof to point at:</strong> the verified route traverses four graph edges and 675 path meters while avoiding Summit Steps. The map is rendered from database coordinates, not hard-coded screen positions.</p>
   </article>
 
   <article class="demo-step">
-    <h3><span class="pill">2</span> Start the Covered Constellations Quest</h3>
+    <h3><span class="pill">10</span> Start the Covered Constellations Quest</h3>
     <p class="say">“Ava and Leo may share this party experience because the membership edges carry a current consent window. That party relationship does not merge their private memories.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>2 · Start quest</strong>. Notice Ava and Leo in the consent-bounded party, the three checkpoints, zero points, and the first reward-audit event.</p>
     <p class="happens"><strong>What happens:</strong> one transaction creates Ava's active <code>AIM_PARK_PROGRESS</code> row and inserts <code>QUEST_STARTED</code> into <code>AIM_PARK_REWARD_AUDIT</code>.</p>
@@ -484,7 +496,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   </article>
 
   <article class="demo-step">
-    <h3><span class="pill">3</span> Complete Checkpoints and Award a Badge</h3>
+    <h3><span class="pill">11</span> Complete Checkpoints and Award a Badge</h3>
     <p class="say">“Gamification is trustworthy only when progress and rewards agree. The database transaction is the authority, not a browser animation.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>3 · Complete next checkpoint</strong> three times. Watch Quiet Café, Covered Atrium, and Lantern Garden change state on the map.</p>
     <p class="happens"><strong>What happens:</strong> Java locks Ava's progress row. The first two checkpoint transactions add 50 points each. The final transaction adds 300 points, marks the quest complete, issues <strong>Lantern Pathfinder</strong>, and writes the completion audit.</p>
@@ -492,7 +504,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   </article>
 
   <article class="demo-step">
-    <h3><span class="pill">4</span> Retrieve Park Knowledge and Expand the Graph</h3>
+    <h3><span class="pill">12</span> Retrieve Park Knowledge and Expand the Graph</h3>
     <p class="say">“Vector search finds relevant evidence. Graph traversal explains what that evidence connects to. This is the useful distinction between semantic retrieval and GraphRAG.”</p>
     <p class="action"><strong>Action:</strong> Keep the sample request, then click <strong>Retrieve + expand graph</strong>. Compare each cosine distance with its connected places and quest relationships.</p>
     <p class="happens"><strong>What happens:</strong> Oracle AI Database embeds the request and returns three nearest knowledge rows. For every hit, SQL Property Graph adds neighboring places and any quest that uses the place. Java returns the evidence and a grounded answer together.</p>
@@ -549,22 +561,13 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   <p>No. Vectors help semantic recall, but production memory also needs identity and tenant scope, record types, versioning, correction, TTL, deletion, transactions, and audit. This demo begins with relational predicates and JSON; Oracle AI Vector Search is an optional ranking layer.</p>
 
   <h3>Does continual learning mean this demo retrains a model?</h3>
-  <p>No. It learns in token space by updating external state and proposing a reusable structured skill. The demonstration uses a fixed induction rule so the same traces produce the same candidate procedure in every presentation. Model-weight training is a separate, later decision.</p>
-
-  <h3>Is the induced skill a context card?</h3>
-  <p>No. The context card is turn-specific recalled context assembled from scoped durable records and recent messages. The induced skill is separate procedural memory: a generalized workflow derived from successful traces and held for human approval before shared reuse.</p>
+  <p>No. It learns in token space by updating external state and proposing a reusable structured skill. That skill is not a context card: the context card is turn-specific recalled evidence, while the skill is generalized procedural memory held for human approval. Model-weight training is a separate, later decision.</p>
 
   <h3>How does the demo prevent Ava's memory from leaking to Leo?</h3>
   <p>Private memories carry a guest and agent scope, and recall filters on that scope before building context. The learned skill is stored separately as shared procedural memory and contains only generalized steps. Production deployments should reinforce that application rule with database authorization and row-level controls.</p>
 
   <h3>What is the difference between the party graph and GraphRAG?</h3>
-  <p>The party graph answers an authorization-sensitive relationship question: which guests have consented to share this experience? GraphRAG answers a retrieval question: which places and quests connect to semantically relevant park knowledge? They share graph infrastructure but must use different scopes and policies.</p>
-
-  <h3>Why use Oracle Spatial if the graph already stores path distance?</h3>
-  <p>Graph distance represents traversable route cost, while Spatial represents physical geometry and proximity. Comparing both helps distinguish a short straight-line separation from a longer accessible route through permitted connectors.</p>
-
-  <h3>Does the quest require Unreal Engine or another 3D client?</h3>
-  <p>No. The reference app uses a responsive 2D SVG map because it exposes the graph and spatial evidence clearly. A 3D client could consume the same APIs later without moving the source of truth out of Oracle AI Database.</p>
+  <p>The party graph answers an authorization-sensitive relationship question: which guests have consented to share this experience? GraphRAG answers a retrieval question: which places and quests connect to semantically relevant park knowledge? Oracle Spatial separately evaluates physical geometry and proximity. The responsive 2D map exposes all three forms of evidence without requiring a 3D client.</p>
 
   <h2 id="references">References and Further Reading</h2>
   <ul class="links">

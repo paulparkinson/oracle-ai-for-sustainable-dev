@@ -36,6 +36,7 @@ struct Scene {
 
 let repositoryPath = "java-agent/server/src/main/java/com/oracle/demo/memory/MemoryRepository.java"
 let libraryPath = "java-agent/server/src/main/java/com/oracle/demo/memory/AgentMemoryLibraryDemo.java"
+let parkRepositoryPath = "java-agent/server/src/main/java/com/oracle/demo/memory/ParkExperienceRepository.java"
 
 let scenes: [Scene] = [
     Scene(
@@ -79,7 +80,7 @@ let scenes: [Scene] = [
         eyebrow: "STEP 0 | JAVA LIFECYCLE ACTION",
         title: "Reset teaching\nrecords",
         subtitle: "MemoryRepository.reset() uses an explicit transaction.",
-        caption: "Java deletes application teaching records in foreign-key-safe order and recreates the two visitor identities.",
+        caption: "Java deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.",
         seconds: 7),
     Scene(
         visual: .image("step-0-teaching-database.png"),
@@ -286,11 +287,121 @@ let scenes: [Scene] = [
         seconds: 8),
 
     Scene(
+        visual: .image("step-8-app.png"),
+        eyebrow: "STEP 8 | SCENARIO EVENT",
+        title: "Reset only the\nquest experience",
+        subtitle: "World state remains; Ava's progress, points, badge, and reward audit become empty.",
+        caption: "The park graph, spatial map, consented party, quest, and knowledge remain reusable while visitor-specific quest results return to zero.",
+        seconds: 8),
+    Scene(
+        visual: .code(parkRepositoryPath, "Map<String, Object> reset()", 22),
+        eyebrow: "STEP 8 | JAVA ACTION",
+        title: "Separate world\nand visitor state",
+        subtitle: "ParkExperienceRepository.reset() clears only the guest-specific result tables.",
+        caption: "Java deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.",
+        seconds: 8),
+    Scene(
+        visual: .image("step-8-database.png"),
+        eyebrow: "STEP 8 | ORACLE DATABASE EVIDENCE",
+        title: "Quest result\ntables are empty",
+        subtitle: "Principle: durable world state is independent from per-visitor experience",
+        caption: "AIM_PARK_PROGRESS, AIM_PARK_GUEST_BADGES, and AIM_PARK_REWARD_AUDIT show no rows; graph and knowledge tables remain populated.",
+        seconds: 8),
+
+    Scene(
+        visual: .image("step-9-app.png"),
+        eyebrow: "STEP 9 | SCENARIO EVENT",
+        title: "Plan an\naccessible quest route",
+        subtitle: "Four permitted graph edges connect the entrance to Lantern Garden.",
+        caption: "The map highlights a 675-meter accessible route and keeps the inaccessible Summit Steps visible. Spatial straight-line distance is 592 meters.",
+        seconds: 8),
+    Scene(
+        visual: .code(parkRepositoryPath, "Map<String, Object> plan()", 28),
+        eyebrow: "STEP 9 | JAVA ACTION",
+        title: "Combine graph\nand Spatial reasoning",
+        subtitle: "Topology supplies traversable edges; geometry supplies physical separation.",
+        caption: "Java filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.",
+        seconds: 8),
+    Scene(
+        visual: .image("step-9-database.png"),
+        eyebrow: "STEP 9 | ORACLE DATABASE EVIDENCE",
+        title: "Paths carry\nroute policy",
+        subtitle: "Principle: graph cost and straight-line distance answer different questions",
+        caption: "AIM_PARK_PATHS exposes directed connects edges with distance, accessibility, cover, and status used by AIM_PARK_GRAPH.",
+        seconds: 8),
+
+    Scene(
+        visual: .image("step-10-app.png"),
+        eyebrow: "STEP 10 | SCENARIO EVENT",
+        title: "Start Covered\nConstellations",
+        subtitle: "Ava and Leo share a consent-bounded party, not a private memory scope.",
+        caption: "The app activates three ordered checkpoints and records the quest start while points remain zero.",
+        seconds: 8),
+    Scene(
+        visual: .code(parkRepositoryPath, "Map<String, Object> startQuest()", 28),
+        eyebrow: "STEP 10 | JAVA ACTION",
+        title: "Create progress\nand audit together",
+        subtitle: "startQuest() keeps relationship, authorization, and game state separate.",
+        caption: "One transaction creates Ava's active progress and the QUEST_STARTED audit event; party consent is read from member_of graph edges.",
+        seconds: 8),
+    Scene(
+        visual: .image("step-10-database.png"),
+        eyebrow: "STEP 10 | ORACLE DATABASE EVIDENCE",
+        title: "The start is\ntransactional",
+        subtitle: "Principle: shared experience does not erase identity isolation",
+        caption: "AIM_PARK_PROGRESS shows step zero and ACTIVE status while AIM_PARK_REWARD_AUDIT records QUEST_STARTED with a zero-point delta.",
+        seconds: 8),
+
+    Scene(
+        visual: .image("step-11-app.png"),
+        eyebrow: "STEP 11 | SCENARIO EVENT",
+        title: "Complete three\nquest checkpoints",
+        subtitle: "Quiet Café, Covered Atrium, and Lantern Garden finish in order.",
+        caption: "The verified UI shows three completed checkpoints, 400 audited points, the Lantern Pathfinder badge, and four reward events.",
+        seconds: 8),
+    Scene(
+        visual: .code(parkRepositoryPath, "Map<String, Object> completeNextStep()", 34),
+        eyebrow: "STEP 11 | JAVA ACTION",
+        title: "Lock, validate,\nand reward",
+        subtitle: "completeNextStep() makes every checkpoint an atomic state transition.",
+        caption: "Java locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.",
+        seconds: 9),
+    Scene(
+        visual: .image("step-11-database.png"),
+        eyebrow: "STEP 11 | ORACLE DATABASE EVIDENCE",
+        title: "Rewards cannot\ndisagree",
+        subtitle: "Principle: transactional gamification",
+        caption: "Progress is COMPLETED with 400 points; the badge row and four audit events provide consistent, inspectable evidence.",
+        seconds: 8),
+
+    Scene(
+        visual: .image("step-12-app.png"),
+        eyebrow: "STEP 12 | SCENARIO EVENT",
+        title: "Retrieve, then\nexpand the graph",
+        subtitle: "Three vector-ranked records produce seven relationship evidence chips.",
+        caption: "The app preserves cosine distance, connected places, and quest membership before presenting the grounded park answer.",
+        seconds: 8),
+    Scene(
+        visual: .code(parkRepositoryPath, "Map<String, Object> graphRag(String query)", 34),
+        eyebrow: "STEP 12 | JAVA ACTION",
+        title: "Make GraphRAG\nevidence visible",
+        subtitle: "Vector retrieval identifies places; graph traversal adds explicit context.",
+        caption: "Java embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.",
+        seconds: 9),
+    Scene(
+        visual: .image("step-12-database.png"),
+        eyebrow: "STEP 12 | ORACLE DATABASE EVIDENCE",
+        title: "Knowledge has\nnative vectors",
+        subtitle: "Principle: semantic relevance plus explainable relationships",
+        caption: "AIM_PARK_KNOWLEDGE stores grounded content with 384-dimensional vectors; AIM_PARK_GRAPH supplies the connected place and quest structure.",
+        seconds: 8),
+
+    Scene(
         visual: .recap,
         eyebrow: "GOVERNED CONTINUAL LEARNING",
         title: "Retain · Recall\nReuse · Refine",
         subtitle: "Durable experience changes future context without retraining model weights.",
-        caption: "Oracle AI Database keeps agent memory scoped, vector-searchable, versioned, expirable, transactional, approval-gated, and auditable.",
+        caption: "Oracle AI Database keeps agent memory scoped and auditable, then combines graph, Spatial, vectors, and transactions for a safe playable experience.",
         seconds: 9)
 ]
 
@@ -506,10 +617,16 @@ func drawRecap() {
             alignment: .center)
     }
     drawText(
-        "SCOPED · VECTOR-SEARCHABLE · VERSIONED · EXPIRABLE · AUDITABLE",
-        NSRect(x: 590, y: 585, width: 1280, height: 60),
+        "SCOPED · VERSIONED · EXPIRABLE · AUDITABLE",
+        NSRect(x: 590, y: 565, width: 1280, height: 60),
         font: .boldSystemFont(ofSize: 26),
         color: gold,
+        alignment: .center)
+    drawText(
+        "GRAPH · SPATIAL · VECTOR · TRANSACTIONS",
+        NSRect(x: 590, y: 625, width: 1280, height: 60),
+        font: .boldSystemFont(ofSize: 26),
+        color: teal,
         alignment: .center)
 }
 
