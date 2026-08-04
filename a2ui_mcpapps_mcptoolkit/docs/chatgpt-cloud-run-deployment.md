@@ -16,15 +16,19 @@ Verified privately on August 3, 2026 in `adb-pm-prod/us-east4`:
 - No approval handle was returned and no write or rejection tools were
   registered.
 
-ChatGPT host rendering is not yet verified.
+ChatGPT host rendering was verified on August 3, 2026. The connection discovered
+only `show-inventory-transfer-dashboard`, invoked it with risk `70` and limit
+`3`, and rendered the live `WATER-SENSE` MCP App inline with the Toolkit source
+label and model-readable result.
 
 After explicit authorization, revision
 `oracle-supply-chain-mcp-app-00003-dkl` was opened temporarily for anonymous
 read-only access with one warm instance. An unauthenticated external preflight
 returned HTTP 200, exactly one dashboard tool, the MCP App resource, and the
 same live Toolkit result. It returned no approval handle and exposed no write
-or rejection tool. Public access must be revoked after the ChatGPT screenshots
-are captured.
+or rejection tool. After the successful ChatGPT capture, the `allUsers` invoker
+grant was removed, minimum instances were returned to zero, and the service
+became private again.
 
 ## Topology and sizing
 
@@ -113,9 +117,26 @@ risk of 70, limited to 3 recommendations.
 ```
 
 Verify that ChatGPT calls the tool with `70` and `3`, renders the MCP App,
-shows the Toolkit source label and live `WATER-SENSE` card, and provides no
-approval controls. Capture sanitized screenshots and then revoke anonymous
-Cloud Run invocation.
+shows the Toolkit source label and live `WATER-SENSE` card, and has no
+functional approval path because no approval handle or action tool is exposed.
+Capture sanitized screenshots and then revoke anonymous Cloud Run invocation.
+
+The verified plugin used:
+
+- Name: `Supply-Chain Inventory Exchange`
+- Description: `Displays read-only Oracle Database MCP Java Toolkit-governed inventory-transfer recommendations.`
+- Authentication: `No Auth`, only during the explicitly authorized synthetic
+  read-only window
+- Evidence:
+  `images/chatgpt-developer-mode.png`,
+  `images/chatgpt-plugin-connection.png`,
+  `images/chatgpt-plugin-tool-discovery.png`, and
+  `images/chatgpt-mcp-app-dashboard.png`
+
+The first UI attempt reported `Failed to fetch template`; a retry rendered the
+component. Developer-mode CSP enforcement was off during this validation.
+Before publication or authenticated actions, declare narrow `_meta.ui.domain`
+and `_meta.ui.csp` metadata, turn enforcement on, and repeat the evaluation.
 
 ## Official OpenAI references
 
