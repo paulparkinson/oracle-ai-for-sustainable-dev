@@ -1,12 +1,12 @@
-# Java agent-memory walkthrough scene plan
+# Agent-memory walkthrough scene plan
 
 The video follows the sequence in the blog's "Flynn's Theme Park Scenario at a
 Glance" table. It is silent so a presenter can narrate it live. Every scene has
 burned-in text plus matching SRT and WebVTT captions.
 
-| Sequence | Visible evidence | Java source | Database proof | Memory principle |
+| Sequence | Visible evidence | Source | Database proof | Memory principle |
 |---|---|---|---|---|
-| Opening | Java agent loop and Oracle AI Database | Not applicable | Not applicable | Read before, write after |
+| Opening | Agent loop and Oracle AI Database | Not applicable | Not applicable | Read before, write after |
 | Record taxonomy | `preference`, `fact`, `guideline`, `memory`, and `message` mapping | Library extractor and record use | `OAMJ_CONCIERGE_MESSAGE` and `OAMJ_CONCIERGE_RECORDS` | Stored classification differs from conceptual memory type |
 | 0. Reset | Empty library and teaching panels | `AgentMemoryLibraryDemo.reset()` and `MemoryRepository.reset()` | Removed library and teaching rows; Ava and Leo remain | External state and isolation |
 | 1. Retain | Ava's conversation, extracted records, lifecycle ledger, and traces | `AgentMemoryLibraryDemo.retain()` and `MemoryRepository.retain()` | Added message, record, memory, and trace rows | Semantic and episodic retention |

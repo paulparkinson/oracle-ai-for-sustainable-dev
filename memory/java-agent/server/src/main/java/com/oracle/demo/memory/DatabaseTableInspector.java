@@ -17,7 +17,7 @@ final class DatabaseTableInspector {
             new TableSpec(
                     "OAMJ_CONCIERGE_MESSAGE",
                     "RECORD_ID",
-                    "Raw visitor and assistant messages retained by the Java memory library.",
+                    "Raw visitor and assistant messages retained by Oracle Agent Memory.",
                     """
                     SELECT record_id,
                            order_seq,

@@ -81,7 +81,7 @@ async function runLibraryAction(action, button) {
   showLibraryResult(
     action === "retain"
       ? "Ollama is extracting records and Oracle AI Database is embedding them…"
-      : "Working with the Java agent-memory library…"
+      : "Working with Oracle Agent Memory…"
   );
   try {
     const body = libraryActionBodies[action]

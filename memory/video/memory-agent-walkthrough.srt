@@ -1,6 +1,6 @@
 1
 00:00:00,000 --> 00:00:08,000
-Run every scenario action, inspect the Java implementation, and verify each change inside Oracle AI Database.
+Run every scenario action, inspect the implementation, and verify each change inside Oracle AI Database.
 
 2
 00:00:08,000 --> 00:00:18,000
@@ -12,7 +12,7 @@ The library panels become empty. The lifecycle path retains only the Ava and Leo
 
 4
 00:00:25,000 --> 00:00:32,000
-The Java library clears persisted messages and extracted records, then clears the in-process search result and context-card view.
+Oracle Agent Memory clears persisted messages and extracted records, then clears the in-process search result and context-card view.
 
 5
 00:00:32,000 --> 00:00:40,000
@@ -20,7 +20,7 @@ Oracle AI Database deletes OAMJ_CONCIERGE_MESSAGE and OAMJ_CONCIERGE_RECORDS row
 
 6
 00:00:40,000 --> 00:00:47,000
-Java deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.
+The application deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.
 
 7
 00:00:47,000 --> 00:00:55,000
@@ -44,7 +44,7 @@ The UI exposes type, scope, source, version, status, and expiration so the broad
 
 12
 00:01:27,000 --> 00:01:35,000
-Java inserts four durable Ava memories, one temporary route fact, and three de-identified successful traces.
+The application inserts four durable Ava memories, one temporary route fact, and three de-identified successful traces.
 
 13
 00:01:35,000 --> 00:01:43,000
@@ -56,7 +56,7 @@ The library ranks only Ava's records, builds a context card, and returns zero Av
 
 15
 00:01:51,000 --> 00:01:59,000
-The Java path searches four durable record types, then combines ranked memory and recent messages into reusable context.
+The library searches four durable record types, then combines ranked memory and recent messages into reusable context.
 
 16
 00:01:59,000 --> 00:02:07,000
@@ -68,7 +68,7 @@ The deliberately imperfect fireworks fact remains visible so the next action can
 
 18
 00:02:15,000 --> 00:02:23,000
-Java reads only active, unexpired, visitor-and-agent-scoped rows and inserts one recall audit row per selected memory.
+The application reads only active, unexpired, visitor-and-agent-scoped rows and inserts one recall audit row per selected memory.
 
 19
 00:02:23,000 --> 00:02:31,000
@@ -80,7 +80,7 @@ The UI keeps the old version for audit and activates the guest-confirmed replace
 
 21
 00:02:38,000 --> 00:02:46,000
-Java locks the current fact, inserts version 2, updates version 1 to SUPERSEDED, and commits both changes atomically.
+The application locks the current fact, inserts version 2, updates version 1 to SUPERSEDED, and commits both changes atomically.
 
 22
 00:02:46,000 --> 00:02:54,000
@@ -92,7 +92,7 @@ The UI removes the temporary operational record from active recall while durable
 
 24
 00:03:01,000 --> 00:03:08,000
-Java updates rain-route-tonight from ACTIVE to EXPIRED and sets EXPIRES_AT to the database timestamp.
+The application updates rain-route-tonight from ACTIVE to EXPIRED and sets EXPIRES_AT to the database timestamp.
 
 25
 00:03:08,000 --> 00:03:16,000
@@ -104,7 +104,7 @@ The app induces one pending rainy-evening-reroute candidate without copying Ava'
 
 27
 00:03:24,000 --> 00:03:32,000
-Java counts matching episodes and inserts generalized JSON instructions with status PENDING.
+The application counts matching episodes and inserts generalized JSON instructions with status PENDING.
 
 28
 00:03:32,000 --> 00:03:40,000
@@ -116,7 +116,7 @@ The UI changes the induced skill from pending to approved and displays instructi
 
 30
 00:03:47,000 --> 00:03:54,000
-Java records the approver and approval time while changing the status from PENDING to APPROVED.
+The application records the approver and approval time while changing the status from PENDING to APPROVED.
 
 31
 00:03:54,000 --> 00:04:02,000
@@ -128,7 +128,7 @@ The app shows zero Ava memories visible to Leo and the approved rainy-evening-re
 
 33
 00:04:10,000 --> 00:04:18,000
-Java proves that Ava rows under Leo's private scope equal zero, then selects only APPROVED shared skills.
+The application proves that Ava rows under Leo's private scope equal zero, then selects only APPROVED shared skills.
 
 34
 00:04:18,000 --> 00:04:26,000
@@ -140,7 +140,7 @@ The park graph, spatial map, consented party, quest, and knowledge remain reusab
 
 36
 00:04:34,000 --> 00:04:42,000
-Java deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.
+The application deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.
 
 37
 00:04:42,000 --> 00:04:50,000
@@ -152,7 +152,7 @@ The map highlights a 675-meter accessible route and keeps the inaccessible Summi
 
 39
 00:04:58,000 --> 00:05:06,000
-Java filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.
+The route planner filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.
 
 40
 00:05:06,000 --> 00:05:14,000
@@ -176,7 +176,7 @@ The verified UI shows three completed checkpoints, 400 audited points, the Lante
 
 45
 00:05:46,000 --> 00:05:55,000
-Java locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.
+The application locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.
 
 46
 00:05:55,000 --> 00:06:03,000
@@ -188,7 +188,7 @@ The app preserves cosine distance, connected places, and quest membership before
 
 48
 00:06:11,000 --> 00:06:20,000
-Java embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.
+The application embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.
 
 49
 00:06:20,000 --> 00:06:28,000

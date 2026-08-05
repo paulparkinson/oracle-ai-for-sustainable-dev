@@ -41,14 +41,14 @@ let parkRepositoryPath = "java-agent/server/src/main/java/com/oracle/demo/memory
 let scenes: [Scene] = [
     Scene(
         visual: .title,
-        eyebrow: "ORACLE AI DATABASE + JAVA",
+        eyebrow: "ORACLE AI DATABASE + AGENT MEMORY",
         title: "Memories Are\nthe Magic",
         subtitle: "A verified agent-memory walkthrough",
-        caption: "Run every scenario action, inspect the Java implementation, and verify each change inside Oracle AI Database.",
+        caption: "Run every scenario action, inspect the implementation, and verify each change inside Oracle AI Database.",
         seconds: 8),
     Scene(
         visual: .recordTypes,
-        eyebrow: "JAVA LIBRARY TAXONOMY",
+        eyebrow: "MEMORY LIBRARY TAXONOMY",
         title: "RECORD_TYPE\nis not memory type",
         subtitle: "Stored classification and conceptual use are related, but different.",
         caption: "The library stores preference, fact, guideline, and memory records. Message represents recent conversation from a separate table.",
@@ -63,10 +63,10 @@ let scenes: [Scene] = [
         seconds: 7),
     Scene(
         visual: .code(libraryPath, "synchronized Map<String, Object> reset()", 16),
-        eyebrow: "STEP 0 | JAVA LIBRARY ACTION",
+        eyebrow: "STEP 0 | LIBRARY ACTION",
         title: "Clear library\nmemory",
         subtitle: "OracleAgentMemory.clearAll() resets the live library path.",
-        caption: "The Java library clears persisted messages and extracted records, then clears the in-process search result and context-card view.",
+        caption: "Oracle Agent Memory clears persisted messages and extracted records, then clears the in-process search result and context-card view.",
         seconds: 7),
     Scene(
         visual: .image("step-0-library-database.png"),
@@ -77,10 +77,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> reset()", 22),
-        eyebrow: "STEP 0 | JAVA LIFECYCLE ACTION",
+        eyebrow: "STEP 0 | LIFECYCLE ACTION",
         title: "Reset teaching\nrecords",
         subtitle: "MemoryRepository.reset() uses an explicit transaction.",
-        caption: "Java deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.",
+        caption: "The application deletes mutable teaching records in foreign-key-safe order and preserves the two visitor identities used by both application lanes.",
         seconds: 7),
     Scene(
         visual: .image("step-0-teaching-database.png"),
@@ -99,7 +99,7 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(libraryPath, "synchronized Map<String, Object> retain()", 25),
-        eyebrow: "STEP 1 | JAVA LIBRARY ACTION",
+        eyebrow: "STEP 1 | LIBRARY ACTION",
         title: "Retain typed\nmemory",
         subtitle: "addMessages() extracts records; addMemory() adds the prior episode.",
         caption: "Ollama classifies durable content and Oracle AI Database creates an ALLMINILM embedding for every stored record.",
@@ -120,10 +120,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> retain()", 25),
-        eyebrow: "STEP 1 | JAVA LIFECYCLE ACTION",
+        eyebrow: "STEP 1 | LIFECYCLE ACTION",
         title: "Write selected\nexperience",
-        subtitle: "MemoryRepository.retain() uses fixed Java and SQL operations.",
-        caption: "Java inserts four durable Ava memories, one temporary route fact, and three de-identified successful traces.",
+        subtitle: "MemoryRepository.retain() uses fixed application and SQL operations.",
+        caption: "The application inserts four durable Ava memories, one temporary route fact, and three de-identified successful traces.",
         seconds: 8),
     Scene(
         visual: .image("step-1-teaching-database.png"),
@@ -142,10 +142,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(libraryPath, "synchronized Map<String, Object> recall(String query)", 24),
-        eyebrow: "STEP 2 | JAVA LIBRARY ACTION",
+        eyebrow: "STEP 2 | LIBRARY ACTION",
         title: "Scope before\nsemantic ranking",
         subtitle: "search() embeds the request and applies exact identity scope.",
-        caption: "The Java path searches four durable record types, then combines ranked memory and recent messages into reusable context.",
+        caption: "The library searches four durable record types, then combines ranked memory and recent messages into reusable context.",
         seconds: 8),
     Scene(
         visual: .image("step-2-library-database.png"),
@@ -163,10 +163,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> recall(String guestId, String query)", 24),
-        eyebrow: "STEP 2 | JAVA LIFECYCLE ACTION",
+        eyebrow: "STEP 2 | LIFECYCLE ACTION",
         title: "Apply scope,\nstatus, and TTL",
         subtitle: "MemoryRepository.recall() records why each memory was selected.",
-        caption: "Java reads only active, unexpired, visitor-and-agent-scoped rows and inserts one recall audit row per selected memory.",
+        caption: "The application reads only active, unexpired, visitor-and-agent-scoped rows and inserts one recall audit row per selected memory.",
         seconds: 8),
     Scene(
         visual: .image("step-2-teaching-database.png"),
@@ -185,10 +185,10 @@ let scenes: [Scene] = [
         seconds: 7),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> correct()", 27),
-        eyebrow: "STEP 3 | JAVA ACTION",
+        eyebrow: "STEP 3 | SOURCE ACTION",
         title: "Version the\ncorrection",
         subtitle: "Insert the replacement and supersede the old row in one transaction.",
-        caption: "Java locks the current fact, inserts version 2, updates version 1 to SUPERSEDED, and commits both changes atomically.",
+        caption: "The application locks the current fact, inserts version 2, updates version 1 to SUPERSEDED, and commits both changes atomically.",
         seconds: 8),
     Scene(
         visual: .image("step-3-database.png"),
@@ -207,10 +207,10 @@ let scenes: [Scene] = [
         seconds: 7),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> expireOperationalMemory()", 19),
-        eyebrow: "STEP 4 | JAVA ACTION",
+        eyebrow: "STEP 4 | SOURCE ACTION",
         title: "Enforce the\nlifecycle",
         subtitle: "Expire the operational record without deleting history.",
-        caption: "Java updates rain-route-tonight from ACTIVE to EXPIRED and sets EXPIRES_AT to the database timestamp.",
+        caption: "The application updates rain-route-tonight from ACTIVE to EXPIRED and sets EXPIRES_AT to the database timestamp.",
         seconds: 7),
     Scene(
         visual: .image("step-4-database.png"),
@@ -229,10 +229,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> dream()", 28),
-        eyebrow: "STEP 5 | JAVA ACTION",
+        eyebrow: "STEP 5 | SOURCE ACTION",
         title: "Induce a\ncandidate skill",
         subtitle: "A fixed demonstration rule requires three successful shareable traces.",
-        caption: "Java counts matching episodes and inserts generalized JSON instructions with status PENDING.",
+        caption: "The application counts matching episodes and inserts generalized JSON instructions with status PENDING.",
         seconds: 8),
     Scene(
         visual: .image("step-5-database.png"),
@@ -251,10 +251,10 @@ let scenes: [Scene] = [
         seconds: 7),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> approveSkill(String approver)", 22),
-        eyebrow: "STEP 6 | JAVA ACTION",
+        eyebrow: "STEP 6 | SOURCE ACTION",
         title: "Gate shared\nprocedural memory",
         subtitle: "approveSkill() activates only the reviewed pending procedure.",
-        caption: "Java records the approver and approval time while changing the status from PENDING to APPROVED.",
+        caption: "The application records the approver and approval time while changing the status from PENDING to APPROVED.",
         seconds: 7),
     Scene(
         visual: .image("step-6-database.png"),
@@ -273,10 +273,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(repositoryPath, "Map<String, Object> nextDay()", 27),
-        eyebrow: "STEP 7 | JAVA ACTION",
+        eyebrow: "STEP 7 | SOURCE ACTION",
         title: "Separate private\nand shared reads",
         subtitle: "nextDay() queries private visibility and approved procedures independently.",
-        caption: "Java proves that Ava rows under Leo's private scope equal zero, then selects only APPROVED shared skills.",
+        caption: "The application proves that Ava rows under Leo's private scope equal zero, then selects only APPROVED shared skills.",
         seconds: 8),
     Scene(
         visual: .image("step-7-database.png"),
@@ -295,10 +295,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(parkRepositoryPath, "Map<String, Object> reset()", 22),
-        eyebrow: "STEP 8 | JAVA ACTION",
+        eyebrow: "STEP 8 | SOURCE ACTION",
         title: "Separate world\nand visitor state",
         subtitle: "ParkExperienceRepository.reset() clears only the guest-specific result tables.",
-        caption: "Java deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.",
+        caption: "The application deletes badges, reward audit, and progress in foreign-key-safe order, then commits without rebuilding the park topology.",
         seconds: 8),
     Scene(
         visual: .image("step-8-database.png"),
@@ -317,10 +317,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(parkRepositoryPath, "Map<String, Object> plan()", 28),
-        eyebrow: "STEP 9 | JAVA ACTION",
+        eyebrow: "STEP 9 | SOURCE ACTION",
         title: "Combine graph\nand Spatial reasoning",
         subtitle: "Topology supplies traversable edges; geometry supplies physical separation.",
-        caption: "Java filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.",
+        caption: "The route planner filters closed or inaccessible graph relationships, finds the shortest permitted path, and asks Oracle Spatial for point-to-point distance.",
         seconds: 8),
     Scene(
         visual: .image("step-9-database.png"),
@@ -339,7 +339,7 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(parkRepositoryPath, "Map<String, Object> startQuest()", 28),
-        eyebrow: "STEP 10 | JAVA ACTION",
+        eyebrow: "STEP 10 | SOURCE ACTION",
         title: "Create progress\nand audit together",
         subtitle: "startQuest() keeps relationship, authorization, and game state separate.",
         caption: "One transaction creates Ava's active progress and the QUEST_STARTED audit event; party consent is read from member_of graph edges.",
@@ -361,10 +361,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(parkRepositoryPath, "Map<String, Object> completeNextStep()", 34),
-        eyebrow: "STEP 11 | JAVA ACTION",
+        eyebrow: "STEP 11 | SOURCE ACTION",
         title: "Lock, validate,\nand reward",
         subtitle: "completeNextStep() makes every checkpoint an atomic state transition.",
-        caption: "Java locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.",
+        caption: "The application locks Ava's progress row, advances only the next ordered step, adds points, and issues the badge inside the final completion transaction.",
         seconds: 9),
     Scene(
         visual: .image("step-11-database.png"),
@@ -383,10 +383,10 @@ let scenes: [Scene] = [
         seconds: 8),
     Scene(
         visual: .code(parkRepositoryPath, "Map<String, Object> graphRag(String query)", 34),
-        eyebrow: "STEP 12 | JAVA ACTION",
+        eyebrow: "STEP 12 | SOURCE ACTION",
         title: "Make GraphRAG\nevidence visible",
         subtitle: "Vector retrieval identifies places; graph traversal adds explicit context.",
-        caption: "Java embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.",
+        caption: "The application embeds the request, ranks AIM_PARK_KNOWLEDGE, and follows connects and quest_step edges around every vector hit.",
         seconds: 9),
     Scene(
         visual: .image("step-12-database.png"),
@@ -577,7 +577,7 @@ func drawRecordTypes() {
 func drawTitleVisual() {
     rounded(NSRect(x: 710, y: 220, width: 970, height: 430), radius: 34, color: panel)
     drawText(
-        "JAVA\nAGENT LOOP",
+        "AGENT\nLOOP",
         NSRect(x: 790, y: 330, width: 280, height: 130),
         font: .boldSystemFont(ofSize: 35),
         color: .white,
@@ -657,7 +657,7 @@ func imageFor(index: Int) -> NSImage {
 
     switch scene.visual {
     case .title:
-        badge("JAVA 21", x: 75, y: 570, color: teal)
+        badge("AGENT MEMORY", x: 75, y: 570, color: teal)
         badge("OJDBC AGENT MEMORY", x: 75, y: 635, color: red)
         badge("ORACLE AI DATABASE", x: 75, y: 700, color: gold)
         drawTitleVisual()
