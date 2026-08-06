@@ -122,7 +122,7 @@
       <tr><td><strong>0. Reset both paths.</strong> Library memory becomes empty; only Ava and Leo remain in the lifecycle path.</td><td><code>OracleAgentMemory.clearAll()</code> resets the library path. <code>MemoryRepository.reset()</code> resets the lifecycle path.</td><td>Deletes rows from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a> and <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>. Clears the four mutable lifecycle tables in foreign-key-safe order while preserving Ava and Leo in <a href="#table-aim-guests"><code>AIM_DEMO_GUESTS</code></a>, which are also graph vertices in the Memory Quest lane.</td><td>External state and isolation. The empty UI proves that browser state is not carrying memory between runs.</td></tr>
       <tr><td><strong>1. Retain Ava's current conversation and one seeded prior episode.</strong> The UI shows two messages, extracted preferences and guidelines, and the explicit covered-atrium memory.</td><td><code>addMessages()</code> retains the current conversation and lets Ollama extract reusable facts and guidelines. <code>addMemory()</code> inserts the simulated prior-visit outcome so the demo can distinguish current conversation extraction from episodic history.</td><td>Inserts two rows into <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. Inserts extracted and explicit records into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a>; each insert calls <code>VECTOR_EMBEDDING(allminilm USING ... AS DATA)</code> to store a 384-dimensional native <code>VECTOR</code>.</td><td><strong>Retain and write after.</strong> Semantic memory captures durable preferences; episodic memory captures what happened and whether it worked. The seeded rainy-visit episode is supplied as prior experience, not inferred from Ava's current sentence.</td></tr>
       <tr><td><strong>2. Recall a scoped plan for Ava.</strong> The context card includes her records and recent messages; the Leo scope check returns zero Ava records.</td><td><code>search()</code> applies exact Ava, concierge-agent, and thread scope, then <code>getContextCard()</code> combines durable records with recent messages for the next model turn. The corresponding lifecycle walkthrough action uses <code>MemoryRepository.recall()</code> to expose an explicit recall audit.</td><td>A common-table expression embeds the request with <code>VECTOR_EMBEDDING</code>. Oracle ranks scoped rows from <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with cosine <code>VECTOR_DISTANCE</code>. Recent messages are read from <a href="#table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code></a>. The lifecycle action inserts one evidence row per selected memory into <a href="#table-aim-recall"><code>AIM_DEMO_RECALL_AUDIT</code></a>.</td><td><strong>Recall, reuse, and read before.</strong> Structured identity scope limits what may be considered before vector similarity decides relevance, while the audit shows why each record entered context.</td></tr>
-      <tr><td><strong>3. Correct a remembered fact.</strong> Ava confirms lantern show, not fireworks; version 1 becomes superseded and version 2 becomes active.</td><td><code>MemoryRepository.correct()</code> versions the visitor-confirmed fact inside one JDBC transaction.</td><td>Inserts version 2 into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>, then updates version 1 to <code>SUPERSEDED</code> and sets <code>SUPERSEDED_BY</code> to the new <code>MEMORY_ID</code>.</td><td><strong>Refine and correct.</strong> The agent uses the confirmed value on later turns while retaining an auditable history of what was wrong.</td></tr>
+      <tr><td><strong>3. Correct a remembered fact.</strong> Ava confirms lantern show, not fireworks; version 1 becomes superseded and version 2 becomes active.</td><td>The lifecycle path versions the visitor-confirmed fact inside one JDBC transaction.</td><td>Inserts version 2 into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>, then updates version 1 to <code>SUPERSEDED</code> and sets <code>SUPERSEDED_BY</code> to the new <code>MEMORY_ID</code>.</td><td><strong>Refine and correct.</strong> The agent uses the confirmed value on later turns while retaining an auditable history of what was wrong.</td></tr>
       <tr><td><strong>4. Expire a temporary closure.</strong> The row remains auditable but no longer enters future context.</td><td><code>expireOperationalMemory()</code> closes the temporary operational record rather than deleting it.</td><td>Updates the matching row in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a> to <code>STATUS='EXPIRED'</code> and <code>EXPIRES_AT=SYSTIMESTAMP</code>. Later recall selects only active, unexpired rows.</td><td><strong>TTL and lifecycle management.</strong> A live closure is short-lived operational memory, unlike a durable accessibility preference.</td></tr>
       <tr><td><strong>5. Induce a skill from three successful traces.</strong> Dream finds the repeated rainy-reroute pattern and proposes a pending procedure.</td><td><code>retain()</code> records three fixed, privacy-safe example outcomes. <code>dream()</code> counts the successful shared pattern and proposes the generalized <code>rainy-evening-reroute</code> procedure.</td><td>Inserts the three evidence rows into <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a>. After finding three successful <code>RAINY_EVENING_REROUTE</code> rows, inserts one <code>PENDING</code> procedure with generalized JSON instructions into <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a>.</td><td><strong>Episodic learning material becomes candidate procedural memory.</strong> Continual learning here means changing future retrieved instructions, not retraining model weights.</td></tr>
       <tr><td><strong>6. Approve the candidate procedure.</strong> The UI shows its generalized, privacy-safe steps as approved.</td><td><code>approveSkill()</code> activates the reviewed procedure for later visitors.</td><td>Updates <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> from <code>PENDING</code> to <code>APPROVED</code> and records <code>APPROVED_BY</code> plus <code>APPROVED_AT=SYSTIMESTAMP</code>.</td><td><strong>Human governance and provenance.</strong> A proposed lesson cannot enter the shared procedural-memory path until someone explicitly approves it.</td></tr>
@@ -166,28 +166,13 @@
   <p class="note"><strong>These are analogies, not storage rules.</strong> A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions; classify each entry by what it communicates and how the agent uses it.</p>
   <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
 
-  <h3 id="record-type-mapping">How <code>RECORD_TYPE</code> Maps to Memory Types</h3>
-  <p>Oracle Agent Memory and the conceptual memory model use related but different taxonomies. The four durable values written to <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code> are <code>preference</code>, <code>fact</code>, <code>guideline</code>, and <code>memory</code>. They describe what the extractor persisted. Working, episodic, semantic, and procedural describe how the application uses and governs remembered information.</p>
-  <table>
-    <thead>
-      <tr><th><code>RECORD_TYPE</code></th><th>What it means in Oracle Agent Memory</th><th>Closest conceptual memory type</th><th>Flynn's Theme Park example</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>preference</code></td><td>A like, dislike, desired recommendation, dietary choice, or response-style preference.</td><td><strong>Semantic memory.</strong> It is durable information about the visitor.</td><td>Ava prefers a quiet breakfast and short bullet-point itineraries.</td></tr>
-      <tr><td><code>fact</code></td><td>Stable factual state, such as a name, city, accessibility need, or other current visitor fact.</td><td><strong>Semantic memory.</strong> The fact should be scoped, versioned, and correctable.</td><td>Ava needs routes with minimal stairs.</td></tr>
-      <tr><td><code>guideline</code></td><td>An instruction that the assistant should follow in future responses.</td><td><strong>Procedural-like memory.</strong> It guides behavior, but an extracted visitor guideline is not automatically a globally approved skill.</td><td>Keep Ava's itineraries short and use bullet points.</td></tr>
-      <tr><td><code>memory</code></td><td>Durable context that does not fit the more specific preference, fact, or guideline categories.</td><td><strong>Semantic or episodic memory, depending on content and provenance.</strong></td><td>The covered atrium route worked well during Ava's previous rainy visit is episodic even though its stored record type is <code>memory</code>.</td></tr>
-      <tr><td><code>message</code><br><small>record interface only</small></td><td>A conversation message returned when the library presents recent messages and durable records through one record interface. It is not a value persisted in <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code>. Raw messages are stored in <code>OAMJ_CONCIERGE_MESSAGE</code>.</td><td><strong>Recent or working context.</strong> A message is not durable semantic, episodic, or procedural memory unless extraction creates a separate record.</td><td>Ava's current request and the concierge response appear in the context card beside extracted records.</td></tr>
-    </tbody>
-  </table>
-  <p>The extractor is instructed to prefer <code>preference</code>, <code>fact</code>, or <code>guideline</code> over the generic <code>memory</code> label. The demo searches the four durable types together. <code>message</code> is included only when recent conversation and durable records are presented through a common API.</p>
-  <p class="note"><strong>Two important non-equivalences:</strong> working memory is not a durable <code>RECORD_TYPE</code>, and the approved shared procedure in <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> is application-governed procedural memory rather than a library-extracted <code>guideline</code>. The <code>OPERATIONAL</code> value in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES.MEMORY_TYPE</code></a> is also application-specific and is not an <code>ojdbc-agent-memory</code> record type.</p>
-
-  <h2 id="engineering-ladder">From Prompt Engineering to Memory Engineering</h2>
+  <h2 id="engineering-ladder">From Prompt Engineering to Context Engineering to Memory Engineering</h2>
+  <p><strong>Agent memory</strong> combines models, extraction, embeddings, retrieval, and persistent storage so an agent can retain, recall, update, and forget information while maintaining continuity across long-horizon tasks. <strong>Memory engineering</strong> is the discipline of designing and operating that lifecycle so retained experience remains useful, scoped, current, and governable over time.</p>
+  <p>The application pattern has evolved from single-turn LLM chatbots, through RAG and multistep workflows, to agentic applications that combine reasoning with memory, tools or actions, and perception. Each step exposes a different constraint:</p>
   <ol>
-    <li><strong>Prompt engineering</strong> shapes one turn.</li>
-    <li><strong>Context engineering</strong> assembles evidence for one inference.</li>
-    <li><strong>Memory engineering</strong> manages useful state across interactions.</li>
+    <li><strong>Prompt engineering</strong> shapes instructions and linguistic patterns for one turn.</li>
+    <li><strong>Context engineering</strong> works within bounded, position-sensitive context windows by retrieving, organizing, summarizing, compacting, or offloading the right information for one inference. Stable project facts and conventions may resemble <code>AGENTS.md</code> or <code>CLAUDE.md</code>, while reusable procedures may resemble <code>SKILL.md</code>.</li>
+    <li><strong>Memory engineering</strong> overcomes statelessness by governing what persists across interactions, how it is recalled, and when it is corrected, consolidated, expired, or forgotten.</li>
   </ol>
   <p>The memory lifecycle is easiest to remember as the four Rs:</p>
   <ul>
@@ -196,8 +181,9 @@
     <li><strong>Reuse:</strong> assemble a compact context card for the next turn.</li>
     <li><strong>Refine:</strong> correct, consolidate, version, expire, or delete state.</li>
   </ul>
-  <h3>Map the Four Rs to Source Methods</h3>
-  <p>The API maps the first three Rs directly to <code>OracleThread</code>. Refinement is a lifecycle operation: the application combines the library's delete and add operations, or applies its own versioning transaction when correction history must be retained.</p>
+  <h3>Map the Four Rs to Oracle Agent Memory Source Methods</h3>
+  <p><code>OracleAgentMemory</code> configures the shared store, schema, extraction, embedding, and search services and creates scoped <code>OracleThread</code> instances; <code>OracleThread</code> binds user, agent, and thread identity to message, memory, search, and context-card operations.</p>
+  <p>The API maps the first three Rs directly to <code>OracleThread</code>. Refinement uses the library's delete and add primitives when a stored memory must be replaced.</p>
   <table>
     <thead>
       <tr>
@@ -224,8 +210,8 @@
       </tr>
       <tr>
         <td><strong>Refine</strong></td>
-        <td><code>OracleThread.deleteMemory()</code> plus <code>OracleThread.addMemory()</code><br><code>MemoryRepository.correct()</code> in this demo</td>
-        <td>Replaces, expires, or versions memory. The demo uses one database transaction to preserve the superseded version and correction evidence.</td>
+        <td><code>OracleThread.deleteMemory()</code> plus <code>OracleThread.addMemory()</code></td>
+        <td>Removes an obsolete memory and stores its corrected replacement.</td>
       </tr>
     </tbody>
   </table>
@@ -235,8 +221,9 @@ thread.addMemory(memory);                              // OracleThread: Retain
 List&lt;OracleSearchResult&gt; hits =
     thread.search(query, 8, recordTypes);              // OracleThread: Recall
 OracleContextCard card = thread.getContextCard();      // OracleThread: Reuse
-repository.correct();                                  // MemoryRepository: Refine</code></pre>
-  <p class="note"><strong>Why Refine is different:</strong> the current library API does not expose a single <code>updateMemory(...)</code> method. Its primitives support delete and add. This concierge demo uses <code>MemoryRepository.correct()</code> to create a new version and mark the prior <code>AIM_DEMO_MEMORIES</code> row <code>SUPERSEDED</code>, preserving an auditable history instead of overwriting it.</p>
+thread.deleteMemory(oldMemoryId);                      // OracleThread: Refine
+thread.addMemory(correctedMemory);                     // OracleThread: Refine</code></pre>
+  <p class="note"><strong>Why Refine uses two calls:</strong> this Java library implementation does not expose a single <code>updateMemory(...)</code> method, so its source-level replacement primitive is delete followed by add.</p>
   <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
 
   <h2 id="architecture">What the Demo Actually Implements</h2>
@@ -307,13 +294,67 @@ Oracle AI Database
 
   <h3 id="database-objects">Database Tables and Objects Used by Oracle Agent Memory and Agent</h3>
   <p>There are three intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent lifecycle lane uses <code>AIM_DEMO_*</code> tables for history, expiry, traces, approval, and audit. The Memory Quest lane uses <code>AIM_PARK_*</code> tables for graph, spatial, vector, and transactional game state. The scenario table above links directly to the memory tables below.</p>
+  <p class="note"><strong>Status ownership:</strong> <code>ACTIVE</code>, <code>SUPERSEDED</code>, and <code>EXPIRED</code> are application-defined values in <code>AIM_DEMO_MEMORIES.STATUS</code>. They are not statuses in the Java Oracle Agent Memory tables, which store messages and typed records without status, supersession, or expiration columns.</p>
+
+  <h4 id="table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code>: Persistent Conversation History</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>RECORD_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Primary identifier for the stored message.</td></tr>
+      <tr><td><code>ORDER_SEQ</code></td><td><code>NUMBER</code></td><td>Sequence used to reconstruct message order.</td></tr>
+      <tr><td><code>THREAD_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Conversation scope.</td></tr>
+      <tr><td><code>USER_ID</code></td><td><code>VARCHAR2(128)</code></td><td>User identity scope.</td></tr>
+      <tr><td><code>AGENT_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Agent identity scope.</td></tr>
+      <tr><td><code>SPACE_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Optional broader workspace or shared scope.</td></tr>
+      <tr><td><code>MESSAGE_ROLE</code></td><td><code>VARCHAR2(32)</code></td><td>Message origin, such as user, assistant, or system.</td></tr>
+      <tr><td><code>CONTENT</code></td><td><code>CLOB</code></td><td>Raw message text.</td></tr>
+      <tr><td><code>TIMESTAMP</code></td><td><code>TIMESTAMP WITH TIME ZONE</code></td><td>Message time, defaulting to the database system timestamp.</td></tr>
+      <tr><td><code>METADATA</code></td><td><code>CLOB</code></td><td>Optional application metadata.</td></tr>
+      <tr><td><code>CREATED_AT</code></td><td><code>TIMESTAMP WITH TIME ZONE</code></td><td>Database row creation time.</td></tr>
+    </tbody>
+  </table>
+  <p>The library creates <code>OAMJ_CONCIERGE_MESSAGE_SCOPE_IX</code> over user, agent, thread, sequence, and creation time for scoped, ordered retrieval.</p>
+
+  <h4 id="table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code>: Durable Memories and Embeddings</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>RECORD_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Primary identifier for the durable record.</td></tr>
+      <tr><td><code>RECORD_TYPE</code></td><td><code>VARCHAR2(32)</code></td><td>Extracted or assigned category described below.</td></tr>
+      <tr><td><code>ROLE</code></td><td><code>VARCHAR2(32)</code></td><td>Optional originating message role.</td></tr>
+      <tr><td><code>CONTENT</code></td><td><code>CLOB</code></td><td>Extracted or explicitly added durable memory text.</td></tr>
+      <tr><td><code>USER_ID</code></td><td><code>VARCHAR2(128)</code></td><td>User identity scope.</td></tr>
+      <tr><td><code>AGENT_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Agent identity scope.</td></tr>
+      <tr><td><code>THREAD_ID</code></td><td><code>VARCHAR2(128)</code></td><td>Conversation scope.</td></tr>
+      <tr><td><code>EMBEDDING</code></td><td><code>VECTOR</code></td><td>Embedding used for semantic similarity search.</td></tr>
+      <tr><td><code>CREATED_AT</code></td><td><code>TIMESTAMP WITH TIME ZONE</code></td><td>Database row creation time.</td></tr>
+    </tbody>
+  </table>
+  <p>The library creates <code>OAMJ_CONCIERGE_RECORDS_SCOPE_IX</code> over user, agent, thread, record type, and creation time. The demo generates each embedding with the database-resident <code>ALLMINILM</code> model.</p>
+
+  <h4 id="record-type-mapping">How <code>RECORD_TYPE</code> Maps to Memory Types</h4>
+  <p>Oracle Agent Memory and the conceptual memory model use related but different taxonomies. The four durable values written to <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code> are <code>preference</code>, <code>fact</code>, <code>guideline</code>, and <code>memory</code>. They describe what the extractor persisted. Working, episodic, semantic, and procedural describe how the application uses and governs remembered information.</p>
+  <table>
+    <thead>
+      <tr><th><code>RECORD_TYPE</code></th><th>What it means in Oracle Agent Memory</th><th>Closest conceptual memory type</th><th>Flynn's Theme Park example</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>preference</code></td><td>A like, dislike, desired recommendation, dietary choice, or response-style preference.</td><td><strong>Semantic memory.</strong> It is durable information about the visitor.</td><td>Ava prefers a quiet breakfast and short bullet-point itineraries.</td></tr>
+      <tr><td><code>fact</code></td><td>Stable factual state, such as a name, city, accessibility need, or other current visitor fact.</td><td><strong>Semantic memory.</strong> The fact should be scoped, versioned, and correctable.</td><td>Ava needs routes with minimal stairs.</td></tr>
+      <tr><td><code>guideline</code></td><td>An instruction that the assistant should follow in future responses.</td><td><strong>Procedural-like memory.</strong> It guides behavior, but an extracted visitor guideline is not automatically a globally approved skill.</td><td>Keep Ava's itineraries short and use bullet points.</td></tr>
+      <tr><td><code>memory</code></td><td>Durable context that does not fit the more specific preference, fact, or guideline categories.</td><td><strong>Semantic or episodic memory, depending on content and provenance.</strong></td><td>The covered atrium route worked well during Ava's previous rainy visit is episodic even though its stored record type is <code>memory</code>.</td></tr>
+      <tr><td><code>message</code><br><small>record interface only</small></td><td>A conversation message returned when the library presents recent messages and durable records through one record interface. It is not persisted in <code>OAMJ_CONCIERGE_RECORDS.RECORD_TYPE</code>; raw messages reside in <code>OAMJ_CONCIERGE_MESSAGE</code>.</td><td><strong>Recent or working context.</strong> It becomes durable memory only when extraction creates a separate record.</td><td>Ava's current request and the concierge response appear beside extracted records in the context card.</td></tr>
+    </tbody>
+  </table>
+  <p>The extractor prefers <code>preference</code>, <code>fact</code>, or <code>guideline</code> over generic <code>memory</code>. The demo searches all four durable types together; <code>message</code> appears only when the API presents recent conversation and durable records together.</p>
+  <p class="note"><strong>Important distinctions:</strong> working memory is not a durable <code>RECORD_TYPE</code>. The approved shared procedure in <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> is application-governed procedural memory, not a library-extracted <code>guideline</code>. The application-specific <code>OPERATIONAL</code> value in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES.MEMORY_TYPE</code></a> is not an Oracle Agent Memory record type.</p>
+
+  <p>The remaining application-owned database objects are:</p>
   <table>
     <thead>
       <tr><th>Object</th><th>Created by</th><th>Purpose</th></tr>
     </thead>
     <tbody>
-      <tr id="table-oamj-message"><td><code>OAMJ_CONCIERGE_MESSAGE</code></td><td><code>ojdbc-agent-memory</code></td><td>Conversation messages, ordering, role, content, timestamps, and user, agent, thread, and space scope. The library also creates <code>OAMJ_CONCIERGE_MESSAGE_SCOPE_IX</code> for scoped, ordered retrieval.</td></tr>
-      <tr id="table-oamj-records"><td><code>OAMJ_CONCIERGE_RECORDS</code></td><td><code>ojdbc-agent-memory</code></td><td>Typed durable records such as memory, preference, fact, and guideline, including a native <code>VECTOR</code> embedding and identity scope. The library also creates <code>OAMJ_CONCIERGE_RECORDS_SCOPE_IX</code> for scoped record-type and creation-time retrieval.</td></tr>
       <tr id="table-aim-guests"><td><code>AIM_DEMO_GUESTS</code></td><td>Agent application</td><td>Visitor identities used by the lifecycle walkthrough.</td></tr>
       <tr id="table-aim-memories"><td><code>AIM_DEMO_MEMORIES</code></td><td>Agent application</td><td>Semantic, episodic, and operational records with visitor and agent scope, version, status, TTL, source, supersession link, and JSON metadata.</td></tr>
       <tr id="table-aim-recall"><td><code>AIM_DEMO_RECALL_AUDIT</code></td><td>Agent application</td><td>Which memory was recalled, for whom, for which query, when, and why.</td></tr>
@@ -418,7 +459,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">0</span> Reset: Show the Stateless Starting Point</h3>
     <p class="say">“A model call does not carry durable experience by itself. At this cold start, Ava and Leo exist, but the agent has no saved facts, traces, or reusable skills.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>Reset</strong>. Notice that the memory ledger, traces, and skill are empty.</p>
-    <p class="happens"><strong>What happens:</strong> The application deletes rows only from its five teaching tables and recreates the two demo visitor identities.</p>
+    <p class="happens"><strong>What happens:</strong> The application deletes rows from <code>AIM_DEMO_RECALL_AUDIT</code>, <code>AIM_DEMO_SKILLS</code>, <code>AIM_DEMO_TRACES</code>, and <code>AIM_DEMO_MEMORIES</code>. It preserves Ava and Leo in <code>AIM_DEMO_GUESTS</code>, inserting either identity only if it is missing.</p>
     <p class="proof"><strong>Proof to point at:</strong> the memory ledger, trace panel, and skill card are empty. Browser state is not the memory source.</p>
   </article>
 
@@ -426,7 +467,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">1</span> Retain: Write Useful Experience</h3>
     <p class="say">“We retain selected state, not an undifferentiated transcript. Working memory stays in the active turn. Semantic preferences, an episodic outcome, and one temporary operational fact become durable records.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>1 · Retain</strong>. Notice the typed memory ledger and three experience traces.</p>
-    <p class="happens"><strong>What happens:</strong> The application writes four durable Ava memories, one temporary route fact, and three privacy-safe successful traces to explicit teaching records.</p>
+    <p class="happens"><strong>What happens:</strong> The application writes four durable Ava memories and one temporary route fact to <code>AIM_DEMO_MEMORIES</code>, then writes three privacy-safe successful outcomes to <code>AIM_DEMO_TRACES</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> every ledger row shows type, <code>PRIVATE</code> scope, source, version, status, and an expiration time where appropriate.</p>
   </article>
 
@@ -434,7 +475,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">2</span> Recall + Reuse: Read Before the Turn</h3>
     <p class="say">“The system does not search all memory. It first narrows by guest, agent, active status, and TTL, then assembles a compact context card for this request.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>2 · Recall + Reuse</strong>. Notice the context card and the deliberately imperfect fireworks fact.</p>
-    <p class="happens"><strong>What happens:</strong> The application applies identity, status, and TTL constraints in SQL and inserts one recall-audit row per selected memory.</p>
+    <p class="happens"><strong>What happens:</strong> The application reads <code>AIM_DEMO_MEMORIES</code> with guest, agent, <code>ACTIVE</code>-status, and TTL predicates, then inserts one evidence row per selected memory into <code>AIM_DEMO_RECALL_AUDIT</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> the context card contains Ava's facts and the live route closure. It also exposes a deliberately imperfect extracted fact, fireworks, so the next step can demonstrate correction.</p>
   </article>
 
@@ -442,7 +483,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">3</span> Refine: Correct Without Losing History</h3>
     <p class="say">“Ava corrects us: lantern show, not fireworks. Durable memory must accept correction as data, not hope that a later prompt masks the error.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>3 · Refine</strong>. Notice that version 1 becomes superseded and version 2 becomes active.</p>
-    <p class="happens"><strong>What happens:</strong> The application makes the history visible by atomically inserting version 2, marking version 1 <code>SUPERSEDED</code>, and linking the old row to its replacement.</p>
+    <p class="happens"><strong>What happens:</strong> In one transaction, the application locks version 1 in <code>AIM_DEMO_MEMORIES</code>, inserts version 2 into the same table, marks version 1 <code>SUPERSEDED</code>, and links its <code>SUPERSEDED_BY</code> column to the replacement.</p>
     <p class="proof"><strong>Proof to point at:</strong> both record versions remain in the ledger, but only the visitor-confirmed lantern memory is active for later recall.</p>
   </article>
 
@@ -450,7 +491,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">4</span> Expire: Enforce the Memory Lifecycle</h3>
     <p class="say">“Useful tonight does not mean true tomorrow. Retention policy is part of memory quality.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>4 · Expire</strong>. Notice that the operational row remains visible but changes to <code>EXPIRED</code>.</p>
-    <p class="happens"><strong>What happens:</strong> The application marks the route row <code>EXPIRED</code>; subsequent recall excludes it through the lifecycle predicate.</p>
+    <p class="happens"><strong>What happens:</strong> The application updates the temporary route row in <code>AIM_DEMO_MEMORIES</code> to <code>STATUS='EXPIRED'</code> and sets <code>EXPIRES_AT</code>; later reads of that table exclude it through the lifecycle predicate.</p>
     <p class="proof"><strong>Proof to point at:</strong> the temporary fact remains auditable in the ledger but cannot influence the next context card.</p>
   </article>
 
@@ -458,15 +499,16 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">5</span> Dream: Turn Traces into a Candidate Skill</h3>
     <p class="say">“Traces are the raw material for continual learning: what was asked, what was retrieved, what the agent did, and what outcome followed. We learn first in token space by inducing a structured reusable procedure.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>5 · Dream</strong>. Notice the pending skill and its three source episodes.</p>
-    <p class="happens"><strong>What happens:</strong> The application detects three successful <code>RAINY_EVENING_REROUTE</code> traces and writes a <code>PENDING</code> skill containing generalized, privacy-safe steps.</p>
+    <p class="happens"><strong>What happens:</strong> The application counts three successful <code>RAINY_EVENING_REROUTE</code> rows in <code>AIM_DEMO_TRACES</code>, checks <code>AIM_DEMO_SKILLS</code> for an existing procedure, and inserts a <code>PENDING</code> skill with generalized, privacy-safe steps.</p>
     <p class="proof"><strong>Proof to point at:</strong> the skill JSON explicitly says that no private guest data is included. No model weights changed.</p>
+    <p class="note"><strong>Implementation boundary:</strong> this demo has no <code>sleep()</code> method or background scheduler. Clicking <strong>Dream</strong> synchronously sends <code>POST /api/actions/dream</code>, and the Java HTTP handler calls <code>MemoryRepository.dream()</code>. A production system could schedule equivalent induction work asynchronously.</p>
   </article>
 
   <article class="demo-step">
     <h3><span class="pill">6</span> Approve: Put Governance in the Learning Loop</h3>
-    <p class="say">“The asleep or dream loop may propose a lesson; it may not silently promote one. A person reviews the abstraction before activation.”</p>
+    <p class="say">“The dream loop may propose a lesson; it may not silently promote one. A person reviews the abstraction before activation.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>6 · Approve</strong>. Notice the status, approver, and approval time change.</p>
-    <p class="happens"><strong>What happens:</strong> The application updates the skill row to <code>APPROVED</code> and preserves the approver and timestamp.</p>
+    <p class="happens"><strong>What happens:</strong> The application updates the <code>rainy-evening-reroute</code> row in <code>AIM_DEMO_SKILLS</code> from <code>PENDING</code> to <code>APPROVED</code> and records <code>APPROVED_BY</code> and <code>APPROVED_AT</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> the approval-gated badge changes and the database retains who activated the procedure.</p>
   </article>
 
@@ -474,7 +516,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">7</span> Next Guest: Reuse the Lesson Without Leaking the Memory</h3>
     <p class="say">“The following day, Leo encounters a similar rainy evening. He can receive the approved general workflow, but he cannot see Ava's breakfast, mobility, or entertainment preferences.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>7 · Next guest</strong>. Notice the approved shared skill and zero private Ava memories visible to Leo.</p>
-    <p class="happens"><strong>What happens:</strong> The application proves that an exact Leo search returns no Ava record, then executes a separate query for the approved shared procedure.</p>
+    <p class="happens"><strong>What happens:</strong> The application queries <code>AIM_DEMO_MEMORIES</code> with Leo's visibility predicates and confirms that no active private Ava row is visible, then reads the approved shared procedure from <code>AIM_DEMO_SKILLS</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> the UI displays <strong>0 private Ava memories visible to Leo</strong> beside the approved shared skill.</p>
   </article>
 
@@ -485,7 +527,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">8</span> Reset the Visitor's Quest Results</h3>
     <p class="say">“The reusable park model is not the same thing as one visitor's progress. Reset only the state that belongs to this quest run.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>Reset quest lane</strong>. Notice that points return to zero, the badge disappears, checkpoints become incomplete, and the map, party, and quest still exist.</p>
-    <p class="happens"><strong>What happens:</strong> The application deletes guest badges, reward audits, and progress in one transaction while preserving graph, spatial, quest, party, and knowledge records.</p>
+    <p class="happens"><strong>What happens:</strong> One transaction deletes <code>AIM_PARK_GUEST_BADGES</code>, <code>AIM_PARK_REWARD_AUDIT</code>, and <code>AIM_PARK_PROGRESS</code>. It preserves the reusable <code>AIM_PARK_GUESTS</code>, <code>AIM_PARK_PARTIES</code>, <code>AIM_PARK_PARTY_MEMBERS</code>, <code>AIM_PARK_PLACES</code>, <code>AIM_PARK_PATHS</code>, <code>AIM_PARK_QUESTS</code>, <code>AIM_PARK_QUEST_STEPS</code>, <code>AIM_PARK_BADGES</code>, and <code>AIM_PARK_KNOWLEDGE</code> rows that form <code>AIM_PARK_GRAPH</code> and its supporting model.</p>
     <p class="proof"><strong>Proof to point at:</strong> the app still renders seven places, path relationships, two party members, and three checkpoints with empty visitor result tables.</p>
   </article>
 
@@ -493,7 +535,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">9</span> Plan an Accessible Route</h3>
     <p class="say">“A remembered accessibility need is a constraint, not merely a recommendation hint. The route must satisfy it before the experience begins.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>1 · Plan accessible route</strong>. Notice the orange route on the 2D map and the inaccessible dotted path to Sky Coaster.</p>
-    <p class="happens"><strong>What happens:</strong> <code>GRAPH_TABLE</code> returns open park edges with accessibility and cover properties. The route planner finds the shortest accessible path. <code>SDO_GEOM.SDO_DISTANCE</code> independently measures straight-line separation between entrance and Lantern Garden.</p>
+    <p class="happens"><strong>What happens:</strong> <code>GRAPH_TABLE(AIM_PARK_GRAPH)</code> traverses place vertices from <code>AIM_PARK_PLACES</code> and path edges from <code>AIM_PARK_PATHS</code>. The route planner selects the shortest open, accessible path, while <code>SDO_GEOM.SDO_DISTANCE</code> reads the two <code>AIM_PARK_PLACES.LOCATION</code> values to measure straight-line separation.</p>
     <p class="proof"><strong>Proof to point at:</strong> the verified route traverses four graph edges and 675 path meters while avoiding Summit Steps. The map is rendered from database coordinates, not hard-coded screen positions.</p>
   </article>
 
@@ -501,7 +543,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">10</span> Start the Covered Constellations Quest</h3>
     <p class="say">“Ava and Leo may share this party experience because the membership edges carry a current consent window. That party relationship does not merge their private memories.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>2 · Start quest</strong>. Notice Ava and Leo in the consent-bounded party, the three checkpoints, zero points, and the first reward-audit event.</p>
-    <p class="happens"><strong>What happens:</strong> one transaction creates Ava's active <code>AIM_PARK_PROGRESS</code> row and inserts <code>QUEST_STARTED</code> into <code>AIM_PARK_REWARD_AUDIT</code>.</p>
+    <p class="happens"><strong>What happens:</strong> One transaction checks and inserts Ava's active row in <code>AIM_PARK_PROGRESS</code>, then inserts <code>QUEST_STARTED</code> into <code>AIM_PARK_REWARD_AUDIT</code>. The returned state reads the consented party through <code>AIM_PARK_GRAPH</code> over <code>AIM_PARK_GUESTS</code>, <code>AIM_PARK_PARTY_MEMBERS</code>, and <code>AIM_PARK_PARTIES</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> party membership, guest memory scope, and quest progress remain separate records with different purposes.</p>
   </article>
 
@@ -509,7 +551,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">11</span> Complete Checkpoints and Award a Badge</h3>
     <p class="say">“Gamification is trustworthy only when progress and rewards agree. The database transaction is the authority, not a browser animation.”</p>
     <p class="action"><strong>Action:</strong> Click <strong>3 · Complete next checkpoint</strong> three times. Watch Quiet Café, Covered Atrium, and Lantern Garden change state on the map.</p>
-    <p class="happens"><strong>What happens:</strong> The application locks Ava's progress row. The first two checkpoint transactions add 50 points each. The final transaction adds 300 points, marks the quest complete, issues <strong>Lantern Pathfinder</strong>, and writes the completion audit.</p>
+    <p class="happens"><strong>What happens:</strong> Each transaction locks and updates Ava's <code>AIM_PARK_PROGRESS</code> row, reads the next checkpoint from <code>AIM_PARK_QUEST_STEPS</code> and <code>AIM_PARK_PLACES</code>, and inserts an event into <code>AIM_PARK_REWARD_AUDIT</code>. The first two add 50 points each; the final transaction adds 300 points, completes progress, and inserts the <strong>Lantern Pathfinder</strong> award into <code>AIM_PARK_GUEST_BADGES</code>, whose badge definition resides in <code>AIM_PARK_BADGES</code>.</p>
     <p class="proof"><strong>Proof to point at:</strong> the verified UI shows three completed steps, <strong>400 audited points</strong>, one badge, and four reward-audit events.</p>
   </article>
 
@@ -517,7 +559,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <h3><span class="pill">12</span> Retrieve Park Knowledge and Expand the Graph</h3>
     <p class="say">“Vector search finds relevant evidence. Graph traversal explains what that evidence connects to. This is the useful distinction between semantic retrieval and GraphRAG.”</p>
     <p class="action"><strong>Action:</strong> Keep the sample request, then click <strong>Retrieve + expand graph</strong>. Compare each cosine distance with its connected places and quest relationships.</p>
-    <p class="happens"><strong>What happens:</strong> Oracle AI Database embeds the request and returns three nearest knowledge rows. For every hit, SQL Property Graph adds neighboring places and any quest that uses the place. The application returns the evidence and a grounded answer together.</p>
+    <p class="happens"><strong>What happens:</strong> Oracle AI Database embeds the request and ranks three rows from <code>AIM_PARK_KNOWLEDGE</code>. For every hit, <code>GRAPH_TABLE(AIM_PARK_GRAPH)</code> expands connected <code>AIM_PARK_PLACES</code> and <code>AIM_PARK_PATHS</code>, then adds matching <code>AIM_PARK_QUESTS</code> and <code>AIM_PARK_QUEST_STEPS</code>. The application returns the database evidence and grounded answer together.</p>
     <p class="proof"><strong>Proof to point at:</strong> the verified run displays three vector-ranked cards and seven graph-expansion chips. Retrieval distance and relationship evidence remain visible instead of being hidden inside generated prose.</p>
   </article>
 
@@ -548,7 +590,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   </table>
 
   <h3>The Awake Loop and the Dream Loop</h3>
-  <p>During the awake loop, the agent serves the current request and records a privacy-safe trace after the outcome is known. During the asynchronous dream loop, a separate process groups successful traces, proposes a generalized guideline, evaluates whether private details survived the abstraction, and submits it for human review. Approval activates the procedure; rejection or later rollback keeps the learning reversible.</p>
+  <p>During the awake loop, the agent serves the current request and records a privacy-safe trace after the outcome is known. In this demo, the presenter starts the dream operation synchronously; in production, a separate asynchronous process could group successful traces, propose a generalized guideline, evaluate whether private details survived the abstraction, and submit it for human review. Approval activates the procedure; rejection or later rollback keeps the learning reversible.</p>
 
   <h2 id="production">Taking the Pattern to Production</h2>
   <ol>
