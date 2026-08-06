@@ -146,31 +146,11 @@
   <p class="note"><strong>Other combinations:</strong> a family party quest can use consented relationships while preserving individual accessibility needs; a seasonal operations quest can reward safe reroutes during weather or crowd changes; and a discovery quest can use GraphRAG to reveal location-aware lore while remembering which themes each visitor enjoyed.</p>
   <p class="note"><strong>What the prior rainy-visit episode means:</strong> the blog and video refer to the same seeded demonstration record. It is not evidence that an earlier live app session occurred. When you click <strong>Retain Ava's conversation</strong>, <code>AgentMemoryLibraryDemo.retain()</code> calls <code>addMemory()</code> and inserts “The covered atrium route worked well during Ava's previous rainy visit” into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with <code>RECORD_TYPE='memory'</code>. The lifecycle lane separately inserts a comparable <code>last-visit</code> episodic row into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>. The three de-identified rows in <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a> are separate seeded examples used for skill induction.</p>
 
-  <h2 id="why-agents-forget">Why Agents Forget</h2>
-  <p>A stateless agent repeatedly re-onboards users, repeats failed approaches, and forgets what produced a good outcome. Trust cannot compound because experience disappears at the end of the call. A large prompt can postpone the problem, but it does not provide identity scope, correction, deletion, expiration, transaction boundaries, or a durable audit history.</p>
-  <p>An agent is still a loop: observe, plan, act, and evaluate. The model supplies reasoning inside that loop. External memory acts as a computational exocortex across loops, preserving selected facts and outcomes after the model invocation ends. The distinction matters because context-window contents are transient, while database records can have owners, versions, policies, and an audit trail.</p>
-  <p class="presenter"><strong>Presenter thesis:</strong> “The durable competitive advantage is not one clever prompt. It is accumulated, governed experience that the right agent can recall at the right time.”</p>
-
-  <h2 id="four-memory-types">The Four Memory Types</h2>
-  <table>
-    <thead>
-      <tr><th>Memory type</th><th>Question it answers</th><th>Demo example</th><th>Developer analogy</th><th>Lifecycle</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Working</td><td>What am I doing now?</td><td>“Build Ava a rain-safe evening plan.”</td><td>RAM or the active context window.</td><td>Active turn; not inserted into the durable memory table.</td></tr>
-      <tr><td>Episodic</td><td>What happened before?</td><td>The indoor mobility route worked and the lantern show was the highlight.</td><td>Distilled interaction history.</td><td>Durable event plus outcome; useful learning material.</td></tr>
-      <tr><td>Semantic</td><td>What facts should I know?</td><td>Ava prefers a quiet breakfast and needs a minimal-stair route.</td><td>Project facts and conventions in <code>CLAUDE.md</code> or <code>AGENTS.md</code>.</td><td>Versioned, correctable, identity-scoped fact.</td></tr>
-      <tr><td>Procedural</td><td>How should I handle this pattern?</td><td><code>rainy-evening-reroute</code>: “When rain closes a path, check accessibility, choose covered connectors, resequence dining, and verify arrival time.”</td><td><code>SKILL.md</code> or agent skills, loaded through progressive disclosure.</td><td>Induced from successful traces; inactive until a person approves it.</td></tr>
-    </tbody>
-  </table>
-  <p class="note"><strong>These are analogies, not storage rules.</strong> A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions; classify each entry by what it communicates and how the agent uses it.</p>
-  <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
-
   <h2 id="engineering-ladder">From Prompt Engineering to Context Engineering to Memory Engineering</h2>
   <p><strong>Agent memory</strong> combines models, extraction, embeddings, retrieval, and persistent storage so an agent can retain, recall, update, and forget information while maintaining continuity across long-horizon tasks. <strong>Memory engineering</strong> is the discipline of designing and operating that lifecycle so retained experience remains useful, scoped, current, and governable over time.</p>
-  <p>The application pattern has evolved from single-turn LLM chatbots, through RAG and multistep workflows, to agentic applications that combine reasoning with memory, tools or actions, and perception. Each step exposes a different constraint:</p>
+  <p>The application pattern has evolved from single-turn LLM chatbots, through RAG, to automated or human-in-the-loop multistep workflows with limited autonomy, and finally to agentic applications that combine four capabilities: memory, actions or tools, perception of inputs such as text, video, or audio, and model-based reasoning.</p>
   <ol>
-    <li><strong>Prompt engineering</strong> shapes instructions and linguistic patterns for one turn.</li>
+    <li><strong>Prompt engineering</strong> addresses instruction sensitivity by shaping linguistic patterns for one turn.</li>
     <li><strong>Context engineering</strong> works within bounded, position-sensitive context windows by retrieving, organizing, summarizing, compacting, or offloading the right information for one inference. Stable project facts and conventions may resemble <code>AGENTS.md</code> or <code>CLAUDE.md</code>, while reusable procedures may resemble <code>SKILL.md</code>.</li>
     <li><strong>Memory engineering</strong> overcomes statelessness by governing what persists across interactions, how it is recalled, and when it is corrected, consolidated, expired, or forgotten.</li>
   </ol>
@@ -225,6 +205,26 @@ thread.deleteMemory(oldMemoryId);                      // OracleThread: Refine
 thread.addMemory(correctedMemory);                     // OracleThread: Refine</code></pre>
   <p class="note"><strong>Why Refine uses two calls:</strong> this Java library implementation does not expose a single <code>updateMemory(...)</code> method, so its source-level replacement primitive is delete followed by add.</p>
   <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
+
+  <h2 id="why-agents-forget">Why Agents Forget</h2>
+  <p>A stateless agent repeatedly re-onboards users, repeats failed approaches, and forgets what produced a good outcome. Trust cannot compound because experience disappears at the end of the call. A large prompt can postpone the problem, but it does not provide identity scope, correction, deletion, expiration, transaction boundaries, or a durable audit history.</p>
+  <p>An agent is still a loop: observe, plan, act, and evaluate. The model supplies reasoning inside that loop. External memory acts as a computational exocortex across loops, preserving selected facts and outcomes after the model invocation ends. The distinction matters because context-window contents are transient, while database records can have owners, versions, policies, and an audit trail.</p>
+  <p class="presenter"><strong>Presenter thesis:</strong> “The durable competitive advantage is not one clever prompt. It is accumulated, governed experience that the right agent can recall at the right time.”</p>
+
+  <h2 id="four-memory-types">The Four Memory Types</h2>
+  <table>
+    <thead>
+      <tr><th>Memory type</th><th>Question it answers</th><th>Demo example</th><th>Developer analogy</th><th>Lifecycle</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Working</td><td>What am I doing now?</td><td>“Build Ava a rain-safe evening plan.”</td><td>RAM or the active context window.</td><td>Active turn; not inserted into the durable memory table.</td></tr>
+      <tr><td>Episodic</td><td>What happened before?</td><td>The indoor mobility route worked and the lantern show was the highlight.</td><td>Distilled interaction history.</td><td>Durable event plus outcome; useful learning material.</td></tr>
+      <tr><td>Semantic</td><td>What facts should I know?</td><td>Ava prefers a quiet breakfast and needs a minimal-stair route.</td><td>Project facts and conventions in <code>CLAUDE.md</code> or <code>AGENTS.md</code>.</td><td>Versioned, correctable, identity-scoped fact.</td></tr>
+      <tr><td>Procedural</td><td>How should I handle this pattern?</td><td><code>rainy-evening-reroute</code>: “When rain closes a path, check accessibility, choose covered connectors, resequence dining, and verify arrival time.”</td><td><code>SKILL.md</code> or agent skills, loaded through progressive disclosure.</td><td>Induced from successful traces; inactive until a person approves it.</td></tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>These are analogies, not storage rules.</strong> A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions; classify each entry by what it communicates and how the agent uses it.</p>
+  <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
 
   <h2 id="architecture">What the Demo Actually Implements</h2>
   <div class="architecture" role="img" aria-label="Text architecture showing a browser demo, Oracle Agent Memory, a repeatable lifecycle path, and Oracle AI Database.">Browser presentation UI
