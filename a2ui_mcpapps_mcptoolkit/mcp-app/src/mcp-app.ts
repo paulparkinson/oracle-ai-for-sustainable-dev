@@ -25,6 +25,8 @@ const recommendationsElement =
   document.querySelector<HTMLDivElement>("#recommendations")!;
 const sourceElement =
   document.querySelector<HTMLParagraphElement>("#source")!;
+const modeElement =
+  document.querySelector<HTMLParagraphElement>("#mode")!;
 const decisionElement =
   document.querySelector<HTMLElement>("#decision")!;
 const selectionElement =
@@ -59,12 +61,26 @@ app.ontoolresult = (result) => {
       : "Waiting for governed Toolkit results.";
   render(payload?.recommendations ?? []);
 };
-app.connect();
+
+async function connectApp() {
+  try {
+    await app.connect();
+  } catch (error) {
+    statusElement.textContent =
+      "The MCP Apps host bridge could not initialize.";
+    console.error("MCP App bridge initialization failed", error);
+  }
+}
+
+void connectApp();
 
 function render(recommendations: TransferRecommendation[]) {
   metrics.replaceChildren();
   recommendationsElement.replaceChildren();
   decisionElement.hidden = recommendations.length === 0 || !approvalId;
+  modeElement.textContent = approvalId
+    ? "Authenticated action mode: select a recommendation for explicit review."
+    : "Read-only validation mode: recommendations can be inspected, but no approval or database write is available.";
   selectionElement.textContent = "Select a recommendation to review.";
   statusElement.textContent = approvalId
     ? "No database write occurs until you select a recommendation and approve it."
@@ -137,7 +153,14 @@ function recommendationCard(
   const summary = document.createElement("p");
   summary.textContent = recommendation.rationale;
   const button = document.createElement("button");
-  button.textContent = "Review this transfer";
+  button.textContent = approvalId
+    ? "Review this transfer"
+    : "Read-only preview";
+  button.disabled = !approvalId;
+  if (!approvalId) {
+    button.title =
+      "Approval requires an authenticated deployment with write actions enabled.";
+  }
   button.addEventListener("click", () => {
     selectedRecommendation = recommendation;
     approveElement.disabled = false;

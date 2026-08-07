@@ -11,7 +11,7 @@ Prove that the existing standards-based MCP App can:
 
 1. connect to ChatGPT and/or Claude through a remote MCP connection;
 2. invoke `show-inventory-transfer-dashboard`;
-3. render the `ui://oracle-supply-chain/inventory-exchange-v1` dashboard;
+3. render the `ui://oracle-supply-chain/inventory-exchange-v2` dashboard;
 4. display current Oracle Database MCP Java Toolkit-governed recommendations;
 5. send a selected recommendation back to the host conversation;
 6. explicitly approve one exact transfer through an app-only tool and verify
@@ -36,7 +36,7 @@ session will use that evidence to finish the article.
 - App-only tools: `approve-inventory-transfer` and
   `reject-inventory-transfer-review`
 - UI resource:
-  `ui://oracle-supply-chain/inventory-exchange-v1`
+  `ui://oracle-supply-chain/inventory-exchange-v2`
 - UI MIME type: the MCP Apps `RESOURCE_MIME_TYPE`
 - Governed review adapter:
   `POST http://127.0.0.1:8080/api/reviews`
@@ -217,7 +217,7 @@ curl --fail --silent --show-error \
 
 The response must contain `show-inventory-transfer-dashboard`,
 `approve-inventory-transfer`, `reject-inventory-transfer-review`, their
-visibility metadata, and `ui://oracle-supply-chain/inventory-exchange-v1`.
+visibility metadata, and `ui://oracle-supply-chain/inventory-exchange-v2`.
 ChatGPT's model-facing discovery should expose only the dashboard tool; the
 rendered app can call the two app-only tools.
 
@@ -368,14 +368,17 @@ Expected result:
 - The interactive connector renders the MCP App inline or in its supported
   expanded presentation.
 - The dashboard shows Toolkit-governed results.
-- **Review this transfer** passes the selected transfer into host context.
-- **Approve transfer** calls the app-only approval tool and reports the audited
-  result; **Cancel review** calls the app-only rejection tool and performs no
-  inventory write.
+- In an anonymous read-only validation deployment, the dashboard displays an
+  explicit read-only banner and a disabled **Read-only preview** control.
+- In a separately authenticated write-enabled deployment, **Review this
+  transfer** can pass the selected transfer into host context and the app-only
+  approval or rejection tools can be tested.
 
 If the UI does not appear, confirm that the connector is connected and enabled,
 start a new conversation, and verify the public endpoint again with MCP
-Inspector. Disconnecting and reconnecting can refresh connector state.
+Inspector. Disconnecting and reconnecting can refresh connector state. If an
+installed Chrome-app/PWA surface fails, open the same Claude conversation in a
+regular browser tab and compare behavior before changing the server.
 
 ## Evidence to capture
 
@@ -466,3 +469,5 @@ blog-writing session.
 - [MCP Apps specification](https://modelcontextprotocol.io/extensions/apps/overview)
 - [Anthropic: Custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
 - [Anthropic: Interactive connectors in Claude](https://support.claude.com/en/articles/13454812-use-interactive-connectors-in-claude)
+- [Anthropic: Troubleshoot MCP Apps](https://claude.com/docs/connectors/building/mcp-apps/troubleshooting)
+- [Anthropic: Cross-platform MCP Apps](https://claude.com/docs/connectors/building/mcp-apps/cross-compatibility)

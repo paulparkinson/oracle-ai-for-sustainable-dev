@@ -1,1 +1,1 @@
-The separate MCP App now retrieves current account rows from the Java service, which invokes the Toolkit's governed find-at-risk-customers tool. The official basic host renders its dashboard in a sandboxed iframe. Toolkit-labeled structured content crosses the host bridge; database credentials do not.
+Claude adds the same endpoint as a custom web connector, verifies its single interactive tool and permission policy, and enables it for a conversation. The connector uses the same Streamable HTTP server and the same self-contained MCP App resource as ChatGPT.

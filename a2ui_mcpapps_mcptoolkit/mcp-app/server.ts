@@ -11,7 +11,7 @@ import {
 } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 
-const resourceUri = "ui://oracle-supply-chain/inventory-exchange-v1";
+const resourceUri = "ui://oracle-supply-chain/inventory-exchange-v2";
 const agentServiceUrl =
   process.env.AGENT_SERVICE_URL ?? "http://127.0.0.1:8080";
 const agentServiceTimeoutMs =
@@ -19,7 +19,6 @@ const agentServiceTimeoutMs =
 const bindHost = process.env.MCP_BIND_HOST ?? "127.0.0.1";
 const port = Number(process.env.PORT ?? "3001");
 const writesEnabled = process.env.MCP_WRITES_ENABLED === "true";
-const appDomain = process.env.MCP_APP_DOMAIN?.trim();
 
 const TransferRecommendationSchema = z.object({
   recommendationId: z.string(),
@@ -246,7 +245,6 @@ registerAppResource(
       _meta: {
         ui: {
           prefersBorder: true,
-          ...(appDomain ? { domain: appDomain } : {}),
           csp: {
             connectDomains: [],
             resourceDomains: []

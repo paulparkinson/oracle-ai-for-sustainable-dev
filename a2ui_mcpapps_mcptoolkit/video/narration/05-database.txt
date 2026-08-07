@@ -1,1 +1,1 @@
-Oracle AI Database stores the accounts, risk evidence, and audited follow-up actions. The approved MCP tool calls an input-only procedure that validates inputs, locks the selected account, inserts one action, and updates its status atomically.
+The live Gemini result shows the Oracle-governed WATER-SENSE recommendation: move forty-two units from PHX-DC to SEA-FC at stockout risk seventy-four point six. Gemini renders native approval notes and exact-transfer controls without loading an MCP App iframe.

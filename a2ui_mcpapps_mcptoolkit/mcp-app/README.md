@@ -5,7 +5,7 @@ governed-data and approval adapter. The Java service invokes
 `find-stockout-transfer-recommendations` through the Oracle Database MCP Java
 Toolkit, binds a short-lived approval handle to the exact returned rows, and
 returns Toolkit-labeled data. The sandboxed
-`ui://oracle-supply-chain/inventory-exchange-v1` resource receives the rows and
+`ui://oracle-supply-chain/inventory-exchange-v2` resource receives the rows and
 the widget-only handle through the MCP Apps host bridge. It never receives
 database credentials or connects directly to Oracle Database.
 
@@ -91,10 +91,11 @@ Toolkit, and wallet mount in one container. It uses the same Direct VPC egress
 and `paulparkdb_tp` secrets as the Gemini deployment, but it does not modify or
 proxy the Gemini A2A service.
 
-Pass the service's stable HTTPS origin as `-McpAppDomain` when deploying. The
-resource advertises that origin plus an explicit CSP. This self-contained
-single-file UI uses empty connection and resource allowlists because it loads
-no external content.
+The resource deliberately omits optional `_meta.ui.domain`: Claude and ChatGPT
+validate that stable sandbox origin using different host-specific formats, and
+this app does not run an iframe-local OAuth flow that needs a stable origin.
+It does advertise an explicit CSP. This self-contained single-file UI uses
+empty connection and resource allowlists because it loads no external content.
 
 The safe default is private and read-only. Set `MCP_WRITES_ENABLED=true` only
 behind an MCP-compatible OAuth 2.1 resource server. The deployment script
@@ -103,6 +104,11 @@ is host metadata, not an authorization boundary. For a time-bounded
 developer-mode rendering test with synthetic data, `-AllowUnauthenticated`
 keeps write tools unregistered. Remove public invocation immediately after the
 test.
+
+When a host result contains no approval handle, the widget makes that boundary
+visible with a read-only mode banner and a disabled **Read-only preview**
+control. It shows **Review this transfer** and the approval panel only when the
+authenticated server has issued a review-bound approval handle.
 
 See
 [`../docs/chatgpt-cloud-run-deployment.md`](../docs/chatgpt-cloud-run-deployment.md)

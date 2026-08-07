@@ -10,7 +10,6 @@ param(
     [string]$WalletSecret = "a2ui-paulparkdb-wallet",
     [string]$DatabasePasswordSecret =
         "a2ui-paulparkdb-financial-password",
-    [string]$McpAppDomain = "",
     [ValidateRange(0, 10)]
     [int]$MinInstances = 0,
     [switch]$EnableWriteActions,
@@ -29,15 +28,6 @@ $runtimeEnvironment = (
     "DB_SERVICE_NAME=$DatabaseServiceName,DB_USERNAME=$DatabaseUsername," +
     "AGENT_PORT=8081,AGENT_SERVICE_URL=http://127.0.0.1:8081," +
     "MCP_BIND_HOST=0.0.0.0,MCP_WRITES_ENABLED=$writesEnabled")
-
-if (-not [string]::IsNullOrWhiteSpace($McpAppDomain)) {
-    $parsedAppDomain = $null
-    if (-not [Uri]::TryCreate($McpAppDomain, [UriKind]::Absolute,
-            [ref]$parsedAppDomain) -or $parsedAppDomain.Scheme -ne "https") {
-        throw "McpAppDomain must be an absolute HTTPS origin."
-    }
-    $runtimeEnvironment += ",MCP_APP_DOMAIN=$McpAppDomain"
-}
 
 if ($AllowUnauthenticated -and $EnableWriteActions) {
     throw (

@@ -9,7 +9,7 @@ Verified privately on August 3, 2026 in `adb-pm-prod/us-east4`:
 - Anonymous health returned HTTP 403.
 - Authenticated health returned `UP` and `writeActionsEnabled: false`.
 - MCP discovery returned only `show-inventory-transfer-dashboard`.
-- The `ui://oracle-supply-chain/inventory-exchange-v1` resource returned
+- The `ui://oracle-supply-chain/inventory-exchange-v2` resource returned
   `text/html;profile=mcp-app`.
 - A read-only tool call returned one live Toolkit-governed `WATER-SENSE`
   recommendation from `PHX-DC` to `SEA-FC` with risk 74.6.
@@ -136,10 +136,11 @@ The verified plugin used:
 
 The first UI attempt reported `Failed to fetch template`; a retry rendered the
 component. Developer-mode CSP enforcement was off during this validation.
-Private revision `oracle-supply-chain-mcp-app-00005-lxc` subsequently declared
-the canonical `_meta.ui.domain` and a self-contained `_meta.ui.csp` with empty
-external-domain allowlists. Turn enforcement on and repeat the host evaluation
-before publication or authenticated actions.
+A later revision declared a self-contained `_meta.ui.csp` with empty external-
+domain allowlists. It omits optional `_meta.ui.domain` for cross-host
+compatibility because Claude and ChatGPT validate stable sandbox origins using
+different formats. Turn enforcement on and repeat the ChatGPT evaluation before
+publication or authenticated actions.
 
 ## Official OpenAI references
 

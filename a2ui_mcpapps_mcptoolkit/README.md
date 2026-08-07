@@ -68,9 +68,9 @@ and rejection APIs, which in turn use the same Toolkit tools and Oracle
 transaction. It is a transport/presentation adapter, not a second business
 implementation.
 
-## MCP App and ChatGPT
+## MCP App in ChatGPT and Claude
 
-The port-8080 web application demonstrates AG-UI and A2UI; it does not embed the MCP App. The separate `mcp-app/` package demonstrates the MCP Apps extension inside a compatible host. `server.ts` registers the model-visible `show-inventory-transfer-dashboard` tool, the app-only approve and reject tools, and the `ui://oracle-supply-chain/inventory-exchange-v1` resource, while `src/mcp-app.ts` implements the dashboard.
+The port-8080 web application demonstrates AG-UI and A2UI; it does not embed the MCP App. The separate `mcp-app/` package demonstrates the MCP Apps extension inside a compatible host. `server.ts` registers the model-visible `show-inventory-transfer-dashboard` tool, the app-only approve and reject tools, and the `ui://oracle-supply-chain/inventory-exchange-v2` resource, while `src/mcp-app.ts` implements the dashboard.
 
 The model-visible MCP App tool calls the Java service's `/api/reviews` adapter.
 That adapter invokes `find-stockout-transfer-recommendations`, binds a
@@ -104,7 +104,11 @@ review the notes, and choose **Approve and execute transfer** or **Cancel
 review**. ChatGPT cannot connect directly to the loopback URL. See the detailed
 steps in [`mcp-app/README.md`](mcp-app/README.md).
 
-Claude remains an optional alternative host using the same tunneled `/mcp` endpoint.
+Claude in a regular browser has also rendered the same read-only MCP App through
+a custom web connector using the public `/mcp` endpoint. The installed Chrome-
+app/PWA surface returned a generic reachability error during the same test, so
+that surface remains a compatibility retest rather than a database or MCP
+failure.
 
 For cross-machine ChatGPT or Claude validation, use the complete
 [`docs/chatgpt-claude-mcp-app-handoff.md`](docs/chatgpt-claude-mcp-app-handoff.md)

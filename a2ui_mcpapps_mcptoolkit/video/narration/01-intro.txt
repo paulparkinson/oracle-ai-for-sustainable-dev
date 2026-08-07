@@ -1,1 +1,1 @@
-This walkthrough builds an interactive account-risk assistant with Oracle AI Database, AG-UI, A2UI, the Oracle Database MCP Java Toolkit, and a separate MCP App demonstration. The video is silent, with exact product names preserved in its subtitles.
+One governed supply-chain workflow now runs through three conversational host models. Gemini Enterprise renders native A2UI delivered over A2A. ChatGPT and Claude render the same Oracle-backed results as an MCP App. The video is silent and fully captioned.
