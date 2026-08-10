@@ -8,64 +8,71 @@
   <meta name="author" content="Paul Parkinson">
   <style>
     :root {
-      color-scheme: light;
-      --ink: #1d2730;
-      --muted: #586673;
-      --oracle: #c74634;
-      --teal: #176b68;
-      --paper: #fff;
-      --soft: #f5f2ec;
-      --line: #d8dde1;
+      color-scheme: dark;
+      --ink: #dffcff;
+      --muted: #86abb7;
+      --oracle: #ff4f78;
+      --teal: #00e5ff;
+      --gold: #ffd166;
+      --paper: #02070d;
+      --soft: #06131e;
+      --line: rgba(0,229,255,.26);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; color: var(--ink); background: var(--paper); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.67; }
-    main { max-width: 1040px; margin: 0 auto; padding: 42px 24px 82px; }
-    h1 { max-width: 1000px; margin: 0 0 15px; font-size: clamp(2.25rem, 5.5vw, 4.6rem); line-height: 1.02; letter-spacing: -.04em; }
+    body {
+      margin: 0; color: var(--ink); background-color: var(--paper);
+      background-image: radial-gradient(circle at 82% 3%, rgba(122,49,255,.15), transparent 32rem), linear-gradient(rgba(0,229,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px);
+      background-size: auto, 54px 54px, 54px 54px; background-attachment: fixed;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.67;
+    }
+    main { max-width: 1088px; margin: 0 auto; padding: 42px 28px 82px; background: rgba(2,7,13,.88); border-inline: 1px solid rgba(0,229,255,.13); box-shadow: 0 0 80px rgba(0,0,0,.5); }
+    h1 { max-width: 1000px; margin: 0 0 15px; color: #effeff; font-family: "Arial Narrow", -apple-system, sans-serif; font-size: clamp(2.25rem, 5.5vw, 4.6rem); line-height: 1.02; letter-spacing: -.02em; text-shadow: 0 0 11px rgba(0,229,255,.38), 0 0 38px rgba(0,168,255,.2); }
     h2 { margin-top: 54px; line-height: 1.16; font-size: clamp(1.65rem, 3vw, 2.35rem); letter-spacing: -.02em; }
     h3 { margin-top: 32px; line-height: 1.25; }
     p, li { max-width: 900px; }
-    .eyebrow { margin: 0 0 10px; color: var(--oracle); font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+    .eyebrow { margin: 0 0 10px; color: var(--teal); font-weight: 850; letter-spacing: .12em; text-transform: uppercase; text-shadow: 0 0 12px rgba(0,229,255,.58); }
     .subtitle { margin: 0 0 28px; max-width: 970px; color: var(--muted); font-size: 1.35rem; line-height: 1.45; }
     .updated { color: var(--muted); font-size: .9rem; }
     .lead { font-size: 1.13rem; }
     .callout, .note, .presenter {
-      margin: 25px 0; padding: 17px 19px; border-left: 4px solid var(--oracle); background: #fff4f0;
+      margin: 25px 0; padding: 17px 19px; border: 1px solid rgba(255,79,120,.3); border-left: 4px solid var(--oracle); background: rgba(255,79,120,.065); box-shadow: inset 0 0 22px rgba(255,79,120,.03);
     }
-    .note { border-color: #54738f; background: #f2f7fa; }
-    .presenter { border-color: #d6a84b; background: #fbf5e8; }
-    .takeaways { padding: 18px 23px; border: 1px solid #efc2b9; border-radius: 12px; background: #fff8f5; }
+    .note { border-color: rgba(0,229,255,.38); background: rgba(0,229,255,.055); }
+    .presenter { border-color: rgba(255,209,102,.48); background: rgba(255,209,102,.06); }
+    .takeaways { padding: 18px 23px; border: 1px solid rgba(0,229,255,.42); border-radius: 5px; background: linear-gradient(135deg, rgba(0,229,255,.06), rgba(122,49,255,.045)); box-shadow: 0 0 28px rgba(0,229,255,.08); }
     figure { margin: 34px 0; }
-    figure img { display: block; width: 100%; height: auto; border-radius: 10px; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid rgba(0,229,255,.42); border-radius: 5px; box-shadow: 0 0 26px rgba(0,229,255,.1); }
     figcaption { margin-top: 9px; color: var(--muted); font-size: .94rem; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px 13px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
-    th { background: #eef2f4; }
+    th { color: #001015; background: var(--teal); }
+    tbody tr:nth-child(even) { background: rgba(0,229,255,.035); }
     td:first-child { font-weight: 750; }
     code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
     code { overflow-wrap: anywhere; }
-    pre { max-width: 100%; padding: 17px; overflow-x: auto; color: #e8efef; background: #17272c; border-radius: 9px; line-height: 1.48; }
+    pre { max-width: 100%; padding: 17px; overflow-x: auto; color: #dffcff; background: #020b13; border: 1px solid rgba(0,229,255,.32); border-radius: 5px; box-shadow: inset 0 0 28px rgba(0,229,255,.055); line-height: 1.48; }
     li + li { margin-top: 8px; }
-    a { color: #075eaa; }
+    a { color: var(--teal); text-decoration-color: rgba(0,229,255,.48); }
     .architecture {
-      margin: 30px 0; padding: 22px; overflow-x: auto; color: #eef4f4; background: #15262b; border-radius: 10px;
+      margin: 30px 0; padding: 22px; overflow-x: auto; color: #dffcff; background: #020b13; border: 1px solid rgba(0,229,255,.32); border-radius: 5px; box-shadow: inset 0 0 28px rgba(0,229,255,.055);
       font: .9rem/1.55 "SFMono-Regular", Consolas, monospace; white-space: pre;
     }
     .demo-step {
-      margin: 20px 0; padding: 20px 22px; border: 1px solid var(--line); border-radius: 11px; background: #fff;
-      box-shadow: 0 8px 26px rgba(26, 38, 46, .05);
+      margin: 20px 0; padding: 20px 22px; border: 1px solid var(--line); border-radius: 5px; background: rgba(5,18,28,.94);
+      box-shadow: 0 0 24px rgba(0,229,255,.055), 0 18px 35px rgba(0,0,0,.28);
     }
     .demo-step h3 { margin: 0 0 8px; }
     .demo-step p { margin: 8px 0; }
-    .say { color: #5b4320; }
-    .action { color: #174f68; }
-    .happens { color: #31535b; }
-    .proof { color: #694039; }
+    .say { color: var(--gold); }
+    .action { color: var(--teal); }
+    .happens { color: #a9d8e2; }
+    .proof { color: #ff97b2; }
     .pill { display: inline-block; margin-right: 6px; padding: 2px 7px; color: #fff; background: var(--oracle); border-radius: 999px; font-size: .72rem; font-weight: 800; }
     .links li { margin-top: 9px; }
-    .video-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #101d22; border-radius: 10px; overflow: hidden; }
+    .video-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #01050a; border: 1px solid rgba(0,229,255,.5); border-radius: 5px; overflow: hidden; box-shadow: 0 0 32px rgba(0,229,255,.13); }
     .video-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; }
     .implementation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-    .implementation-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 11px; background: #faf9f6; }
+    .implementation-card { padding: 18px 20px; border: 1px solid var(--line); border-radius: 5px; background: rgba(5,18,28,.94); box-shadow: 0 0 20px rgba(0,229,255,.05); }
     .implementation-card h3 { margin-top: 0; }
     @media (max-width: 720px) {
       main { padding-inline: 17px; }
@@ -80,7 +87,7 @@
   <p class="eyebrow">Oracle AI Database · AI agent memory · Continual learning</p>
   <h1>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database</h1>
   <p class="subtitle">Develop agents with working, episodic, semantic, and procedural memory; Retain, Recall, Reuse, and Refine; lifecycle controls; and human-approved learning on Oracle AI Database.</p>
-  <p class="updated">By Paul Parkinson · Updated August 7, 2026</p>
+  <p class="updated">By Paul Parkinson · Updated August 10, 2026</p>
 
   <p class="lead">An AI agent does not become stateful because its model has a long context window. It becomes stateful when useful experience is deliberately captured, scoped, recalled, corrected, expired, and reused. This demo makes that external memory loop visible: read before the turn, write after the turn, and keep Oracle AI Database as the durable, transactional governance boundary.</p>
   <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data. A separate Memory Quest lane then combines those memory principles with SQL Property Graph, Oracle Spatial, AI Vector Search, and transactional gamification.</p>

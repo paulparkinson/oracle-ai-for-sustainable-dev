@@ -95,16 +95,45 @@ for file in [output, poster, srt, vtt] where fm.fileExists(atPath: file.path) {
     try fm.removeItem(at: file)
 }
 
-let red = NSColor(calibratedRed: 0.78, green: 0.18, blue: 0.12, alpha: 1)
-let gold = NSColor(calibratedRed: 0.92, green: 0.66, blue: 0.28, alpha: 1)
-let teal = NSColor(calibratedRed: 0.12, green: 0.51, blue: 0.49, alpha: 1)
-let ink = NSColor(calibratedRed: 0.06, green: 0.12, blue: 0.14, alpha: 1)
-let muted = NSColor(calibratedWhite: 0.72, alpha: 1)
-let panel = NSColor(calibratedWhite: 0.13, alpha: 1)
+let red = NSColor(calibratedRed: 1.0, green: 0.31, blue: 0.47, alpha: 1)
+let gold = NSColor(calibratedRed: 1.0, green: 0.82, blue: 0.40, alpha: 1)
+let teal = NSColor(calibratedRed: 0.0, green: 0.90, blue: 1.0, alpha: 1)
+let violet = NSColor(calibratedRed: 0.48, green: 0.19, blue: 1.0, alpha: 1)
+let ink = NSColor(calibratedRed: 0.008, green: 0.027, blue: 0.055, alpha: 1)
+let muted = NSColor(calibratedRed: 0.54, green: 0.71, blue: 0.76, alpha: 1)
+let panel = NSColor(calibratedRed: 0.02, green: 0.075, blue: 0.12, alpha: 1)
 
 func rounded(_ rect: NSRect, radius: CGFloat, color: NSColor) {
     color.setFill()
     NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+}
+
+func outlined(_ rect: NSRect, radius: CGFloat, color: NSColor, width: CGFloat = 1.5) {
+    color.setStroke()
+    let path = NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius)
+    path.lineWidth = width
+    path.stroke()
+}
+
+func drawCircuitGrid() {
+    let grid = teal.withAlphaComponent(0.055)
+    grid.setStroke()
+    for x in stride(from: CGFloat(0), through: CGFloat(width), by: 72) {
+        let path = NSBezierPath()
+        path.move(to: NSPoint(x: x, y: 0))
+        path.line(to: NSPoint(x: x, y: CGFloat(height)))
+        path.lineWidth = 1
+        path.stroke()
+    }
+    for y in stride(from: CGFloat(0), through: CGFloat(height), by: 72) {
+        let path = NSBezierPath()
+        path.move(to: NSPoint(x: 0, y: y))
+        path.line(to: NSPoint(x: CGFloat(width), y: y))
+        path.lineWidth = 1
+        path.stroke()
+    }
+    violet.withAlphaComponent(0.08).setFill()
+    NSBezierPath(ovalIn: NSRect(x: 1460, y: -160, width: 620, height: 620)).fill()
 }
 
 func drawText(_ value: String, _ rect: NSRect, font: NSFont, color: NSColor, alignment: NSTextAlignment = .left, spacing: CGFloat = 4) {
@@ -133,6 +162,7 @@ func sourceExcerpt(path: URL, marker: String, lines: Int) -> String {
 func drawCode(path: String, marker: String, lines: Int, label: String) {
     let rect = NSRect(x: 650, y: 140, width: 1190, height: 680)
     rounded(rect, radius: 22, color: NSColor(calibratedWhite: 0.095, alpha: 1))
+    outlined(rect, radius: 22, color: teal.withAlphaComponent(0.45))
     rounded(NSRect(x: rect.minX, y: rect.minY, width: rect.width, height: 60), radius: 22, color: NSColor(calibratedWhite: 0.16, alpha: 1))
     for (index, color) in [NSColor.systemRed, .systemYellow, .systemGreen].enumerated() {
         color.setFill()
@@ -150,6 +180,7 @@ func drawImage(filename: String, label: String) {
     }
     let frame = NSRect(x: 635, y: 135, width: 1215, height: 690)
     rounded(frame, radius: 22, color: panel)
+    outlined(frame, radius: 22, color: teal.withAlphaComponent(0.42))
     badge(label, x: frame.minX + 24, y: frame.minY + 22, color: label.contains("DATABASE") ? gold : teal)
     let content = NSRect(x: frame.minX + 14, y: frame.minY + 76, width: frame.width - 28, height: frame.height - 90)
     if label == "LIVE APPLICATION", let full = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
@@ -163,6 +194,7 @@ func drawImage(filename: String, label: String) {
         for index in 0..<2 {
             let pane = NSRect(x: content.minX + CGFloat(index) * (content.width / 2 + 8), y: content.minY, width: content.width / 2 - 8, height: content.height)
             rounded(pane, radius: 16, color: NSColor(calibratedWhite: 0.08, alpha: 1))
+            outlined(pane, radius: 16, color: teal.withAlphaComponent(0.22))
             drawText(labels[index], NSRect(x: pane.minX + 14, y: pane.minY + 12, width: pane.width - 28, height: 28), font: .boldSystemFont(ofSize: 17), color: muted, alignment: .center)
             if let crop = crops[index] {
                 let piece = NSImage(cgImage: crop, size: NSSize(width: crop.width, height: crop.height))
@@ -183,6 +215,7 @@ func drawImage(filename: String, label: String) {
 
 func drawDatabaseSummary(_ objects: [String], _ state: String) {
     rounded(NSRect(x: 670, y: 170, width: 1120, height: 590), radius: 28, color: panel)
+    outlined(NSRect(x: 670, y: 170, width: 1120, height: 590), radius: 28, color: teal.withAlphaComponent(0.45))
     badge(state, x: 715, y: 215, color: teal)
     drawText("Database objects consulted", NSRect(x: 715, y: 300, width: 1025, height: 60), font: .boldSystemFont(ofSize: 38), color: .white)
     for (index, object) in objects.enumerated() {
@@ -194,6 +227,7 @@ func drawDatabaseSummary(_ objects: [String], _ state: String) {
 
 func drawTitleVisual() {
     rounded(NSRect(x: 675, y: 180, width: 1110, height: 600), radius: 34, color: panel)
+    outlined(NSRect(x: 675, y: 180, width: 1110, height: 600), radius: 34, color: teal.withAlphaComponent(0.5), width: 2)
     let items = [("MEMORY", teal), ("GRAPH + SPATIAL", gold), ("TRANSACTIONS", red), ("CONSENTED AR", teal)]
     for (index, item) in items.enumerated() {
         let x = 735 + CGFloat(index % 2) * 510
@@ -220,7 +254,8 @@ func imageFor(index: Int) -> NSImage {
     image.lockFocusFlipped(true)
     ink.setFill()
     NSBezierPath(rect: NSRect(x: 0, y: 0, width: width, height: height)).fill()
-    rounded(NSRect(x: 0, y: 0, width: 18, height: height), radius: 0, color: red)
+    drawCircuitGrid()
+    rounded(NSRect(x: 0, y: 0, width: 18, height: height), radius: 0, color: teal)
     drawText(scene.eyebrow, NSRect(x: 70, y: 52, width: 1160, height: 34), font: .boldSystemFont(ofSize: 21), color: red)
     drawText(scene.title, NSRect(x: 70, y: 110, width: 520, height: 235), font: .boldSystemFont(ofSize: index == 0 ? 70 : 48), color: .white, spacing: 3)
     drawText(scene.subtitle, NSRect(x: 75, y: 370, width: 500, height: 235), font: .systemFont(ofSize: 25), color: muted, spacing: 7)
@@ -242,6 +277,7 @@ func imageFor(index: Int) -> NSImage {
     }
 
     rounded(NSRect(x: 125, y: 855, width: 1670, height: 170), radius: 22, color: NSColor(calibratedWhite: 0.02, alpha: 0.95))
+    outlined(NSRect(x: 125, y: 855, width: 1670, height: 170), radius: 22, color: teal.withAlphaComponent(0.4))
     drawText(scene.caption, NSRect(x: 165, y: 878, width: 1590, height: 128), font: .boldSystemFont(ofSize: scene.caption.count > 220 ? 23 : 25), color: .white, alignment: .center, spacing: 6)
     drawText(String(format: "%02d / %02d", index + 1, scenes.count), NSRect(x: 1690, y: 52, width: 150, height: 28), font: .monospacedSystemFont(ofSize: 18, weight: .medium), color: muted, alignment: .right)
     image.unlockFocus()
