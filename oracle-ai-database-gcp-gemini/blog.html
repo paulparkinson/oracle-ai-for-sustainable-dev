@@ -46,6 +46,8 @@
     .card h3 { margin: 0 0 8px; }
     .card p { margin: 6px 0; }
     .pill { display: inline-block; padding: 3px 8px; border-radius: 999px; color: #fff; background: var(--ok); font-size: .72rem; font-weight: 800; }
+    .pill.partial { background: #8a6418; }
+    .pill.planned { background: #68747e; }
     .flow { margin: 23px 0; padding: 20px 23px; border-radius: 10px; color: #eef4f4; background: #17272c; font: .92rem/1.7 "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; }
     li + li { margin-top: 7px; }
     @media (max-width: 740px) {
@@ -95,7 +97,7 @@
   </section>
 
   <section id="flow">
-    <h2>A Four-Step Supply-Chain Conversation</h2>
+    <h2>The Core Supply-Chain Analysis</h2>
     <p>The demo uses four questions to show how specialist agents can share a governed data foundation:</p>
     <ol>
       <li>Identify products with elevated stockout risk and the regions driving that risk.</li>
@@ -225,6 +227,20 @@ END;
       <li>Verify discovery, message exchange, database execution mode, artifacts, and approval behavior.</li>
     </ol>
     <p>No environment-specific hostnames, addresses, project identifiers, database identifiers, wallet locations, usernames, or credential values are required in this article. Those belong in protected configuration and an internal deployment runbook.</p>
+  </section>
+
+  <section id="walkthrough">
+    <h2>Walk Through the Application End to End</h2>
+    <p>This walkthrough separates what is verified today from the planned federated-data and transactional extensions. Use a new Gemini Enterprise conversation for each specialist when prior-result context is not explicitly carried between agents.</p>
+    <ol start="0">
+      <li><strong>Step 0 &mdash; Set up Oracle AI Database, Gemini Enterprise, and the agent VM.</strong> <span class="pill">Verified</span> Provision Oracle AI Database with private networking; install the synthetic inventory, risk, graph, and spatial objects; create the narrow Select AI profile; and enable the Oracle AI Database Agent for Gemini Enterprise. On a VM with private database access, run the HTTPS Java A2A specialists and reserve the same governed runtime boundary for A2UI and MCP services. Publish each A2A agent card, import it into the Gemini Enterprise application, grant intended users access, and verify that Gemini Enterprise can invoke the cards without exposing the database publicly.</li>
+      <li><strong>Step 1 &mdash; Ask about stock outages.</strong> <span class="pill">Verified</span> Select the Select AI agent and ask: <code>Using only the Oracle inventory risk demo tables, list the top products at risk of stockouts next quarter, including stockout probability, projected revenue impact, and primary region.</code> Confirm a database-backed response for the at-risk products and metadata showing <code>executionMode=select-ai</code> and <code>DBMS_CLOUD_AI.GENERATE</code>.</li>
+      <li><strong>Step 2 &mdash; Query and visualize the supply-chain graph.</strong> <span class="pill">Verified</span> Select the graph specialist and ask: <code>Use the Oracle Database property graph to show supply-chain dependencies for SKU-500 and render the graph as an image.</code> Inspect the supplier, plant, port, warehouse, and product path and its image artifact.</li>
+      <li><strong>Step 3 &mdash; Query and visualize spatial hotspots.</strong> <span class="pill">Verified</span> Select the spatial specialist and ask: <code>Show warehouse hotspots on a map for SKU-500 and highlight the best relief route.</code> Confirm that Oracle Spatial combines warehouse geometry with the current risk snapshot and returns an explanatory map.</li>
+      <li><strong>Step 4 &mdash; Ask for a governed action.</strong> <span class="pill partial">Partially implemented</span> Ask the action coordinator: <code>What inventory action should we take for SKU-500 given the current supply risk? Gather graph, spatial, and external evidence first, then recommend the safest next move and say whether approval is required.</code> The current agent combines Oracle-backed graph, spatial, and inventory evidence and returns an approval-required draft. Enrichment from an Oracle Lakehouse table and/or BigQuery is the next implementation step and must be labeled unavailable until that federated source is connected and tested.</li>
+      <li><strong>Step 5 &mdash; Review the transfer in an A2UI form.</strong> <span class="pill partial">A2UI verified; handoff pending</span> Invoke the existing Oracle Supply-Chain A2UI agent with: <code>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations.</code> Gemini Enterprise renders the native review form with the database recommendation, approval notes, approve, and cancel controls. The remaining integration is to pass the exact Step 4 draft into this form rather than starting a separate bounded query. A portable MCP App rendering of the same review is also planned.</li>
+      <li><strong>Step 6 &mdash; Send the approved form action to MCP.</strong> <span class="pill planned">Planned</span> After explicit user approval, send the actor-bound transfer payload to a narrowly allowlisted MCP server. The MCP tool will re-read and lock the affected inventory rows, validate quantity and current risk, enforce idempotency and authorization, perform the inventory transfer in one Oracle transaction, and return the committed transfer identifier. No write should be implied in the current demo: this MCP action remains disabled until identity, durable approval, concurrency, audit, and rollback tests pass.</li>
+    </ol>
   </section>
 
   <section id="security">
