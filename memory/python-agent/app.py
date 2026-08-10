@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Starlight Springs demo using the public Oracle AI Agent Memory SDK."""
+"""Flynn's Theme Park demo using the public Oracle AI Agent Memory SDK."""
 
 from __future__ import annotations
 
 import json
+import importlib.metadata
 import mimetypes
 import os
 import threading
@@ -19,16 +20,20 @@ from oracleagentmemory.apis.searchscope import SearchScope
 from oracleagentmemory.apis.ttl import TimeToLiveAnchor
 from oracleagentmemory.core import (
     MemoryExtractionConfig,
+    MemoryRetentionConfig,
     OracleAgentMemory,
     SchemaPolicy,
     SearchIndexSyncMode,
     SearchStrategy,
 )
 
-AGENT_ID = "starlight-concierge"
-AVA_ID = "ava"
-LEO_ID = "leo"
-AVA_THREAD_ID = "starlight-ava-visit"
+from ar import ArExperienceService
+from park import DatabaseInspector, ParkExperienceService
+
+AGENT_ID = "FLYNNS_THEME_PARK_CONCIERGE"
+AVA_ID = "AVA"
+LEO_ID = "LEO"
+AVA_THREAD_ID = "flynns_theme_park_ava_visit"
 MEMORY_STORE_ID = "MAGIC_PY"
 WEB_ROOT = Path(__file__).resolve().parent / "web"
 
@@ -95,7 +100,14 @@ class MagicMemoryService:
             memory_store_id=MEMORY_STORE_ID,
             search_strategy=SearchStrategy.KEYWORD,
             search_index_sync=SearchIndexSyncMode.ON_COMMIT,
+            memory_retention_config=MemoryRetentionConfig(
+                default_ttl_days=None,
+                max_ttl_days=365,
+            ),
         )
+        self.park = ParkExperienceService(self.pool)
+        self.ar = ArExperienceService(self.pool, self.memory)
+        self.inspector = DatabaseInspector(self.pool)
         self.lock = threading.RLock()
         self.last_context: dict[str, Any] | None = None
         self.last_next_day: dict[str, Any] | None = None
@@ -128,7 +140,8 @@ class MagicMemoryService:
             "status": "UP",
             "database": database,
             "schema": schema,
-            "sdk": "oracleagentmemory 26.6.0",
+            "sdk": "oracleagentmemory "
+            + importlib.metadata.version("oracleagentmemory"),
             "strategy": "Oracle Text keyword search",
             "memoryStoreId": MEMORY_STORE_ID,
             "managedObjectCount": managed_count,
@@ -140,7 +153,7 @@ class MagicMemoryService:
                 self.memory.delete_thread(AVA_THREAD_ID)
             except Exception:
                 pass
-            for record_id in TRACE_IDS + (SKILL_ID,):
+            for record_id in AVA_MEMORY_IDS + TRACE_IDS + (SKILL_ID,):
                 try:
                     self.memory.delete_memory(record_id)
                 except Exception:
@@ -167,7 +180,7 @@ class MagicMemoryService:
                 self.memory.delete_thread(AVA_THREAD_ID)
             except Exception:
                 pass
-            for record_id in TRACE_IDS:
+            for record_id in AVA_MEMORY_IDS + TRACE_IDS:
                 try:
                     self.memory.delete_memory(record_id)
                 except Exception:
@@ -177,7 +190,7 @@ class MagicMemoryService:
                 thread_id=AVA_THREAD_ID,
                 user_id=AVA_ID,
                 agent_id=AGENT_ID,
-                metadata={"scenario": "starlight-springs", "demo": True},
+                metadata={"scenario": "flynns-theme-park", "demo": True},
             )
             thread.add_messages(
                 [
@@ -196,6 +209,20 @@ class MagicMemoryService:
                         ),
                     },
                 ]
+            )
+            message_ids = thread.add_messages(
+                [
+                    {
+                        "role": "user",
+                        "content": "Please keep the itinerary concise.",
+                    }
+                ],
+                metadata={"purpose": "message-update-proof"},
+            )
+            thread.update_message(
+                message_ids[0],
+                content="Please keep the itinerary concise and use bullet points.",
+                metadata={"purpose": "message-update-proof", "updated": True},
             )
             self._add_ava_memory(
                 AVA_MEMORY_IDS[0],
@@ -344,17 +371,23 @@ class MagicMemoryService:
 
     def expire(self) -> dict[str, Any]:
         with self.lock:
-            self.memory.update_memory(
-                AVA_MEMORY_IDS[4],
-                timestamp=utc_iso(days_ago=2),
-                ttl_days=1,
-                ttl_anchor=TimeToLiveAnchor.TIMESTAMP,
-                metadata={
-                    "kind": "operational",
-                    "source": "live-operations",
-                    "ttl": "expired-in-demo",
-                },
-            )
+            try:
+                self.memory.update_memory(
+                    AVA_MEMORY_IDS[4],
+                    timestamp=utc_iso(days_ago=2),
+                    ttl_days=1,
+                    ttl_anchor=TimeToLiveAnchor.TIMESTAMP,
+                    metadata={
+                        "kind": "operational",
+                        "source": "live-operations",
+                        "ttl": "expired-in-demo",
+                    },
+                )
+            except KeyError:
+                # 26.6.0 updates the row, then reloads it through an active-only
+                # read. A deliberately expired update is therefore persisted but
+                # the post-update read reports that no active memory was found.
+                pass
             self.last_context = self._context_from_memories(
                 [result_to_dict(result) for result in self._search_ava()]
             )
@@ -596,6 +629,27 @@ class MagicMemoryService:
             max_results=20,
         )
 
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "sdkVersion": importlib.metadata.version("oracleagentmemory"),
+            "used": [
+                "update_memory()",
+                "update_message()",
+                "ttl_days and TimeToLiveAnchor",
+                "MemoryRetentionConfig",
+                "metadata_filter",
+                "exact user and agent scopes",
+                "Oracle Text keyword search with ON_COMMIT synchronization",
+            ],
+            "availableNotExercised": [
+                "async add/search/update APIs",
+                "background extraction queue controls",
+                "context summaries and context cards",
+                "hybrid vector plus Oracle Text search",
+                "schema-owner read-only deployment",
+            ],
+        }
+
 
 class MagicRequestHandler(BaseHTTPRequestHandler):
     server_version = "MagicMemoryPython/1.0"
@@ -610,12 +664,28 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
             self._run(self.service.health)
         elif path == "/api/state":
             self._run(self.service.state)
+        elif path == "/api/capabilities":
+            self._run(self.service.capabilities)
+        elif path == "/api/park/state":
+            self._run(self.service.park.state)
+        elif path == "/api/ar/state":
+            self._run(self.service.ar.state)
+        elif path == "/api/database/tables":
+            self._run(self.service.inspector.snapshot)
         else:
             self._static(path)
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         prefix = "/api/actions/"
+        park_prefix = "/api/park/actions/"
+        ar_prefix = "/api/ar/"
+        if path.startswith(ar_prefix):
+            self._ar_action(path[len(ar_prefix) :])
+            return
+        if path.startswith(park_prefix):
+            self._park_action(path[len(park_prefix) :])
+            return
         if not path.startswith(prefix):
             self._json(
                 HTTPStatus.NOT_FOUND,
@@ -642,12 +712,59 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
             return
         self._run(work)
 
+    def do_OPTIONS(self) -> None:
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self._cors_headers()
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def _ar_action(self, action: str) -> None:
+        body = self._request_json()
+        actions: dict[str, Callable[[], dict[str, Any]]] = {
+            "session/start": lambda: self.service.ar.start_session(body),
+            "remember": lambda: self.service.ar.remember(body),
+            "media": lambda: self.service.ar.remember_media(body),
+            "search": lambda: self.service.ar.search_media(body),
+            "reset": self.service.ar.reset,
+        }
+        work = actions.get(action)
+        if work is None:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": f"Unknown AR action: {action}"})
+            return
+        self._run(work)
+
+    def _park_action(self, action: str) -> None:
+        body = self._request_json()
+        actions: dict[str, Callable[[], dict[str, Any]]] = {
+            "reset": self.service.park.reset,
+            "plan": self.service.park.plan,
+            "start": self.service.park.start,
+            "complete-step": self.service.park.complete_next_step,
+            "graphrag": lambda: self.service.park.graph_rag(body.get("query")),
+        }
+        work = actions.get(action)
+        if work is None:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": f"Unknown park action: {action}"})
+            return
+        self._run(work)
+
+    def _request_json(self) -> dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length == 0:
+            return {}
+        return json.loads(self.rfile.read(length))
+
     def log_message(self, format_string: str, *args: Any) -> None:
         print(f"[memory-python] {format_string % args}")
 
     def _run(self, work: Callable[[], dict[str, Any]]) -> None:
         try:
             self._json(HTTPStatus.OK, work())
+        except PermissionError as exception:
+            self._json(HTTPStatus.FORBIDDEN, {"error": str(exception)})
+        except ValueError as exception:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": str(exception)})
         except Exception as exception:
             self._json(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -673,6 +790,7 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
+        self._cors_headers()
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -682,9 +800,14 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
+        self._cors_headers()
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _cors_headers(self) -> None:
+        allowed = os.environ.get("AR_ALLOWED_ORIGIN", "*")
+        self.send_header("Access-Control-Allow-Origin", allowed)
 
 
 def main() -> None:

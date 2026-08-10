@@ -80,11 +80,11 @@
   <p class="eyebrow">Oracle AI Database · AI agent memory · Continual learning</p>
   <h1>Memories Are the Magic: Build Governed AI Agent Memory with Oracle AI Database</h1>
   <p class="subtitle">Develop agents with working, episodic, semantic, and procedural memory; Retain, Recall, Reuse, and Refine; lifecycle controls; and human-approved learning on Oracle AI Database.</p>
-  <p class="updated">By Paul Parkinson · Updated August 3, 2026</p>
+  <p class="updated">By Paul Parkinson · Updated August 7, 2026</p>
 
   <p class="lead">An AI agent does not become stateful because its model has a long context window. It becomes stateful when useful experience is deliberately captured, scoped, recalled, corrected, expired, and reused. This demo makes that external memory loop visible: read before the turn, write after the turn, and keep Oracle AI Database as the durable, transactional governance boundary.</p>
   <p>The included concierge for the fictional Flynn's Theme Park remembers visitor Ava's accessibility needs and preferences, builds a scoped context card, corrects a bad extracted fact, expires a temporary route closure, and turns repeated successful traces into a human-approved reusable skill. A second visitor can use that shared skill without seeing Ava's private data. A separate Memory Quest lane then combines those memory principles with SQL Property Graph, Oracle Spatial, AI Vector Search, and transactional gamification.</p>
-  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory/java-agent">source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
+  <p>All <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory">source code, SQL, configuration, and browser demo files</a> are available in the repository. For a product-by-product view, see the separate <a href="comparisons.html">AI agent memory platform comparison</a>.</p>
 
   <figure>
     <img src="images/memories-are-the-magic-cover.png" alt="AI agent connected to Oracle AI Database by a write-after and read-before loop, with working, episodic, semantic, and procedural memory inside the governed database layer.">
@@ -99,7 +99,7 @@
         Your browser does not support embedded video. <a href="video/memory-agent-walkthrough.mp4">Open the walkthrough video</a>.
       </video>
     </div>
-    <figcaption>Complete walkthrough: run scenario steps 0 through 12, inspect the relevant source, and verify each memory, graph, Spatial, vector, quest, and reward transition. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
+    <figcaption>Complete 16-step walkthrough: follow Ava and Leo through governed memory, accessible map routing, transactional quest play, GraphRAG, and privacy-first AR. Every step shows the live application, the source method called, and the database content or change. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
   </figure>
 
   <section class="takeaways" id="key-takeaways">
@@ -108,12 +108,12 @@
       <li>An agent is a loop with state. Durable memory is an external computational substrate, not a property of a single prompt.</li>
       <li>Memory engineering adds writes, correction, scope, retention, and governance to retrieval. Read-only retrieval is RAG; read plus write becomes a memory lifecycle.</li>
       <li>Continual learning can begin in token space: retrieve better context, induce structured skills, and require approval before reuse. Model-weight updates are a later option, not the default.</li>
-      <li>The reference combines live <code>ojdbc-agent-memory</code>, a repeatable lifecycle path, and a Memory Quest that uses one converged Oracle AI Database for graph relationships, Spatial distance, vector-retrieved lore, transactional points, badges, and reward audit.</li>
+      <li>The reference combines agent memory, a repeatable lifecycle path, a graph and Spatial Memory Quest, and an optional Lens Studio AR client with consent-scoped voice and media memory.</li>
     </ul>
   </section>
 
   <h2 id="scenario-at-a-glance">Flynn's Theme Park Scenario at a Glance</h2>
-  <p>This sequence is the shortest presenter runbook for the complete application. The first two visitor interactions exercise Oracle Agent Memory directly. Steps 3 through 7 use fixed application and SQL operations against application-owned <code>AIM_DEMO_*</code> tables. Steps 8 through 12 add the <code>AIM_PARK_*</code> graph, spatial, vector, quest, and reward lane. “Repeatable teaching path” means those actions produce the same inspectable transitions during every presentation instead of asking an LLM to improvise them. They are real database transactions, but they are demonstration code rather than hidden behavior inside the memory library.</p>
+  <p>This sequence is the shortest presenter runbook for the complete application. The first two visitor interactions exercise Oracle Agent Memory directly. Steps 3 through 7 use fixed application and SQL operations against application-owned <code>AIM_DEMO_*</code> tables. Steps 8 through 12 add the <code>AIM_PARK_*</code> graph, Spatial, vector, quest, and reward lane. Steps 13 through 16 add the optional Lens Studio and Spectacles AR flow. “Repeatable teaching path” means those actions produce the same inspectable transitions during every presentation instead of asking an LLM to improvise them. They are real database transactions, but they are demonstration code rather than hidden behavior inside the memory library.</p>
   <table>
     <thead>
       <tr><th>Scenario event and observed behavior</th><th>Memory-core action</th><th>Oracle AI Database action</th><th>Memory principle shown</th></tr>
@@ -132,6 +132,10 @@
       <tr><td><strong>10. Start Covered Constellations.</strong> Ava and Leo appear as a consent-bounded party, the three ordered checkpoints become active, and the reward audit records the start with zero points.</td><td><code>ParkExperienceRepository.startQuest()</code> checks for existing progress and creates Ava's active quest state without merging Ava's and Leo's private memory scopes.</td><td>Inserts one <code>AIM_PARK_PROGRESS</code> row and one <code>QUEST_STARTED</code> row in <code>AIM_PARK_REWARD_AUDIT</code> in the same transaction. Party membership comes from <code>member_of</code> edges with <code>CONSENT_UNTIL</code>.</td><td><strong>Relationship does not erase authorization scope.</strong> Guests may share a quest while private agent memory remains identity-scoped.</td></tr>
       <tr><td><strong>11. Complete three checkpoints and award the badge.</strong> Quiet Café, Covered Atrium, and Lantern Garden change to completed. The UI finishes at 400 points with the Lantern Pathfinder badge and four audit events.</td><td><code>ParkExperienceRepository.completeNextStep()</code> locks Ava's progress row, validates the next ordered checkpoint, and performs each state transition atomically.</td><td>The first two transactions add 50 points each. The final transaction adds 300 points, changes progress to <code>COMPLETED</code>, inserts <code>LANTERN_PATHFINDER</code> into <code>AIM_PARK_GUEST_BADGES</code>, and records <code>QUEST_COMPLETED</code>.</td><td><strong>Transactional gamification.</strong> Progress, points, badges, and audit evidence cannot disagree because each checkpoint commits as one database unit.</td></tr>
       <tr><td><strong>12. Retrieve grounded park knowledge and expand it through the graph.</strong> The app displays three vector-ranked evidence cards and seven connected-place or quest chips before presenting the grounded answer.</td><td><code>ParkExperienceRepository.graphRag()</code> preserves vector distance and calls graph expansion for every retrieved place instead of hiding the evidence inside generated prose.</td><td><code>VECTOR_EMBEDDING(ALLMINILM USING ...)</code> embeds the request; cosine <code>VECTOR_DISTANCE</code> ranks <code>AIM_PARK_KNOWLEDGE</code>. <code>GRAPH_TABLE</code> then follows <code>connects</code> and <code>quest_step</code> edges around each vector hit.</td><td><strong>GraphRAG combines semantic relevance with explicit relationships.</strong> Vector search finds likely evidence; graph traversal adds connected facts and explainable structure.</td></tr>
+      <tr><td><strong>13. Start a private AR session.</strong> The simulated Spectacles view shows camera sensing status, recording off, precise location off, and a seven-day retention choice.</td><td><code>ArExperienceService.start_session()</code> creates a short-lived token and records the guest's separate sensing, recording, location, and retention choices.</td><td>Inserts one scoped row into <code>AIM_AR_SESSIONS</code> and one <code>SESSION_STARTED</code> event into <code>AIM_AR_AUDIT</code>.</td><td><strong>Consent is capability-specific.</strong> AR sensing is not described as camera off, and recording remains disabled until the guest explicitly opts in.</td></tr>
+      <tr><td><strong>14. Say “remember this.”</strong> The guest confirms that the quiet Lantern Garden entrance and covered route worked well.</td><td>The Lens uses Spectacles ASR on hardware; the browser simulator supplies the same confirmed text. <code>add_memory()</code> writes it with exact guest, agent, and AR-thread scope plus TTL.</td><td>Oracle Agent Memory stores the scoped observation in <code>MAGIC_PY_MEMORY</code>; <code>AIM_AR_AUDIT</code> records its memory ID, source, session, and purpose.</td><td><strong>Perception becomes memory only after confirmation.</strong> A transient camera or speech signal is not automatically durable.</td></tr>
+      <tr><td><strong>15. Index an opted-in media description.</strong> With recording consent enabled, the demo submits a video transcript or image caption, not raw video by default.</td><td><code>ArExperienceService.remember_media()</code> verifies the active session and recording consent before accepting the description and optional HTTPS object URI.</td><td>Inserts the transcript into <code>AIM_AR_MEDIA</code>, creates a 384-dimensional vector with <code>VECTOR_EMBEDDING(ALLMINILM ...)</code>, assigns an expiration, and writes <code>MEDIA_INDEXED</code> to <code>AIM_AR_AUDIT</code>.</td><td><strong>Data minimization and lifecycle.</strong> Searchable meaning can be retained separately from raw media, with explicit consent and bounded retention.</td></tr>
+      <tr><td><strong>16. Search media memory semantically.</strong> “Where was the accessible constellation artwork?” finds the covered atrium transcript even though the words differ.</td><td>The AR API authenticates the short-lived session and restricts retrieval to the same guest before returning overlay-ready results.</td><td>Oracle AI Database embeds the question, applies guest, consent, and expiration predicates, ranks <code>AIM_AR_MEDIA</code> by cosine <code>VECTOR_DISTANCE</code>, and audits <code>MEDIA_SEARCHED</code>.</td><td><strong>Scope before similarity.</strong> Semantic relevance never overrides identity, consent, or expiration.</td></tr>
     </tbody>
   </table>
   <h3>How the Two Flows Form One Gamified Learning Loop</h3>
@@ -144,6 +148,17 @@
     <li><strong>Reuse:</strong> Leo can receive the approved procedure and a quest adapted to his own memory. His points, route, and rewards remain separate from Ava's.</li>
   </ol>
   <p class="note"><strong>Other combinations:</strong> a family party quest can use consented relationships while preserving individual accessibility needs; a seasonal operations quest can reward safe reroutes during weather or crowd changes; and a discovery quest can use GraphRAG to reveal location-aware lore while remembering which themes each visitor enjoyed.</p>
+  <h3 id="ar-experience">Add an Optional Lens Studio and Spectacles AR Experience</h3>
+  <p>The AR client is a presentation layer over the same governed services, not a second memory system. Lens Studio 5.15.4 can preview route arrows, clues, checkpoint state, privacy status, and HTTPS calls. On Spectacles hardware, the <a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/asr-module">ASR Module</a> can transcribe a guest saying “remember this,” while the <a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/internet-access">Internet Module</a> sends the confirmed text to the Oracle Agent Memory service.</p>
+  <p>The implementation keeps four boundaries visible:</p>
+  <ul>
+    <li><strong>Sensing is not recording:</strong> the status overlay reports AR camera sensing even when media recording is off.</li>
+    <li><strong>Durability requires confirmation:</strong> speech or perception remains transient until the guest confirms the memory write.</li>
+    <li><strong>Media is minimized:</strong> the default path embeds an opted-in transcript or caption. Raw video storage is optional and represented only by an HTTPS object URI.</li>
+    <li><strong>Scope precedes similarity:</strong> guest identity, consent status, session expiration, and record TTL are applied before semantic ranking.</li>
+  </ul>
+  <p><code>AIM_AR_SESSIONS</code> stores separate camera-sensing, media-recording, location-sharing, and retention choices. <code>AIM_AR_MEDIA</code> stores consented descriptions, optional object references, native vectors, and expiration. <code>AIM_AR_AUDIT</code> records session, memory, media, and search events. Private “remember this” observations are stored through Oracle Agent Memory with exact guest, concierge-agent, and AR-thread scope.</p>
+  <p class="note"><strong>Honest validation boundary:</strong> the browser simulator and database/API paths are testable without hardware. Lens Studio Preview can model the overlay and HTTPS contract. ASR, camera frames, permission prompts, tracking, outdoor visibility, comfort, battery, heat, and venue or ride rules require actual Spectacles and park testing. The design keeps the responsive browser map as the non-AR, reduced-distraction, and accessibility fallback.</p>
   <p class="note"><strong>What the prior rainy-visit episode means:</strong> the blog and video refer to the same seeded demonstration record. It is not evidence that an earlier live app session occurred. When you click <strong>Retain Ava's conversation</strong>, <code>AgentMemoryLibraryDemo.retain()</code> calls <code>addMemory()</code> and inserts “The covered atrium route worked well during Ava's previous rainy visit” into <a href="#table-oamj-records"><code>OAMJ_CONCIERGE_RECORDS</code></a> with <code>RECORD_TYPE='memory'</code>. The lifecycle lane separately inserts a comparable <code>last-visit</code> episodic row into <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES</code></a>. The three de-identified rows in <a href="#table-aim-traces"><code>AIM_DEMO_TRACES</code></a> are separate seeded examples used for skill induction.</p>
 
   <h2 id="engineering-ladder">From Prompt Engineering to Context Engineering to Memory Engineering</h2>
@@ -203,7 +218,7 @@ List&lt;OracleSearchResult&gt; hits =
 OracleContextCard card = thread.getContextCard();      // OracleThread: Reuse
 thread.deleteMemory(oldMemoryId);                      // OracleThread: Refine
 thread.addMemory(correctedMemory);                     // OracleThread: Refine</code></pre>
-  <p class="note"><strong>Why Refine uses two calls:</strong> this Java library implementation does not expose a single <code>updateMemory(...)</code> method, so its source-level replacement primitive is delete followed by add.</p>
+  <p class="note"><strong>Why Refine uses two calls:</strong> the implementation used by this lane does not expose a single <code>updateMemory(...)</code> method, so its source-level replacement primitive is delete followed by add.</p>
   <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
 
   <h2 id="why-agents-forget">Why Agents Forget</h2>
@@ -294,7 +309,7 @@ Oracle AI Database
 
   <h3 id="database-objects">Database Tables and Objects Used by Oracle Agent Memory and Agent</h3>
   <p>There are three intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent lifecycle lane uses <code>AIM_DEMO_*</code> tables for history, expiry, traces, approval, and audit. The Memory Quest lane uses <code>AIM_PARK_*</code> tables for graph, spatial, vector, and transactional game state. The scenario table above links directly to the memory tables below.</p>
-  <p class="note"><strong>Status ownership:</strong> <code>ACTIVE</code>, <code>SUPERSEDED</code>, and <code>EXPIRED</code> are application-defined values in <code>AIM_DEMO_MEMORIES.STATUS</code>. They are not statuses in the Java Oracle Agent Memory tables, which store messages and typed records without status, supersession, or expiration columns.</p>
+  <p class="note"><strong>Status ownership:</strong> <code>ACTIVE</code>, <code>SUPERSEDED</code>, and <code>EXPIRED</code> are application-defined values in <code>AIM_DEMO_MEMORIES.STATUS</code>. They are not statuses in the Oracle Agent Memory managed tables, which store messages and typed records using their own lifecycle model.</p>
 
   <h4 id="table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code>: Persistent Conversation History</h4>
   <table>
@@ -405,8 +420,8 @@ cp .env.example .env
 # Edit .env with DB_USERNAME, DB_PASSWORD, DB_SERVICE, and TNS_ADMIN.
 # Do not commit the populated file or wallet.</code></pre>
 
-  <h3>2. Prepare Ollama and the Database Embedding Model</h3>
-  <p>The live memory lane uses Ollama for typed-memory extraction and the database-resident <code>ALLMINILM</code> ONNX model for 384-dimensional embeddings. Install Ollama, start it, and pull the verified model:</p>
+  <h3>2. Optional: Prepare Ollama and the Database Embedding Model</h3>
+  <p>Skip this step for the primary browser walkthrough, which uses the public memory package and requires no external model key. Use it only when demonstrating the separate extraction-focused reference lane. That lane uses Ollama for typed-memory extraction and the database-resident <code>ALLMINILM</code> ONNX model for 384-dimensional embeddings:</p>
   <pre><code>brew install ollama
 brew services start ollama
 ollama pull llama3.2</code></pre>
@@ -416,32 +431,38 @@ ollama pull llama3.2</code></pre>
 ./run-local.sh</code></pre>
   <p class="note"><strong>Library availability:</strong> the <code>ojdbc-agent-memory</code> dependency used here is a proof-of-concept snapshot, not a public package artifact. The runner expects a local library clone and accepts its location through <code>OAM_LIBRARY_DIR</code>.</p>
 
-  <h3>3. Run the Memory and UCP Reference</h3>
-  <p>The runner builds the local library snapshot, starts the browser app, and creates only missing library, lifecycle, and Memory Quest objects. It never drops schema objects. Startup creates <code>AIM_PARK_GRAPH</code> over the seeded graph tables, stores park points as <code>SDO_GEOMETRY</code>, and embeds the grounded knowledge rows with the existing <code>ALLMINILM</code> model. Use the toolchain versions declared by the included project configuration.</p>
-  <pre><code>cd memory/java-agent
-export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
+  <h3>3. Run the Complete Browser App</h3>
+  <p>The top-level runner starts the complete memory, graph, Spatial, vector, transaction, gamification, and AR demonstration. It creates only missing objects and never drops the schema. From the repository root, open one terminal and run:</p>
+  <pre><code>cd memory
 ./test.sh
 ./run.sh</code></pre>
-  <p>Open <code>http://127.0.0.1:8091</code>. The automated proof is:</p>
-  <pre><code>cd memory/java-agent
+  <p>Wait for the listening message, then open <code>http://127.0.0.1:8092</code>. Keep the first terminal running. In a second terminal, optionally execute the automated end-to-end proof:</p>
+  <pre><code>cd memory
 ./smoke-test.sh</code></pre>
+  <p>In the browser, use the numbered controls in this order: memory steps 0 through 7, Memory Quest steps 1 through 4, and AR steps 1 through 4. The AR section first explains the simulated glasses view, demonstration controls, and live database proof.</p>
 
   <figure>
-    <img src="images/java-agent-memory-library-concierge.png" alt="Verified theme park concierge memory flow showing Ollama extraction, 384-dimensional Oracle AI Database embeddings, exact Ava scope, semantic ranking, a generated context card, and zero Ava records returned for Leo.">
+    <img src="images/agent-memory-library-concierge.png" alt="Verified theme park concierge memory flow showing Ollama extraction, 384-dimensional Oracle AI Database embeddings, exact Ava scope, semantic ranking, a generated context card, and zero Ava records returned for Leo.">
     <figcaption>Actual memory library run: two messages became typed durable records, Oracle AI Database ranked them by vector distance, and the exact-scope isolation check returned zero Ava records for Leo.</figcaption>
   </figure>
 
   <figure>
-    <img src="images/java-oracle-ai-database-memory-demo.png" alt="Verified Oracle UCP agent memory demo showing the next-day isolation proof and a connected Oracle AI Database financial schema.">
+    <img src="images/oracle-ai-database-memory-demo.png" alt="Verified Oracle UCP agent memory demo showing the next-day isolation proof and a connected Oracle AI Database financial schema.">
     <figcaption>The repeatable lifecycle path makes correction, TTL, trace induction, approval, and the final next-day scope proof easy to narrate.</figcaption>
   </figure>
 
   <p>To inspect the lifecycle path's versions, recall audit, traces, and approval record from SQLcl, run <a href="database/inspect_demo.sql"><code>memory/database/inspect_demo.sql</code></a> after the browser walkthrough. The app now also shows all table contents at the bottom of the page and highlights changes after every action or manual refresh. Query the two library-managed tables only for presentation and troubleshooting; application code should use the library APIs instead of depending on their internal schema.</p>
 
   <figure>
-    <img src="images/java-memory-database-table-inspector.png" alt="Memory demo database inspector showing added rows highlighted in the Oracle AI Database message and durable-record tables, followed by the application-owned lifecycle tables.">
+    <img src="images/memory-database-table-inspector.png" alt="Memory demo database inspector showing added rows highlighted in the Oracle AI Database message and durable-record tables, followed by the application-owned lifecycle tables.">
     <figcaption>The table inspector queries Oracle AI Database without reloading the page. Green rows were added since the previous refresh; changed rows use yellow and removed rows remain temporarily visible in red.</figcaption>
   </figure>
+
+  <p>Open the <strong>Optional Spectacles experience</strong> section and follow its four numbered steps. First choose consent and retention, then start a private session. Second, retain the confirmed Lantern Garden observation. Third, enable recording consent in a new session and index the supplied media description. Fourth, search for the accessible constellation artwork. The result card explains each outcome without exposing credentials or raw protocol data. Refresh the database inspector to see the managed memory row plus <code>AIM_AR_SESSIONS</code>, <code>AIM_AR_MEDIA</code>, and <code>AIM_AR_AUDIT</code>.</p>
+
+  <h3>4. Optional: Import the Lens Studio 5.15.4 Source Kit</h3>
+  <p>Open <a href="spectacles-lens/README.md"><code>memory/spectacles-lens</code></a> and follow its project setup. Mark the project <strong>Made for Spectacles</strong>, import the TypeScript controllers, add the Internet and ASR modules, bind the overlay text components, and replace the placeholder API address with an approved public HTTPS tunnel to port 8092. Restrict <code>AR_ALLOWED_ORIGIN</code> and replace the demonstration token with production authentication before sharing the Lens.</p>
+  <p class="note">The repository provides a source kit rather than claiming a hardware-tested Lens Studio project. The Internet API can work in Preview when the device override is Spectacles; ASR and camera frames require Spectacles hardware.</p>
 
   <h2 id="live-library-walkthrough">Live Memory Library Walkthrough</h2>
   <p>Use this three-action lane first when presenting the app. It connects the memory concepts directly to the library calls and the visible database result.</p>
@@ -501,7 +522,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <p class="action"><strong>Action:</strong> Click <strong>5 · Dream</strong>. Notice the pending skill and its three source episodes.</p>
     <p class="happens"><strong>What happens:</strong> The application counts three successful <code>RAINY_EVENING_REROUTE</code> rows in <code>AIM_DEMO_TRACES</code>, checks <code>AIM_DEMO_SKILLS</code> for an existing procedure, and inserts a <code>PENDING</code> skill with generalized, privacy-safe steps.</p>
     <p class="proof"><strong>Proof to point at:</strong> the skill JSON explicitly says that no private guest data is included. No model weights changed.</p>
-    <p class="note"><strong>Implementation boundary:</strong> this demo has no <code>sleep()</code> method or background scheduler. Clicking <strong>Dream</strong> synchronously sends <code>POST /api/actions/dream</code>, and the Java HTTP handler calls <code>MemoryRepository.dream()</code>. A production system could schedule equivalent induction work asynchronously.</p>
+    <p class="note"><strong>Implementation boundary:</strong> this demo has no <code>sleep()</code> method or background scheduler. Clicking <strong>Dream</strong> synchronously sends <code>POST /api/actions/dream</code>, and the service handler invokes the repository's dream operation. A production system could schedule equivalent induction work asynchronously.</p>
   </article>
 
   <article class="demo-step">
@@ -601,6 +622,7 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <li>Run skill induction asynchronously, strip private details before generalization, require evaluation and approval, and retain rollback history.</li>
     <li>Define deletion semantics carefully. Deleting a thread may need to remove or re-derive memories and summaries created from it.</li>
     <li>Keep gamification abuse-resistant: authorize checkpoint evidence, make reward writes idempotent, cap point issuance, and monitor anomalous completion patterns.</li>
+    <li>For AR, separate camera sensing from recording consent, minimize retained media, enforce identity and expiration before vector ranking, keep visible capture indicators, and retain a non-AR accessibility fallback.</li>
   </ol>
   <p class="note">Background extraction is generally eventually visible rather than immediately available. Applications that require read-your-write consistency should use an inline path or explicitly wait for the extraction job before relying on the new memory.</p>
 
@@ -621,6 +643,9 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
   <h3>What is the difference between the party graph and GraphRAG?</h3>
   <p>The party graph answers an authorization-sensitive relationship question: which guests have consented to share this experience? GraphRAG answers a retrieval question: which places and quests connect to semantically relevant park knowledge? Oracle Spatial separately evaluates physical geometry and proximity. The responsive 2D map exposes all three forms of evidence without requiring a 3D client.</p>
 
+  <h3>Does the AR demonstration require Snap Spectacles?</h3>
+  <p>No. The browser simulator validates consent, API, Oracle Agent Memory, TTL, vector-search, and audit behavior. Lens Studio Preview can model the overlay and HTTPS contract. Spectacles hardware is required to validate ASR, camera frames, permissions, tracking, outdoor visibility, comfort, battery, and heat.</p>
+
   <h2 id="references">References and Further Reading</h2>
   <ul class="links">
     <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/memory">Memories Are the Magic source, app, SQL, and configuration</a></li>
@@ -636,6 +661,9 @@ export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
     <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/vecse/ai-vector-search-users-guide.pdf">Oracle AI Vector Search User's Guide</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/property-graph/26.1/spgdg/sql-property-graphs.html">SQL Property Graphs in Oracle AI Database</a></li>
     <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/spatl/spatial-relationships-and-filtering.html">Oracle Spatial relationships and filtering</a></li>
+    <li><a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/asr-module">Snap Spectacles ASR Module</a></li>
+    <li><a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/internet-access">Snap Spectacles Internet access</a></li>
+    <li><a href="https://developers.snap.com/spectacles/permission-privacy/transparent-permission">Snap Spectacles transparent permission system</a></li>
     <li><a href="https://disneyworld.disney.go.com/guest-services/play-app/">Play Disney Parks app overview</a></li>
     <li><a href="https://disneyland.disney.go.com/attractions/disneyland/star-wars-batuu-bounty-hunters/">Star Wars: Batuu Bounty Hunters location-linked experience</a></li>
   </ul>

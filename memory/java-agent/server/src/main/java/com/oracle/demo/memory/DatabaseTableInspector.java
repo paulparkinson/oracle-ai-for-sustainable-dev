@@ -15,6 +15,41 @@ import java.util.Map;
 final class DatabaseTableInspector {
     private static final List<TableSpec> TABLES = List.of(
             new TableSpec(
+                    "OAMJ_CONCIERGE_ORACLEAGENTMEMORY_SCHEMA_META",
+                    "METADATA_KEY",
+                    "Managed-schema version and record-indexing mode.",
+                    """
+                    SELECT metadata_key, metadata_value,
+                           TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS updated_at
+                      FROM OAMJ_CONCIERGE_ORACLEAGENTMEMORY_SCHEMA_META
+                     ORDER BY metadata_key
+                    """),
+            new TableSpec(
+                    "OAMJ_CONCIERGE_THREAD",
+                    "RECORD_ID",
+                    "Thread identity, scope, runtime configuration, and extraction state.",
+                    """
+                    SELECT record_id, user_id, agent_id, space_id,
+                           JSON_SERIALIZE(metadata RETURNING VARCHAR2(2000)) AS metadata,
+                           JSON_SERIALIZE(runtime_config RETURNING VARCHAR2(2000)) AS runtime_config,
+                           JSON_SERIALIZE(runtime_state RETURNING VARCHAR2(2000)) AS runtime_state,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS created_at
+                      FROM OAMJ_CONCIERGE_THREAD
+                     ORDER BY created_at
+                    """),
+            new TableSpec(
+                    "OAMJ_CONCIERGE_ACTOR_PROFILE",
+                    "ACTOR_ID",
+                    "Optional user and agent profile records.",
+                    """
+                    SELECT actor_id, actor_type, space_id, order_seq,
+                           DBMS_LOB.SUBSTR(information, 1000, 1) AS information,
+                           JSON_SERIALIZE(metadata RETURNING VARCHAR2(2000)) AS metadata,
+                           TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS created_at
+                      FROM OAMJ_CONCIERGE_ACTOR_PROFILE
+                     ORDER BY order_seq
+                    """),
+            new TableSpec(
                     "OAMJ_CONCIERGE_MESSAGE",
                     "RECORD_ID",
                     "Raw visitor and assistant messages retained by Oracle Agent Memory.",
@@ -26,32 +61,47 @@ final class DatabaseTableInspector {
                            agent_id,
                            message_role,
                            DBMS_LOB.SUBSTR(content, 1000, 1) AS content,
-                           TO_CHAR(timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
-                             AS event_time,
+                           timestamp AS event_time,
+                           JSON_SERIALIZE(metadata RETURNING VARCHAR2(2000)) AS metadata,
+                           TO_CHAR(expires_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS expires_at,
                            TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
                              AS created_at
                       FROM OAMJ_CONCIERGE_MESSAGE
                      ORDER BY order_seq, created_at
                     """),
             new TableSpec(
-                    "OAMJ_CONCIERGE_RECORDS",
+                    "OAMJ_CONCIERGE_MEMORY",
                     "RECORD_ID",
-                    "Typed durable memories and their Oracle AI Database vector embeddings.",
+                    "Typed durable memories; vectors are normalized into RECORD_CHUNKS.",
                     """
                     SELECT record_id,
-                           record_type,
-                           role,
+                           order_seq,
+                           memory_type,
                            DBMS_LOB.SUBSTR(content, 1000, 1) AS content,
                            user_id,
                            agent_id,
                            thread_id,
-                           CASE WHEN embedding IS NULL THEN NULL
-                                ELSE VECTOR_DIMENSION_COUNT(embedding)
-                           END AS embedding_dimensions,
+                           timestamp AS event_time,
+                           JSON_SERIALIZE(metadata RETURNING VARCHAR2(2000)) AS metadata,
+                           TO_CHAR(expires_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM') AS expires_at,
                            TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS.FF3TZH:TZM')
                              AS created_at
-                      FROM OAMJ_CONCIERGE_RECORDS
-                     ORDER BY created_at, record_id
+                      FROM OAMJ_CONCIERGE_MEMORY
+                     ORDER BY order_seq, created_at
+                    """),
+            new TableSpec(
+                    "OAMJ_CONCIERGE_RECORD_CHUNKS",
+                    "CHUNK_ID",
+                    "Normalized message, memory, and profile chunks with Oracle vectors.",
+                    """
+                    SELECT chunk_id, source_id, source_record_type, source_emb_column,
+                           chunk_seq, DBMS_LOB.SUBSTR(chunk_text, 1000, 1) AS chunk_text,
+                           thread_id, user_id, agent_id, space_id,
+                           CASE WHEN embedding IS NULL THEN NULL
+                                ELSE VECTOR_DIMENSION_COUNT(embedding)
+                           END AS embedding_dimensions
+                      FROM OAMJ_CONCIERGE_RECORD_CHUNKS
+                     ORDER BY chunk_id
                     """),
             new TableSpec(
                     "AIM_DEMO_GUESTS",

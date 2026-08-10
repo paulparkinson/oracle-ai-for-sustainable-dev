@@ -36,5 +36,6 @@ if [[ ! -x "${VENV_DIR}/bin/python" ]]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
 
-"${VENV_DIR}/bin/python" -m pip install -q -r "${PYTHON_APP_DIR}/requirements.txt"
+env CARGO_HTTP_PROXY= CARGO_HTTPS_PROXY= \
+  "${VENV_DIR}/bin/python" -m pip install -q -r "${PYTHON_APP_DIR}/requirements.txt"
 exec "${VENV_DIR}/bin/python" "${PYTHON_APP_DIR}/app.py"

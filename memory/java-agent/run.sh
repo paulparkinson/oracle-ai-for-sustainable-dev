@@ -3,7 +3,8 @@ set -euo pipefail
 
 APP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_DIR="${APP_DIR}/server"
-LIBRARY_BUILD="${APP_DIR}/../test-utils/build-library.sh"
+DEFAULT_LIBRARY_DIR="/Users/pparkins/src/orahub/aire-dev/memory/java/ojdbc-agent-memory"
+LIBRARY_DIR="${OAM_LIBRARY_DIR:-${DEFAULT_LIBRARY_DIR}}"
 
 # shellcheck disable=SC1091
 source "${APP_DIR}/load-database-env.sh"
@@ -25,7 +26,13 @@ if ! command -v "${MAVEN_BIN}" >/dev/null 2>&1 \
 fi
 
 (
-  "${LIBRARY_BUILD}"
+  if [[ ! -f "${LIBRARY_DIR}/pom.xml" ]]; then
+    echo "Oracle Agent Memory Java library not found at ${LIBRARY_DIR}." >&2
+    echo "Set OAM_LIBRARY_DIR to the java/ojdbc-agent-memory directory from the memory MR branch." >&2
+    exit 1
+  fi
+  cd "${LIBRARY_DIR}"
+  "${MAVEN_BIN}" -q -DskipTests install
   cd "${SERVER_DIR}"
   "${MAVEN_BIN}" -q -DskipTests package
   export MEMORY_WEB_ROOT="${APP_DIR}/web"

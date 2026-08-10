@@ -1,12 +1,16 @@
 # Memory blog walkthrough video
 
-This directory builds a silent, subtitle-led 1920x1080 MP4 for the memory article.
-The source scenes read the actual repository files. The application and
-database scenes use current Chrome captures from the verified Oracle AI Database
-run. All thirteen numbered scenario states, steps 0 through 12, show the
-observed behavior, relevant source method, database evidence, and memory
-principle. The final five steps cover SQL Property Graph, Oracle Spatial,
-consent-bounded party relationships, transactional gamification, and GraphRAG.
+This directory builds the latest silent, subtitle-led 1920x1080 MP4 for the
+memory article. Its 16 numbered steps follow the complete Ava and Leo theme-park
+story: governed memory, accessible route planning, consent-bounded quest play,
+GraphRAG, and privacy-first AR memory.
+
+Every step contains three verified views:
+
+1. the relevant live application state;
+2. the source method called by that action; and
+3. the database content or change, including an explicit read-only explanation
+   when the step does not write rows.
 
 ```bash
 cd memory/video
@@ -22,4 +26,6 @@ Generated publication assets:
 - `memory-agent-walkthrough.vtt`
 
 The MP4 intentionally contains no audio track. Captions are burned into the
-video and also published as SRT and WebVTT sidecars.
+video and also published as SRT and WebVTT sidecars. Current Chrome captures are
+kept as build inputs under `.build/captures-latest/` and are not published as
+standalone article assets.

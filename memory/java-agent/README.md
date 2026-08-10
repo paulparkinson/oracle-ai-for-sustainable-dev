@@ -2,7 +2,7 @@
 
 This browser app has three complementary lanes:
 
-- a live `ojdbc-agent-memory` proof-of-concept library flow using Ollama
+- a live `ojdbc-agent-memory` flow from the Java merge-request branch using Ollama
   extraction, Oracle AI Database `ALLMINILM` embeddings, exact identity scope,
   semantic search, and context-card assembly;
 - a repeatable presenter flow with fixed Java and SQL actions for correction, TTL, experience traces,
@@ -19,7 +19,8 @@ This browser app has three complementary lanes:
   `memory/.env`
 - Ollama running locally with `llama3.2:latest`
 - `ALLMINILM` loaded in the connected Oracle Database schema
-- a local clone of the `ojdbc-agent-memory` proof-of-concept library
+- the `feature/ojdbc-agent-memory-java` branch of the memory repository, with
+  `java/ojdbc-agent-memory` built locally
 
 One-time model setup:
 
@@ -36,7 +37,7 @@ cd memory/test-utils
 
 ```bash
 cd memory/java-agent
-export OAM_LIBRARY_DIR=/path/to/ojdbc-agent-memory
+export OAM_LIBRARY_DIR=/path/to/memory/java/ojdbc-agent-memory
 ./test.sh
 ./run.sh
 ```
@@ -54,6 +55,10 @@ The live library controls are intended to be used in order:
 2. **Retain Ava's conversation**
 3. **Recall and build context**
 
+On the first launch after upgrading from the earlier two-table prototype, the
+app detects its incompatible `OAMJ_CONCIERGE_RECORDS`/`MESSAGE` schema and
+recreates only those demo-prefixed managed objects in the six-table MR format.
+
 Then use the seven numbered presenter controls to show the governed memory
 lifecycle and continual-learning concepts.
 
@@ -69,7 +74,7 @@ Finally, run the Memory Quest controls in order:
    connected places and quest context through SQL Property Graph
 
 At the bottom of the page, the database inspector shows current contents from
-the two `OAMJ_CONCIERGE_*` library tables, five `AIM_DEMO_*` lifecycle
+the six Python-parity `OAMJ_CONCIERGE_*` managed library tables, five `AIM_DEMO_*` lifecycle
 tables, and the principal `AIM_PARK_*` graph, spatial, vector, progress,
 badge, and reward tables. It refreshes automatically after every action. **Refresh table
 contents** performs the same check manually without reloading the page. Added,

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A live Oracle AI Agent Memory 26.6 demonstration using Python and Oracle AI Database.">
-  <title>Memories Are the Magic | Python SDK Demo</title>
+  <meta name="description" content="A live Oracle AI Agent Memory 26.6 demonstration using Oracle AI Database.">
+  <title>Memories Are the Magic | Agent Memory Demo</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,12 +15,12 @@
     </nav>
     <div class="hero-content">
       <div>
-        <p class="eyebrow">Python reference implementation</p>
+        <p class="eyebrow">Runnable reference implementation</p>
         <h1>Oracle AI Agent Memory, live on Oracle AI Database.</h1>
-        <p class="lede">The public Python SDK manages threads, messages, durable memories, exact scopes, keyword search, updates, TTL, metadata filters, and reusable guidelines.</p>
+        <p class="lede">Oracle Agent Memory manages threads, messages, durable memories, exact scopes, search, updates, TTL, metadata filters, and reusable guidelines.</p>
       </div>
       <div class="sdk-card">
-        <div class="sdk-logo">PY</div>
+        <div class="sdk-logo">AM</div>
         <div><b>oracleagentmemory</b><span>26.6.0</span></div>
         <code>SearchStrategy.KEYWORD</code>
         <small>No external model key required</small>
@@ -41,7 +41,7 @@
     <section class="demo">
       <aside>
         <p class="eyebrow dark">Scenario controls</p>
-        <h2>Starlight Springs</h2>
+        <h2>Flynn's Theme Park</h2>
         <p class="aside-copy">Advance in order. Every button calls the public SDK and persists state in its managed Oracle schema.</p>
         <div class="steps">
           <button data-action="reset"><b>0</b><span><strong>Reset</strong>Cold start</span></button>
@@ -101,6 +101,85 @@
           </section>
         </div>
       </div>
+    </section>
+
+    <section class="quest-lab" aria-labelledby="quest-title">
+      <div class="quest-heading">
+        <div>
+          <p class="eyebrow">Memory Quest lab</p>
+          <h2 id="quest-title">Turn remembered needs into a safe, playable park experience.</h2>
+          <p>This lane combines graph, Spatial, vector, transactional, and gamification operations against the same Oracle AI Database objects.</p>
+        </div>
+        <div class="quest-score"><strong id="quest-points">0</strong><span>audited points</span><b id="quest-badge">No badge yet</b></div>
+      </div>
+      <div class="quest-controls">
+        <button data-park-action="reset">Reset quest</button>
+        <button data-park-action="plan">1. Plan route</button>
+        <button data-park-action="start">2. Start quest</button>
+        <button class="primary" data-park-action="complete-step">3. Complete checkpoint</button>
+        <label><span>4. GraphRAG request</span><input id="park-query" value="Find a quiet accessible rainy route with founder stories"></label>
+        <button data-park-action="graphrag">Retrieve + expand</button>
+      </div>
+      <div class="quest-result" id="park-result">Plan the route, start the quest, complete three checkpoints, then run GraphRAG.</div>
+      <div class="quest-grid">
+        <section class="panel park-map-panel">
+          <header><div><p class="eyebrow dark">Graph + Spatial</p><h3>Interactive 2D park map</h3></div></header>
+          <svg id="park-map" viewBox="0 0 760 720" aria-label="Park graph and spatial locations"></svg>
+          <p id="route-explanation" class="map-note">Graph edges connect spatially positioned park places.</p>
+        </section>
+        <div class="quest-side">
+          <section class="panel"><header><div><p class="eyebrow dark">Social graph</p><h3>Consent-bounded party</h3></div></header><div id="park-party"></div></section>
+          <section class="panel"><header><div><p class="eyebrow dark">Gamification</p><h3>Covered Constellations</h3></div><span id="quest-status">NOT STARTED</span></header><ol id="quest-steps" class="quest-steps"></ol></section>
+          <section class="panel"><header><div><p class="eyebrow dark">Transaction evidence</p><h3>Reward audit</h3></div></header><div id="quest-audit"></div></section>
+        </div>
+      </div>
+      <section class="panel graphrag-panel"><header><div><p class="eyebrow dark">Vector + graph</p><h3>GraphRAG evidence</h3></div></header><p id="graphrag-answer">Run GraphRAG to retrieve grounded park knowledge.</p><div id="graphrag-hits" class="graphrag-hits"></div></section>
+    </section>
+
+    <section class="ar-lab" aria-labelledby="ar-title">
+      <div class="ar-heading">
+        <div><p class="eyebrow">Optional Spectacles experience</p><h2 id="ar-title">Try the governed AR memory walkthrough.</h2><p>This is an interactive browser simulation of what a visitor sees in smart glasses and what the agent stores in Oracle AI Database. Complete the four numbered steps from left to right.</p></div>
+        <div class="privacy-beacon"><i></i><b id="ar-privacy-label">Recording off</b><span>AR sensing status is always visible</span></div>
+      </div>
+      <div class="ar-explainer">
+        <strong>What you are seeing</strong>
+        <span><b>Left:</b> the visitor's simulated glasses view with route and clue overlays.</span>
+        <span><b>Right:</b> demonstration controls that stand in for voice, camera, and search actions.</span>
+        <span><b>Below:</b> database tables that prove what was retained, embedded, searched, and audited.</span>
+      </div>
+      <div class="ar-controls">
+        <span class="ar-step-number">1</span><div class="ar-step-copy"><b>Choose consent and retention</b><small>Recording and precise location are optional.</small></div>
+        <label><input id="ar-camera" type="checkbox" checked> Camera sensing</label>
+        <label><input id="ar-recording" type="checkbox"> Consent to media recording</label>
+        <label><input id="ar-location" type="checkbox"> Share precise location</label>
+        <label>Retention <select id="ar-retention"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option></select></label>
+        <button id="ar-start">Start private AR session</button><button id="ar-reset">Reset AR evidence</button>
+      </div>
+      <div class="ar-stage">
+        <div class="ar-world" role="img" aria-label="Simulated first-person Spectacles overlay at Lantern Garden">
+          <div class="ar-hud top"><span id="ar-session">NO ACTIVE SESSION</span><b id="ar-sensing">SENSING OFF</b></div>
+          <div class="ar-route"><span>↗</span><b>Covered Atrium</b><small>Accessible route · 120 m</small></div>
+          <div class="ar-clue"><b>Lantern clue</b><span>The founder symbol is near the step-free entrance.</span></div>
+          <div class="ar-hud bottom" id="ar-overlay">Start a consent-scoped session to enable memory actions.</div>
+        </div>
+        <div class="ar-actions panel">
+          <header><div><p class="eyebrow dark">Voice + media memory</p><h3>Actions represented in this simulation</h3></div></header>
+          <div class="ar-action-step"><span>2</span><div><b>Remember a confirmed observation</b><small>On glasses, the visitor says “remember this,” reviews the text, and confirms it.</small></div></div>
+          <label>Confirmed observation<textarea id="ar-memory-text">Remember that I enjoyed the quiet Lantern Garden entrance and want this route next visit.</textarea></label><button id="ar-remember">Remember confirmed observation</button>
+          <div class="ar-action-step"><span>3</span><div><b>Index opted-in media meaning</b><small>The demo stores a transcript or caption, not raw video by default.</small></div></div>
+          <label>Consented media description<textarea id="ar-media-text">A covered constellation mosaic appears beside the accessible atrium entrance.</textarea></label><button id="ar-index-media">Index consented description</button>
+          <div class="ar-action-step"><span>4</span><div><b>Search within the visitor's scope</b><small>Identity, consent, and expiration filter results before similarity ranking.</small></div></div>
+          <label>Natural-language search<input id="ar-search-text" value="Where was the accessible constellation artwork?"></label><button id="ar-search">Search my media memory</button>
+          <div class="ar-result-card" id="ar-result" aria-live="polite"><b>Ready to begin</b><span>Complete step 1 to start a private AR session.</span></div>
+        </div>
+      </div>
+      <p class="ar-disclaimer"><strong>This is a working service and database demo, plus a simulated glasses interface.</strong> The consent, memory, vector, TTL, and audit operations are live. Lens Studio Preview can model the overlay; ASR, camera frames, permissions, tracking, comfort, and outdoor performance still require Spectacles hardware.</p>
+    </section>
+
+    <section class="database-inspector">
+      <div class="database-inspector-heading"><div><p class="eyebrow dark">Database evidence</p><h2>See exactly what every action changed.</h2><p>Oracle Agent Memory owns its managed objects; the application owns the lifecycle, park, quest, and AR demonstration objects.</p></div><button id="refresh-database">Refresh table contents</button></div>
+      <div id="database-refresh-status" class="quest-result">Loading Oracle AI Database tables...</div>
+      <div id="database-tables" class="database-tables"></div>
     </section>
   </main>
 
