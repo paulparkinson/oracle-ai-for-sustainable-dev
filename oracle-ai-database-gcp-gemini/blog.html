@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Develop A2A Agentic AI with Oracle AI Database and Gemini Enterprise</title>
+  <meta name="description" content="Build and deploy inventory, property graph, spatial, Select AI, and governed action agents over A2A using Oracle AI Database@Google Cloud and Gemini Enterprise.">
+  <meta name="author" content="Paul Parkinson">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2730;
+      --muted: #586673;
+      --oracle: #c74634;
+      --google: #1769aa;
+      --teal: #176b68;
+      --paper: #fff;
+      --soft: #f5f7f8;
+      --line: #d8dde1;
+      --warn: #8a5c00;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.67; }
+    main { max-width: 1080px; margin: 0 auto; padding: 42px 24px 84px; }
+    h1 { max-width: 1020px; margin: 0 0 15px; font-size: clamp(2.25rem, 5.5vw, 4.55rem); line-height: 1.02; letter-spacing: -.04em; }
+    h2 { margin-top: 54px; line-height: 1.16; font-size: clamp(1.65rem, 3vw, 2.35rem); letter-spacing: -.02em; }
+    h3 { margin-top: 32px; line-height: 1.25; }
+    p, li { max-width: 930px; }
+    .eyebrow { margin: 0 0 10px; color: var(--oracle); font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+    .subtitle { margin: 0 0 28px; max-width: 990px; color: var(--muted); font-size: 1.35rem; line-height: 1.45; }
+    .updated { color: var(--muted); font-size: .92rem; }
+    .lead { font-size: 1.14rem; }
+    .callout, .note, .warning { margin: 25px 0; padding: 17px 19px; border-left: 4px solid var(--oracle); background: #fff4f0; }
+    .note { border-color: #54738f; background: #f2f7fa; }
+    .warning { border-color: #d0a24a; background: #fff9ea; }
+    .status-grid, .agent-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .card { padding: 20px 22px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 7px 24px rgba(26, 38, 46, .05); }
+    .card h3 { margin: 0 0 9px; }
+    .card p { margin: 7px 0; }
+    .verified { border-top: 5px solid #3f8d63; }
+    .pending { border-top: 5px solid #d0a24a; }
+    .pill { display: inline-block; margin: 0 5px 4px 0; padding: 3px 8px; border-radius: 999px; color: #fff; background: var(--teal); font-size: .73rem; font-weight: 800; letter-spacing: .02em; }
+    .pill.pending-pill { background: var(--warn); }
+    figure { margin: 35px 0; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--soft); }
+    figcaption { margin-top: 9px; color: var(--muted); font-size: .94rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 13px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #eef2f4; }
+    td:first-child { font-weight: 730; }
+    code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
+    code { overflow-wrap: anywhere; }
+    pre { max-width: 100%; padding: 17px; overflow-x: auto; color: #e8efef; background: #17272c; border-radius: 9px; line-height: 1.48; }
+    li + li { margin-top: 8px; }
+    a { color: #075eaa; }
+    .flow { margin: 24px 0; padding: 20px 23px; border-radius: 11px; background: #17272c; color: #eef4f4; font: .92rem/1.7 "SFMono-Regular", Consolas, monospace; white-space: pre-wrap; }
+    .endpoint { font-size: .86rem; }
+    @media (max-width: 760px) {
+      main { padding-inline: 17px; }
+      .status-grid, .agent-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; font-size: .87rem; }
+      th, td { min-width: 155px; padding: 9px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Oracle AI Database · Gemini Enterprise · A2A · Graph · Spatial · Select AI</p>
+  <h1>Develop A2A Agentic AI with Oracle AI Database and Gemini Enterprise</h1>
+  <p class="subtitle">Recreate a multi-agent supply-chain demo on Oracle AI Database@Google Cloud: identify stockout risk, traverse product dependencies, render warehouse hotspots, and draft a governed transfer action inside Gemini Enterprise.</p>
+  <p class="updated">By Paul Parkinson · Baseline published August 9, 2026</p>
+
+  <p class="lead">This project turns one supply-chain question into a coordinated A2A workflow. An inventory gateway routes natural-language requests to Oracle-backed specialists for relational risk analysis, SQL property graph traversal, spatial hotspot rendering, and approval-gated inventory actions. The runtime is deployed on the existing Google Cloud VM beside the original demo service, while <code>paulparkdb</code> remains the private, authoritative data plane.</p>
+  <p>The important architectural boundary is that A2A transports agent requests and results; it does not move the system of record into the model. Oracle AI Database owns the data, relationships, coordinates, and Select AI metadata. The Java service turns those governed results into A2A messages and PNG artifacts that Gemini Enterprise can display inline.</p>
+  <p>All implementation code, SQL, systemd units, agent cards, and the exact deployment runbook are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/oracle-ai-database-gcp-gemini">project source directory</a>.</p>
+
+  <figure>
+    <img src="images/gemini-a2a-architecture.svg" alt="Architecture showing Gemini Enterprise calling a public TLS A2A gateway on a GCP VM, which routes inventory, graph, spatial, and action requests to Oracle AI Database.">
+    <figcaption>The verified custom-agent path uses A2A v0.3 over public TLS. The managed Oracle AI Database Agent path is prepared separately and will use database identity, OAuth, and a narrow Select AI profile.</figcaption>
+  </figure>
+
+  <section id="status">
+    <h2>What Is Working Now—and What Is Still Pending</h2>
+    <div class="status-grid">
+      <article class="card verified">
+        <span class="pill">VERIFIED</span>
+        <h3>Custom A2A specialists</h3>
+        <p>Inventory, graph, spatial, and action agent cards are publicly reachable over trusted HTTPS. All four demo prompts complete against <code>paulparkdb</code>.</p>
+      </article>
+      <article class="card verified">
+        <span class="pill">VERIFIED</span>
+        <h3>Shared VM deployment</h3>
+        <p>The existing <code>e2-medium</code> has enough capacity. The original Java service stays on port 443; the new consolidated service runs independently on 8443 at roughly 180–250 MiB.</p>
+      </article>
+      <article class="card verified">
+        <span class="pill">VERIFIED</span>
+        <h3>Oracle data foundation</h3>
+        <p>The <code>FINANCIAL</code> schema contains the relational graph topology, risk summaries, geographic coordinates, and nine warehouse risk snapshots for the synthetic demo.</p>
+      </article>
+      <article class="card pending">
+        <span class="pill pending-pill">IN PROGRESS</span>
+        <h3>Managed database agent</h3>
+        <p>The ADMIN credential is restored and the narrow profile scripts are prepared. Google AI Studio is currently disabled by the Workspace organization, so the Google Select AI provider credential is not yet installed.</p>
+      </article>
+    </div>
+    <p class="callout"><strong>Baseline rule:</strong> “verified” means an actual external or database-backed test passed. Prepared scripts, UI configuration, and intended architecture remain labeled pending until exercised end to end.</p>
+  </section>
+
+  <section id="demo-flow">
+    <h2>The Four-Prompt Supply-Chain Flow</h2>
+    <p>The target interaction follows the public demo flow while using deterministic synthetic data owned by this environment:</p>
+    <ol>
+      <li>“Which products are at risk of stockouts next quarter, and which regions are driving that risk?”</li>
+      <li>“Which upstream suppliers and downstream warehouses are connected to SKU-500?”</li>
+      <li>“Show SKU-500 stockout hotspots on a map.”</li>
+      <li>“Suggest actions to reduce the stockout risk for SKU-500.”</li>
+    </ol>
+    <div class="flow">Gemini Enterprise
+  → inventory-system router
+      → Oracle inventory analysis
+      → graph specialist
+      → spatial specialist
+      → inventory-action coordinator
+  → text + structured data + PNG artifacts</div>
+    <p>The current risk query identifies SKU-500 as the highest-risk product, driven by the Northeast corridor. The graph path connects Vertex Plastics through Columbus Final Pack and the Port of Houston to Newark Inventory Hub. The spatial agent identifies Newark as the primary pressure node and DFW as the relief source. The action coordinator drafts a 500-unit DFW-to-Newark transfer but explicitly returns <code>PENDING_APPROVAL</code> and <code>NOT_EXECUTED</code>.</p>
+  </section>
+
+  <section id="agents">
+    <h2>One Runtime, Several A2A Agent Surfaces</h2>
+    <div class="agent-grid">
+      <article class="card"><h3>Inventory System Router</h3><p>Classifies inventory, graph, spatial, and action intent. It delegates general inventory questions to the managed Oracle agent when OAuth is available and otherwise uses the local Oracle SQL fallback.</p></article>
+      <article class="card"><h3>Graph Specialist</h3><p>Queries <code>SUPPLY_CHAIN_GRAPH</code> with SQL/PGQ when available and uses equivalent relational joins as a visible fallback. It returns the dependency explanation and a deterministic PNG.</p></article>
+      <article class="card"><h3>Spatial Specialist</h3><p>Combines warehouse coordinates with per-product hotspot metrics and renders a map artifact from database-backed data.</p></article>
+      <article class="card"><h3>Inventory Action Coordinator</h3><p>Combines risk, graph, and spatial evidence into a draft action. The reference implementation never converts the recommendation into an automatic database write.</p></article>
+      <article class="card"><h3>Select AI Specialist</h3><p>Targets a narrow <code>PAULPARK_SUPPLY_CHAIN_DEMO</code> profile. Until the provider credential is installed, inventory analysis uses explicit SQL over the same allowlisted demo objects.</p></article>
+      <article class="card"><h3>Oracle AI Database Agent</h3><p>The planned Marketplace agent authenticates each end user with Oracle database identity over OAuth and invokes the in-database <code>DBMS_CLOUD_AI_AGENT</code> team.</p></article>
+    </div>
+
+    <h3>Public registration cards</h3>
+    <table>
+      <tr><th>Agent</th><th>Agent-card URL</th><th>Verified output</th></tr>
+      <tr><td>Inventory system</td><td class="endpoint"><code>https://34.48.146.146:8443/inventory-system/.well-known/agent-card.json</code></td><td>Text and structured inventory response</td></tr>
+      <tr><td>Graph</td><td class="endpoint"><code>https://34.48.146.146:8443/graph/.well-known/agent-card.json</code></td><td>Dependency explanation + PNG</td></tr>
+      <tr><td>Spatial</td><td class="endpoint"><code>https://34.48.146.146:8443/spatial/.well-known/agent-card.json</code></td><td>Hotspot explanation + PNG</td></tr>
+      <tr><td>Inventory action</td><td class="endpoint"><code>https://34.48.146.146:8443/inventory-action/.well-known/agent-card.json</code></td><td>Approval-gated draft action</td></tr>
+    </table>
+
+    <h3>A2A request shape</h3>
+    <pre><code>{
+  "jsonrpc": "2.0",
+  "method": "message/send",
+  "params": {
+    "message": {
+      "kind": "message",
+      "messageId": "inventory-demo-001",
+      "role": "user",
+      "parts": [{
+        "kind": "text",
+        "text": "Which products are at risk of stockouts next quarter?"
+      }]
+    }
+  },
+  "id": 1
+}</code></pre>
+    <p>Each live card advertises A2A protocol version <code>0.3.0</code>, JSON-RPC transport, text input, and the output modes appropriate to that specialist. The graph and spatial cards advertise <code>image/png</code> so Gemini Enterprise can render their deterministic artifacts inline.</p>
+  </section>
+
+  <section id="database">
+    <h2>Model Risk, Geography, and Topology in One Oracle Database</h2>
+    <p>The demo schema intentionally separates primary entities, graph edges, risk summaries, and spatial attributes. This keeps each tool narrow while still allowing Oracle AI Database to answer cross-domain questions without copying data to a separate graph or geospatial store.</p>
+    <figure>
+      <img src="images/supply-chain-entity-model.svg" alt="Entity diagram for products, warehouses, suppliers, plants, ports, alerts, warehouse geography, inventory risk summaries, snapshots, and the property graph projection.">
+      <figcaption>The upper lane is the supply-chain topology projected into <code>SUPPLY_CHAIN_GRAPH</code>. The lower lane supports product risk, regional drill-down, hotspot rendering, and Select AI.</figcaption>
+    </figure>
+
+    <h3>Quarter-level product risk</h3>
+    <pre><code>CREATE TABLE sc_inventory_risk_summary (
+    product_id                   VARCHAR2(40) PRIMARY KEY
+        REFERENCES sc_products (product_id),
+    quarter_label                VARCHAR2(30) NOT NULL,
+    risk_level                   VARCHAR2(20) NOT NULL,
+    stockout_probability         NUMBER(6,4) NOT NULL,
+    at_risk_units                NUMBER(12),
+    projected_revenue_impact_usd NUMBER(14,2),
+    primary_region               VARCHAR2(100),
+    recommendation_summary       VARCHAR2(4000),
+    active_flag                  CHAR(1) DEFAULT 'Y' NOT NULL
+);</code></pre>
+
+    <h3>Warehouse hotspot and spatial attributes</h3>
+    <pre><code>CREATE TABLE sc_warehouse_risk_snapshot (
+    snapshot_id       NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    product_id        VARCHAR2(40) REFERENCES sc_products,
+    warehouse_id      NUMBER REFERENCES sc_warehouses,
+    hotspot_rank      NUMBER(3) NOT NULL,
+    hotspot_score     NUMBER(6,4) NOT NULL,
+    coverage_days     NUMBER(6,2),
+    backlog_units     NUMBER(12),
+    at_risk_units     NUMBER(12),
+    revenue_impact_usd NUMBER(14,2),
+    risk_level        VARCHAR2(20) NOT NULL,
+    recommended_role  VARCHAR2(30) NOT NULL
+);
+
+CREATE TABLE sc_warehouse_geo (
+    warehouse_id   NUMBER PRIMARY KEY REFERENCES sc_warehouses,
+    warehouse_code VARCHAR2(30) NOT NULL,
+    county_name    VARCHAR2(100) NOT NULL,
+    state_code     VARCHAR2(10) NOT NULL,
+    region_name    VARCHAR2(100) NOT NULL,
+    latitude       NUMBER(9,6) NOT NULL,
+    longitude      NUMBER(9,6) NOT NULL
+);</code></pre>
+
+    <h3>Oracle SQL property graph projection</h3>
+    <pre><code>CREATE PROPERTY GRAPH supply_chain_graph
+  VERTEX TABLES (
+    sc_suppliers   KEY (supplier_id)  LABEL supplier,
+    sc_plants      KEY (plant_id)     LABEL plant,
+    sc_ports       KEY (port_id)      LABEL port,
+    sc_warehouses  KEY (warehouse_id) LABEL warehouse,
+    sc_products    KEY (product_id)   LABEL product,
+    sc_alerts      KEY (alert_id)     LABEL alert
+  )
+  EDGE TABLES (
+    sc_supplier_plant    SOURCE KEY (supplier_id)  REFERENCES sc_suppliers
+                         DESTINATION KEY (plant_id) REFERENCES sc_plants,
+    sc_plant_port        SOURCE KEY (plant_id)     REFERENCES sc_plants
+                         DESTINATION KEY (port_id)  REFERENCES sc_ports,
+    sc_port_warehouse    SOURCE KEY (port_id)      REFERENCES sc_ports
+                         DESTINATION KEY (warehouse_id) REFERENCES sc_warehouses,
+    sc_warehouse_product SOURCE KEY (warehouse_id) REFERENCES sc_warehouses
+                         DESTINATION KEY (product_id) REFERENCES sc_products,
+    sc_alert_port        SOURCE KEY (alert_id)     REFERENCES sc_alerts
+                         DESTINATION KEY (port_id)  REFERENCES sc_ports
+  )
+  OPTIONS (TRUSTED MODE);</code></pre>
+    <p>The relational tables and seed data are installed. The Java agent first attempts SQL/PGQ and, if the property graph is not yet present, executes the equivalent relational joins and labels the response <code>database-relational-fallback</code>. The ADMIN preparation script grants only <code>CREATE PROPERTY GRAPH</code> and execute on the two Select AI packages to <code>FINANCIAL</code>.</p>
+  </section>
+
+  <section id="select-ai">
+    <h2>Keep the Select AI Boundary Narrow</h2>
+    <p>The prepared <code>PAULPARK_SUPPLY_CHAIN_DEMO</code> profile names only the tables, view, and property graph shown above. It does not expose the complete <code>FINANCIAL</code> or <code>ADMIN</code> schema.</p>
+    <pre><code>DBMS_CLOUD_AI.CREATE_PROFILE(
+  profile_name =&gt; 'PAULPARK_SUPPLY_CHAIN_DEMO',
+  attributes   =&gt; JSON_OBJECT(
+    'provider'        VALUE 'google',
+    'credential_name' VALUE 'GOOGLE_AI_CRED',
+    'model'           VALUE 'gemini-2.5-flash',
+    'object_list'     VALUE JSON_ARRAY(
+      JSON_OBJECT('owner' VALUE 'FINANCIAL', 'name' VALUE 'SC_PRODUCTS'),
+      JSON_OBJECT('owner' VALUE 'FINANCIAL', 'name' VALUE 'SC_WAREHOUSES'),
+      JSON_OBJECT('owner' VALUE 'FINANCIAL', 'name' VALUE 'SC_INVENTORY_RISK_DEMO_V'),
+      JSON_OBJECT('owner' VALUE 'FINANCIAL', 'name' VALUE 'SUPPLY_CHAIN_GRAPH')
+    )
+  )
+);</code></pre>
+    <p>The repository includes the full object list, a hidden-input credential script, and a <code>showsql</code> verification query. It also pins Oracle’s official Marketplace agent installer scripts to a known Git commit and verifies their SHA-256 digests before use.</p>
+
+    <div class="warning">
+      <strong>Current blocker:</strong> opening Google AI Studio as <code>paul.parkinson@oracle.com</code> returns “Service Not Allowed.” This means the Workspace organization has disabled AI Studio for the account. The preferred resolution is for the Workspace administrator to enable Google AI Studio for the user or organizational unit. A Cloud Console API key restricted to the Generative Language API may be another short-term route if organization policy permits it, but Google is moving Gemini API traffic to service-account-bound authorization keys; the durable choice should be agreed with the organization administrator.
+    </div>
+    <p>The Oracle AI Database Agent is not coupled to Google as its Select AI model provider. If organizational policy intentionally forbids AI Studio, the profile can instead use another Oracle-supported provider—such as OCI Generative AI, OpenAI, or Anthropic—without changing the A2A agent topology.</p>
+  </section>
+
+  <section id="managed-agent">
+    <h2>Add the Managed Oracle AI Database Agent</h2>
+    <p>The managed path complements the custom specialists. Gemini Enterprise supplies the user experience and agent invocation; Oracle performs NL2SQL and SQL execution under the user’s own database identity.</p>
+    <ol>
+      <li>Enable the database A2A server with the documented <code>adb$feature</code> free-form tag.</li>
+      <li>Register an OAuth client against the database registration endpoint using ADMIN and the Gemini redirect URI <code>https://vertexaisearch.cloud.google.com/oauth-redirect</code>.</li>
+      <li>Create and verify the narrow Select AI profile as <code>FINANCIAL</code>.</li>
+      <li>Run Oracle’s official <code>oracle_ai_database_agent_tool.sql</code> and <code>oracle_ai_database_agent.sql</code> installers.</li>
+      <li>Add the Oracle AI Database Agent from Google Cloud Marketplace and grant intended users Agent User access.</li>
+      <li>In Gemini Enterprise, authorize with the individual Oracle database username and password—not Google or OCI credentials.</li>
+    </ol>
+    <p class="note"><strong>Identity boundary:</strong> Gemini Enterprise does not grant extra database privileges. Oracle OAuth establishes the individual database identity, and the Select AI profile plus normal Oracle grants define the accessible data surface.</p>
+  </section>
+
+  <section id="deployment">
+    <h2>Deploy Beside Existing Workloads Without Resizing the VM</h2>
+    <p>The target environment already contained a Java service on port 443. Capacity checks showed approximately 2.9 GiB of available memory and 60 GiB of free disk, so a second VM was unnecessary. The new service is isolated under <code>/opt/oracle-gemini-supply-chain-a2a</code> and managed by its own systemd unit with a 1.4 GiB memory ceiling.</p>
+    <table>
+      <tr><th>Resource</th><th>Deployed value</th><th>Reason</th></tr>
+      <tr><td>Project / zone</td><td><code>adb-pm-prod</code> / <code>us-east4-a</code></td><td>Same network and environment as <code>paulparkdb</code></td></tr>
+      <tr><td>Compute</td><td><code>paulpark-instance</code>, <code>e2-medium</code></td><td>Sufficient measured headroom; no resize</td></tr>
+      <tr><td>Service port</td><td>8443</td><td>Preserves the original port-443 service</td></tr>
+      <tr><td>Firewall</td><td><code>allow-oracle-gemini-a2a-8443</code></td><td>Targets only the unique <code>oracle-gemini-a2a</code> VM tag</td></tr>
+      <tr><td>TLS</td><td>IP certificate with twice-daily renewal timer</td><td>Gemini Enterprise requires a publicly trusted HTTPS endpoint</td></tr>
+      <tr><td>Database connection</td><td>Fresh wallet, private endpoint, <code>FINANCIAL</code></td><td>Replaced a stale certificate-chain wallet without changing the old wallet</td></tr>
+    </table>
+    <p>The public firewall rule allows only TCP 8443 on the uniquely tagged instance. It is not attached to the broad <code>https-server</code> tag. Temporary deployment objects and credential staging files were deleted after the installed JAR and wallet were verified.</p>
+  </section>
+
+  <section id="verification">
+    <h2>Verification Evidence</h2>
+    <table>
+      <tr><th>Check</th><th>Observed result</th></tr>
+      <tr><td>Agent discovery</td><td>Inventory-system, graph, spatial, Select AI, action, and root cards all returned HTTP 200 internally.</td></tr>
+      <tr><td>Public cards</td><td>The four Gemini Enterprise registration cards returned HTTP 200 from outside the VM over trusted HTTPS.</td></tr>
+      <tr><td>Inventory risk</td><td>Completed using direct Oracle SQL fallback and returned SKU-500/700/900 with region and impact detail.</td></tr>
+      <tr><td>Graph</td><td>Completed with <code>database-relational-fallback</code>, produced the SKU-500 dependency chain, and returned a PNG artifact.</td></tr>
+      <tr><td>Spatial</td><td>Completed in <code>database</code> mode and returned a warehouse-hotspot PNG.</td></tr>
+      <tr><td>Action</td><td>Drafted a 500-unit transfer, <code>PENDING_APPROVAL</code>, <code>NOT_EXECUTED</code>.</td></tr>
+      <tr><td>Coexistence</td><td>Both Java services remained active: old service on 443 and new service on 8443.</td></tr>
+      <tr><td>Capacity</td><td>New JVM stabilized around 180–250 MiB with zero systemd restarts during verification.</td></tr>
+    </table>
+  </section>
+
+  <section id="security">
+    <h2>Security and Governance Choices</h2>
+    <ul>
+      <li>Secrets live only in ignored local files or protected root-owned VM configuration; no credential value is present in the repository.</li>
+      <li>The demo application connects as <code>FINANCIAL</code>, while ADMIN is reserved for narrow one-time grants, A2A registration, and official installer operations.</li>
+      <li>The Select AI profile uses an explicit object list rather than schema-wide exposure.</li>
+      <li>The custom action agent creates a draft and requires approval; it does not silently execute a transfer.</li>
+      <li>The public rule exposes only the required A2A TLS port on one uniquely tagged VM.</li>
+      <li>Fallback modes identify themselves in response metadata so operators can distinguish SQL/PGQ, relational, Select AI, and deterministic execution.</li>
+    </ul>
+  </section>
+
+  <section id="next">
+    <h2>Next Steps</h2>
+    <ol>
+      <li>Resolve the Workspace AI Studio restriction or choose another supported Select AI provider.</li>
+      <li>Run the prepared ADMIN grants, create <code>SUPPLY_CHAIN_GRAPH</code>, and verify SQL/PGQ mode.</li>
+      <li>Create the narrow Select AI credential/profile and test generated SQL before enabling the managed agent.</li>
+      <li>Enable the Oracle database A2A server, register OAuth, install the official in-database agent team, and add the Marketplace agent to Gemini Enterprise.</li>
+      <li>Capture the completed Gemini Enterprise experience and extend this baseline with screenshots and a short walkthrough video.</li>
+    </ol>
+  </section>
+
+  <section id="references">
+    <h2>References and Reproducible Assets</h2>
+    <ul>
+      <li><a href="https://blogs.oracle.com/developers/unlocking-data-insights-with-the-oracle-ai-database-agent-in-gemini-enterprise-part-1">Oracle: Unlocking Data Insights with the Oracle AI Database Agent in Gemini Enterprise, Part 1</a></li>
+      <li><a href="https://blogs.oracle.com/developers/unlocking-data-insights-with-the-oracle-ai-database-agent-in-gemini-enterprise-part-2">Oracle: extending the managed agent with ADK and A2A, Part 2</a></li>
+      <li><a href="https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/use-oracle-ai-database-agent-google-gemini-enterprise-application.html">Oracle documentation: Use Oracle AI Database Agent with Gemini Enterprise</a></li>
+      <li><a href="https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/expose-database-ai-agents-agent2agent-protocol.html">Oracle documentation: Expose database AI agents through A2A</a></li>
+      <li><a href="https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/select-ai-manage-profiles.html">Oracle documentation: Manage Select AI profiles</a></li>
+      <li><a href="https://docs.oracle.com/en/database/oracle/property-graph/23.1/spgdg/sql-ddl-statements-property-graphs.html">Oracle documentation: SQL property graph DDL and privileges</a></li>
+      <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent">Google documentation: Register and manage A2A agents</a></li>
+      <li><a href="https://ai.google.dev/gemini-api/docs/api-key">Google documentation: Gemini API keys and AI Studio project access</a></li>
+      <li><a href="https://github.com/oracle-devrel/oracle-autonomous-database-samples/tree/main/google-gemini-marketplace-agents/oracle_ai_database_agent">Oracle’s official Gemini Marketplace agent SQL installers</a></li>
+      <li><a href="docs/ADB_PM_PROD_REDEPLOYMENT.md">Exact <code>adb-pm-prod</code> deployment and completion runbook</a></li>
+      <li><a href="https://www.youtube.com/watch?v=lU8UAwmBMeQ">Original demo flow on YouTube</a></li>
+    </ul>
+  </section>
+
+  <p class="note"><strong>Demo-data note:</strong> product, supplier, risk, warehouse, and action values in this reference implementation are synthetic and intended to demonstrate integration patterns—not production planning recommendations.</p>
+</main>
+</body>
+</html>

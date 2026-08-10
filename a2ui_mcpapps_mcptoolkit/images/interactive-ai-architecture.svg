@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">Interactive AI architecture with AG-UI, A2UI, MCP Apps, and Oracle AI Database</title>
-  <desc id="desc">A browser uses AG-UI and A2UI with a Java agent service. ChatGPT uses a sandboxed MCP App, while Gemini Enterprise uses A2A with native A2UI. Every host reaches the same governed Oracle Database MCP Java Toolkit tools and Oracle AI Database transaction.</desc>
+  <desc id="desc">A browser uses AG-UI and A2UI with a Java agent service. ChatGPT, Claude, and Gemini Enterprise use a sandboxed MCP App, while Gemini Enterprise can also use A2A with native A2UI. Every host reaches the same governed Oracle Database MCP Java Toolkit tools and Oracle AI Database transaction.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#101820"/>
@@ -39,14 +39,14 @@
 
   <g filter="url(#shadow)">
     <rect x="55" y="365" width="260" height="120" rx="18" class="box"/>
-    <text x="78" y="403" class="label">ChatGPT / MCP host</text>
-    <text x="78" y="434" class="small">Sandboxed MCP App</text>
-    <text x="78" y="460" class="small">Dashboard + app-only approval</text>
+    <text x="78" y="403" class="label">MCP App hosts</text>
+    <text x="78" y="434" class="small">ChatGPT · Claude · Gemini Ent.</text>
+    <text x="78" y="460" class="small">Sandboxed portable dashboard</text>
   </g>
 
   <g filter="url(#shadow)">
     <rect x="55" y="505" width="260" height="105" rx="18" class="box"/>
-    <text x="78" y="543" class="label">Gemini Enterprise</text>
+    <text x="78" y="543" class="label">Gemini Enterprise native</text>
     <text x="78" y="574" class="small">A2A v0.3 + native A2UI v0.8</text>
     <text x="78" y="597" class="micro">DECLARATIVE HOST UI</text>
   </g>

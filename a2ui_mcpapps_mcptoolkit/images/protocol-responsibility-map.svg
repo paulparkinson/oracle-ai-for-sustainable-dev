@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
   <title id="title">Protocol responsibility map for MCP, A2A, AG-UI, A2UI, and MCP Apps</title>
-  <desc id="desc">A user-facing application communicates with a Java backend through AG-UI. A2UI renders native controls in the browser and Gemini Enterprise, while MCP Apps renders a sandboxed ChatGPT dashboard. MCP connects the backend to tools, and A2A connects Gemini Enterprise to its adapter. All paths reach Oracle AI Database.</desc>
+  <desc id="desc">A user-facing application communicates with a Java backend through AG-UI. A2UI renders native controls in the browser and Gemini Enterprise, while MCP Apps renders a sandboxed dashboard in ChatGPT, Claude, and Gemini Enterprise. MCP connects the backend to tools, and A2A connects Gemini Enterprise to its native adapter. All paths reach Oracle AI Database.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f9fafb"/>
@@ -52,7 +52,7 @@
     <rect x="720" y="162" width="255" height="118" rx="18" fill="#f4eef9" stroke="#b9a0d1" stroke-width="2"/>
     <text x="847" y="201" text-anchor="middle" class="heading">MCP Apps</text>
     <text x="847" y="232" text-anchor="middle" class="body">Sandboxed rich UI</text>
-    <text x="847" y="257" text-anchor="middle" class="body">ChatGPT dashboard · approval</text>
+    <text x="847" y="257" text-anchor="middle" class="body">ChatGPT · Claude · Gemini Ent.</text>
   </g>
 
   <g filter="url(#shadow)">

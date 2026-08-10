@@ -69,21 +69,31 @@ template. The runbook includes prerequisites, database startup, tunnel choices,
 current ChatGPT and Claude navigation, prompts, expected results, screenshot
 names, security rules, and a copy/paste prompt for the next ChatGPT session.
 
-Gemini Enterprise does not use this `ui://` application. It uses the sibling
-`../gemini-enterprise-a2a/` adapter, which exposes the same Java workflow over
-A2A and produces native A2UI v0.8 controls.
+Gemini Enterprise supports this same `ui://` application through a Custom MCP
+Server data store. Use a dedicated private Cloud Run service and grant its
+Discovery Engine service agent `roles/run.invoker`; do not make that service
+anonymous. The sibling `../gemini-enterprise-a2a/` adapter remains the
+alternative native path, exposing the workflow over A2A and producing A2UI
+v0.8 controls. See
+[`../docs/gemini-enterprise-mcp-app.md`](../docs/gemini-enterprise-mcp-app.md).
 
 For production, use HTTPS, authentication, an explicit origin policy,
 service-to-service authorization between the MCP App server and agent service,
 durable approval/idempotency storage, and durable user identity rather than
 the local loopback trust boundary.
 
-## Cloud Run deployment for ChatGPT
+## Cloud Run deployment
 
 The repository now includes a separate Cloud Run image and deployment script:
 
 ```powershell
 .\deploy\gcp\deploy-chatgpt-mcp.ps1
+```
+
+For Gemini Enterprise, deploy an independent private service:
+
+```powershell
+.\deploy\gcp\deploy-gemini-enterprise-mcp.ps1
 ```
 
 This service packages the MCP App, Java service, Oracle Database MCP Java

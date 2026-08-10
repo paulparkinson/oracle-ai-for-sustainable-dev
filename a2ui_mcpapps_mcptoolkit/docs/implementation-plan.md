@@ -11,7 +11,8 @@ Originally verified on 2026-07-20 against the upstream projects linked below; th
 | AG-UI | Current standardized lifecycle, text, tool-call, state, and `CUSTOM` events | Emit the official event names over SSE. Carry each A2UI envelope in a `CUSTOM` event named `a2ui.message`. Approval is application state, not an invented AG-UI event type. |
 | A2UI browser | v0.9.1 | Emit `createSurface`, `updateComponents`, and `updateDataModel` envelopes using the Basic Catalog ID. The browser renderer accepts only a small catalog and component allowlist. |
 | MCP Apps / ChatGPT | Stable 2026-01-26 extension; `@modelcontextprotocol/ext-apps` 1.7.4; `ui://` resource; `text/html;profile=mcp-app` | Keep the dashboard in a separate TypeScript package. The model-visible tool is read-only; approve and reject are app-only tools invoked after explicit interaction. |
-| Gemini Enterprise | Preview; A2A v0.3 compatibility; A2UI v0.8 only as of 2026-07-28 | Serve a separate A2A adapter with deterministic `beginRendering`, `surfaceUpdate`, and `dataModelUpdate` messages. Reuse the Java domain API and Oracle transaction; do not send the MCP App or v0.9.1 browser envelopes to Gemini Enterprise. |
+| Gemini Enterprise native UI | Preview; A2A v0.3 compatibility; A2UI v0.8 only as of 2026-07-28 | Serve a separate A2A adapter with deterministic `beginRendering`, `surfaceUpdate`, and `dataModelUpdate` messages. Reuse the Java domain API and Oracle transaction. |
+| Gemini Enterprise MCP App | Custom MCP Server data store; private Cloud Run invocation by the Discovery Engine service agent; Google OAuth web client with PKCE | Reuse the portable MCP App through a dedicated private service. Keep the model-visible tool read-only until actor-bound OAuth write semantics are tested. |
 
 ## Business decision: a governed recommendation, not an arbitrary action menu
 
@@ -70,7 +71,7 @@ agent-service -> Toolkit -> Oracle AI Database
 - The Java AG-UI SDK is community-maintained and has moved within the upstream monorepo. The baseline therefore uses the stable wire contract without taking a hard dependency on a volatile Java artifact.
 - A2UI v1.0 changes require a deliberate migration. The standalone renderer is fixed at v0.9.1, while Gemini Enterprise currently requires a separately tested v0.8 payload builder.
 - MCP Apps is an MCP extension and host support varies. The base web app works without it.
-- Gemini Enterprise A2UI support is Preview. It does not consume the MCP App resource, and its supported A2UI/A2A revisions can change independently.
+- Gemini Enterprise A2UI support is Preview and its supported A2UI/A2A revisions can change independently. Its Custom MCP Server path can separately consume the MCP App resource in a sandboxed iframe.
 - YAML cannot currently express a callable OUT parameter. The sequence-plus-input-only-procedure design avoids that requirement, but sequence gaps are expected and the exact Toolkit commit remains pinned and tested.
 - The pinned Toolkit/SDK combination can emit tool-list change notifications before stdio is ready when several tools register at startup. The checked-in patch disables only those dynamic stdio notifications; static discovery and calls remain enabled, and the agent checks the exact list before serving.
 - Oracle bind support in `FETCH FIRST :maximumRows ROWS ONLY` can vary by execution path. The demo uses `ROWNUM <= :maximumRows` in an outer query.

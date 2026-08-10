@@ -4,6 +4,7 @@ grabdish/inventory-micronaut/build/
 # Deployment artifacts
 .deployed/
 .deployed/*.yaml
+oracle-ai-database-gcp-gemini/.runtime/
 
 # Generated deployment files with sensitive data
 **/healthai-backend-springboot-deployment.yaml

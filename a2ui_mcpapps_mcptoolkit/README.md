@@ -6,8 +6,8 @@ This runnable reference application turns a stockout investigation into a govern
 - Oracle Database MCP Java Toolkit exposes five bounded supply-chain tools that can be reused by multiple agents and MCP-compatible clients.
 - The Java agent service streams official AG-UI events and carries A2UI v0.9.1 envelopes.
 - The browser validates and renders an allowlisted A2UI recommendation-and-approval surface.
-- A separate MCP App renders and explicitly approves the same Toolkit-backed recommendations inside ChatGPT and other compatible MCP Apps hosts.
-- A Gemini Enterprise adapter serves the same workflow over A2A v0.3 with the A2UI v0.8 messages its native renderer currently requires.
+- A separate MCP App renders the same Toolkit-backed recommendations inside ChatGPT, Claude, and Gemini Enterprise.
+- A Gemini Enterprise adapter also serves the workflow over A2A v0.3 with the A2UI v0.8 messages its native renderer currently requires.
 
 See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/implementation-plan.md`](docs/implementation-plan.md) for verified versions, compatibility risks, and the implementation design.
 
@@ -59,16 +59,16 @@ share a UI binary or transport:
 |---|---|---|
 | Standalone browser | AG-UI events over SSE | allowlisted A2UI v0.9.1 |
 | ChatGPT | MCP over Streamable HTTP | MCP Apps `ui://` HTML and host bridge |
-| Gemini Enterprise | A2A v0.3 endpoint | native A2UI v0.8 |
+| Gemini Enterprise (native) | A2A v0.3 endpoint | native A2UI v0.8 |
+| Gemini Enterprise (embedded app) | private MCP over Streamable HTTP | sandboxed MCP Apps `ui://` HTML |
 
-Gemini Enterprise does not need MCP Apps to provide the same governed
-recommendation-and-approval workflow. It renders native A2UI controls supplied
-by `gemini-enterprise-a2a/`. That adapter calls the same Java review, approval,
-and rejection APIs, which in turn use the same Toolkit tools and Oracle
-transaction. It is a transport/presentation adapter, not a second business
-implementation.
+Gemini Enterprise supports two complementary paths. It can render native A2UI
+controls supplied by `gemini-enterprise-a2a/`, or connect to the same sandboxed
+MCP App used by ChatGPT and Claude through a private Custom MCP Server data
+store. Both paths call the same Java APIs and Toolkit tools; neither is a second
+business implementation.
 
-## MCP App in ChatGPT and Claude
+## MCP App in ChatGPT, Claude, and Gemini Enterprise
 
 The port-8080 web application demonstrates AG-UI and A2UI; it does not embed the MCP App. The separate `mcp-app/` package demonstrates the MCP Apps extension inside a compatible host. `server.ts` registers the model-visible `show-inventory-transfer-dashboard` tool, the app-only approve and reject tools, and the `ui://oracle-supply-chain/inventory-exchange-v2` resource, while `src/mcp-app.ts` implements the dashboard.
 
@@ -115,7 +115,13 @@ For cross-machine ChatGPT or Claude validation, use the complete
 runbook and record sanitized evidence in
 [`docs/mcp-app-host-validation-results.md`](docs/mcp-app-host-validation-results.md).
 
-## Gemini Enterprise
+Gemini Enterprise uses a separate private Cloud Run deployment of the same MCP
+App. Its Discovery Engine service agent receives `roles/run.invoker`; end users
+authorize the Custom MCP Server data store through a Google OAuth web client.
+See [`docs/gemini-enterprise-mcp-app.md`](docs/gemini-enterprise-mcp-app.md) for
+the deployment, OAuth, data-store, action-enablement, and validation steps.
+
+## Gemini Enterprise native A2UI path
 
 Keep the Java service running and start the separate adapter:
 

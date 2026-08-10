@@ -4,6 +4,8 @@ This project contains the Oracle AI Database and Google Gemini A2A demo shown in
 
 The Java agent runtime is the implementation used in the live demo. The Python and Go agents are included as work in progress and reference implementations while they continue to evolve.
 
+[Read the implementation blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-gemini/blog.html), including the deployment architecture, database entity model, SQL setup, A2A agents, Gemini Enterprise registration, verification results, and remaining prerequisites.
+
 ## Watch The Demo
 
 [![Oracle AI Database Agent in Gemini Enterprise demo](https://img.youtube.com/vi/lU8UAwmBMeQ/hqdefault.jpg)](https://www.youtube.com/watch?v=lU8UAwmBMeQ)
@@ -42,6 +44,9 @@ The current demo flow is:
 - [oracle_agent_golang](./oracle_agent_golang/README.md): Go agent work in progress.
 
 Use the Java runtime when recreating the Google Next demo.
+
+For the active `adb-pm-prod` / `paulparkdb` reconciliation, follow
+[docs/ADB_PM_PROD_REDEPLOYMENT.md](./docs/ADB_PM_PROD_REDEPLOYMENT.md). It keeps the existing shared VM and database, starts with a read-only audit, and uses Oracle's pinned official in-database agent installer.
 
 ## Java Runtime Quick Start
 
@@ -113,7 +118,7 @@ The repo-level `.env` file holds shared settings used by the agent scripts:
 ```bash
 GOOGLE_GENAI_USE_VERTEXAI=true
 GOOGLE_CLOUD_PROJECT="your-gcp-project"
-GOOGLE_CLOUD_LOCATION="us-central1"
+GOOGLE_CLOUD_LOCATION="us-east4"
 PUBLIC_HOST="YOUR_PUBLIC_AGENT_HOST"
 PUBLIC_PROTOCOL="https"
 GRAPH_AGENT_PORT="443"
@@ -141,6 +146,7 @@ The graph and spatial paths are deterministic and image-first by default. Set `V
 Start here:
 
 - [docs/GEMINI_ENTERPRISE_AGENT_SETUP.md](./docs/GEMINI_ENTERPRISE_AGENT_SETUP.md): Gemini Enterprise import URLs, tested prompts, caveats, and expected behavior.
+- [docs/ADB_PM_PROD_REDEPLOYMENT.md](./docs/ADB_PM_PROD_REDEPLOYMENT.md): exact shared-VM and `paulparkdb` reconciliation runbook, including the managed Oracle AI Database Agent.
 - [oracle_agent_java/README.md](./oracle_agent_java/README.md): Java runtime, local build/run commands, HTTPS deployment, and agent card URLs.
 - [docs/DEMO_NOW_AND_NEXT.md](./docs/DEMO_NOW_AND_NEXT.md): current demo status and next steps.
 - [docs/GCP_INFRA_SETUP.md](./docs/GCP_INFRA_SETUP.md): GCP setup and migration guide.

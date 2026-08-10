@@ -1,7 +1,9 @@
 # Gemini Enterprise A2A/A2UI adapter
 
-Gemini Enterprise does not consume the MCP App `ui://` resource. Its native
-interactive-agent integration uses an A2A endpoint carrying A2UI messages.
+This native integration does not consume the MCP App `ui://` resource. It uses
+an A2A endpoint carrying A2UI messages. Gemini Enterprise can separately load
+the sibling MCP App through a Custom MCP Server data store; see
+[`../docs/gemini-enterprise-mcp-app.md`](../docs/gemini-enterprise-mcp-app.md).
 As of 2026-07-28, Gemini Enterprise supports A2A v0.3 streaming semantics and
 A2UI v0.8.
 
