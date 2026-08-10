@@ -7,6 +7,7 @@ import json
 import importlib.metadata
 import mimetypes
 import os
+import re
 import threading
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
@@ -28,6 +29,7 @@ from oracleagentmemory.core import (
 )
 
 from ar import ArExperienceService
+from deep_security import DeepDataSecurityService
 from park import DatabaseInspector, ParkExperienceService
 
 AGENT_ID = "FLYNNS_THEME_PARK_CONCIERGE"
@@ -107,6 +109,7 @@ class MagicMemoryService:
         )
         self.park = ParkExperienceService(self.pool)
         self.ar = ArExperienceService(self.pool, self.memory)
+        self.deep_security = DeepDataSecurityService()
         self.inspector = DatabaseInspector(self.pool)
         self.lock = threading.RLock()
         self.last_context: dict[str, Any] | None = None
@@ -292,6 +295,8 @@ class MagicMemoryService:
                         "pattern": "rainy-evening-reroute",
                         "successful": True,
                         "privacy_safe": True,
+                        "contains_direct_identifiers": False,
+                        "deidentification_method": "synthetic-generalized-demo-trace",
                     },
                 )
             self.events.append(
@@ -307,7 +312,7 @@ class MagicMemoryService:
                 "stage": "retain",
                 "message": (
                     "The SDK stored Ava's thread, four durable memories, "
-                    "one TTL-controlled fact, and three privacy-safe traces."
+                    "one TTL-controlled fact, and three synthetic traces for privacy review."
                 ),
             }
 
@@ -419,12 +424,13 @@ class MagicMemoryService:
                     "privacy_safe": True,
                 },
             )
-            if len(traces) < 3:
+            governed_traces = [trace for trace in traces if self._trace_is_shareable(trace)]
+            if len(governed_traces) < 3:
                 return {
                     "stage": "dream",
                     "message": (
-                        "At least three successful privacy-safe traces "
-                        "are required."
+                        "At least three successful traces must pass the "
+                        "de-identification and scope checks."
                     ),
                 }
             try:
@@ -444,55 +450,66 @@ class MagicMemoryService:
                 metadata={
                     "kind": "procedural",
                     "status": "pending",
-                    "source_episode_count": len(traces),
+                    "source_episode_count": len(governed_traces),
                     "private_guest_data_included": False,
+                    "privacy_review": "required-before-sharing",
                 },
             )
             self.events.append(
                 {
                     "stage": "dream",
                     "detail": (
-                        "metadata-filtered search found three successful traces; "
-                        "add_memory() stored a pending guideline."
+                        "Three unscoped synthetic traces passed identifier and "
+                        "scope checks; add_memory() stored a pending guideline."
                     ),
                 }
             )
             return {
                 "stage": "dream",
-                "sourceEpisodes": len(traces),
+                "sourceEpisodes": len(governed_traces),
                 "message": (
-                    "Three governed traces produced a pending procedural "
-                    "guideline with no private guest data."
+                    "Three governed traces passed the privacy gate and produced "
+                    "a pending guideline. Human approval is still required."
                 ),
             }
 
     def approve(self) -> dict[str, Any]:
         with self.lock:
-            self.memory.update_memory(
-                SKILL_ID,
-                metadata={
-                    "kind": "procedural",
-                    "status": "approved",
-                    "source_episode_count": 3,
-                    "private_guest_data_included": False,
-                    "approved_by": "demo.presenter@example.com",
-                    "approved_at": utc_iso(),
-                },
-            )
+            approver = "AVA"
+            deep_sec_enforced = self.deep_security.approve_guideline(approver)
+            if not deep_sec_enforced:
+                self.memory.update_memory(
+                    SKILL_ID,
+                    metadata={
+                        "kind": "procedural",
+                        "status": "approved",
+                        "source_episode_count": 3,
+                        "private_guest_data_included": False,
+                        "approved_by": approver,
+                        "approved_at": utc_iso(),
+                    },
+                )
             self.events.append(
                 {
                     "stage": "approve",
                     "detail": (
-                        "update_memory() promoted guideline metadata from "
-                        "pending to approved."
+                        "Ava's MEMORY_TRIP_ORGANIZER data role authorized the "
+                        "approval metadata update in Oracle AI Database."
+                        if deep_sec_enforced
+                        else "update_memory() promoted the guideline because the "
+                        "optional local Deep Data Security setup was unavailable."
                     ),
                 }
             )
             return {
                 "stage": "approve",
+                "deepDataSecurityEnforced": deep_sec_enforced,
                 "message": (
-                    "Human approval activated the shared guideline and "
-                    "recorded the approver in Oracle AI Agent Memory metadata."
+                    "Human approval activated the shared guideline under Ava's "
+                    "database-enforced organizer role."
+                    if deep_sec_enforced
+                    else "Human approval activated the shared guideline through "
+                    "the memory API; run the DDS bootstrap for database enforcement."
                 ),
             }
 
@@ -515,24 +532,45 @@ class MagicMemoryService:
                 record_types=["guideline"],
                 metadata_filter={"kind": "procedural", "status": "approved"},
             )
+            security = self.deep_security.state()
+            leo_identity = next(
+                (
+                    identity
+                    for identity in security.get("identities", [])
+                    if identity.get("id") == LEO_ID
+                ),
+                {},
+            )
+            database_leak_count = leo_identity.get("avaPrivateRows")
             self.events.append(
                 {
                     "stage": "next-day",
                     "detail": (
-                        "Exact Leo scope returned no Ava records; an explicit "
-                        "unscoped-user search returned the approved guideline."
+                        "Leo's DDS data role returned no Ava rows or raw traces; "
+                        "the approved shared guideline remained visible."
+                        if security.get("databaseEnforced")
+                        else "Exact Leo scope returned no Ava records; the "
+                        "approved shared guideline remained visible."
                     ),
                 }
             )
             self.last_next_day = {
                 "stage": "next-day",
                 "guestId": LEO_ID,
-                "privateAvaMemoriesVisible": len(private_results),
+                "privateAvaMemoriesVisible": (
+                    database_leak_count
+                    if database_leak_count is not None
+                    else len(private_results)
+                ),
+                "deepDataSecurityEnforced": security.get("databaseEnforced", False),
                 "approvedSharedSkills": [
                     result_to_dict(result) for result in shared
                 ],
                 "message": (
-                    "Leo can reuse the approved guideline while Ava's exact "
+                    "Leo can reuse the approved guideline while Oracle Deep "
+                    "Data Security filters Ava's private memory and raw traces."
+                    if security.get("databaseEnforced")
+                    else "Leo can reuse the approved guideline while Ava's exact "
                     "user-scoped memory remains unavailable."
                 ),
             }
@@ -629,6 +667,22 @@ class MagicMemoryService:
             max_results=20,
         )
 
+    @staticmethod
+    def _trace_is_shareable(result: Any) -> bool:
+        """Reject scoped traces or obvious direct identifiers before induction."""
+        record = result.record
+        metadata = record.metadata or {}
+        if record.user_id is not None:
+            return False
+        if not metadata.get("privacy_safe"):
+            return False
+        if metadata.get("contains_direct_identifiers") is not False:
+            return False
+        direct_identifier = re.compile(
+            r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b|\b\d{3}[-. ]\d{3}[-. ]\d{4}\b"
+        )
+        return direct_identifier.search(result.content) is None
+
     def capabilities(self) -> dict[str, Any]:
         return {
             "sdkVersion": importlib.metadata.version("oracleagentmemory"),
@@ -670,6 +724,8 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
             self._run(self.service.park.state)
         elif path == "/api/ar/state":
             self._run(self.service.ar.state)
+        elif path == "/api/security/state":
+            self._run(self.service.deep_security.state)
         elif path == "/api/database/tables":
             self._run(self.service.inspector.snapshot)
         else:
@@ -806,8 +862,9 @@ class MagicRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _cors_headers(self) -> None:
-        allowed = os.environ.get("AR_ALLOWED_ORIGIN", "*")
-        self.send_header("Access-Control-Allow-Origin", allowed)
+        allowed = os.environ.get("AR_ALLOWED_ORIGIN")
+        if allowed:
+            self.send_header("Access-Control-Allow-Origin", allowed)
 
 
 def main() -> None:

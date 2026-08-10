@@ -1,8 +1,8 @@
 1
 00:00:00,000 --> 00:00:08,000
-Follow Ava and Leo through durable memory, governed learning,
-accessible routing, transactional play, GraphRAG, and
-consented AR memory.
+Follow Ava and Leo through durable memory, Deep Data Security,
+governed learning, accessible routing, transactional play,
+GraphRAG, and consented AR memory.
 
 2
 00:00:08,000 --> 00:00:16,000
@@ -81,60 +81,60 @@ searches.
 
 14
 00:01:36,000 --> 00:01:44,000
-Learn from rainy visits: Click Dream. Three successful
-covered-route experiences produce a candidate rainy-evening
-rerouting guideline. Episodic traces become generalized
-procedural memory without copying private visitor details.
+Learn from rainy visits: Click Dream. Three synthetic,
+unscoped outcomes pass direct-identifier and scope checks
+before producing a pending rerouting guideline. The checks
+reduce risk but do not prove anonymity.
 
 15
 00:01:44,000 --> 00:01:51,000
-dream() recalls three successful de-identified traces and
-writes one generalized pending guideline without copying
-visitor-specific facts.
+dream() requires three successful traces, rejects scoped or
+identifier-bearing evidence, and writes one pending guideline
+for human review.
 
 16
 00:01:51,000 --> 00:01:58,000
-Three trace memories remain separate. A new pending guideline
-records the generalized rainy-evening rerouting procedure and
-source count.
+Three synthetic trace rows remain separate. A pending
+guideline records the generalized procedure, evidence count,
+and required privacy review.
 
 17
 00:01:58,000 --> 00:02:06,000
-Govern the lesson: Click Approve. A reviewer activates the
-rerouting guideline and records approval metadata. Human
-oversight prevents automatically inferred procedures from
-silently influencing future visitors.
+Govern the lesson: Click Approve. Ava acts as trip organizer.
+Oracle Deep Data Security authorizes the approval metadata
+update on the shared guideline; the participant role cannot
+perform it.
 
 18
 00:02:06,000 --> 00:02:13,000
-approve() updates only the pending guideline, adding approved
-status, reviewer identity, and approval time before shared
-reuse is allowed.
+approve_guideline() executes as Ava. MEMORY_TRIP_ORGANIZER
+permits the metadata update on eligible shared learning rows
+in Oracle AI Database.
 
 19
 00:02:13,000 --> 00:02:20,000
-The guideline's metadata changes from pending to approved.
-Reviewer and timestamp provenance make the governance decision
-inspectable.
+The live DDS panel proves role-specific visibility. Approval
+changes the guideline to approved and records Ava as approver
+under database enforcement.
 
 20
 00:02:20,000 --> 00:02:28,000
-Help Leo safely: Click Next guest. Leo encounters similar rain
-and receives the approved rerouting procedure, but none of
-Ava's private preferences. Shared learning remains separate
-from personal memory.
+Help Leo safely: Click Next guest and run the identity
+comparison. Leo receives the approved procedure, zero
+Ava-private rows, and zero raw traces. A deliberate query for
+Ava's rows is blocked in the database.
 
 21
 00:02:28,000 --> 00:02:35,000
-next_day() proves Leo's private scope cannot read Ava's
-records, then separately retrieves the approved shared
-guideline.
+The app runs the same table query as each end user. Data roles
+and CREATE DATA GRANT predicates determine the rows before
+results leave Oracle AI Database.
 
 22
 00:02:35,000 --> 00:02:42,000
-The database performs two scoped reads and changes no rows.
-Leo sees the approved lesson, while Ava's personal records
-remain outside his scope.
+The live proof shows Leo with one approved shared guideline,
+zero Ava-private rows, zero raw traces, and zero rows from the
+cross-user probe.
 
 23
 00:02:42,000 --> 00:02:50,000
@@ -308,6 +308,7 @@ constellation-mosaic result.
 
 50
 00:06:00,000 --> 00:06:09,000
-The experience combines scoped memory, human governance,
-graph, Spatial, vectors, transactions, gamification, and
-privacy-first AR without retraining model weights.
+The experience combines scoped memory, Deep Data Security,
+human governance, graph, Spatial, vectors, transactions,
+gamification, and privacy-first AR without retraining model
+weights.

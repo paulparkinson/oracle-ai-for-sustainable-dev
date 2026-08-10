@@ -16,6 +16,8 @@ It intentionally uses:
 - bounded retention through `MemoryRetentionConfig`;
 - metadata-filtered retrieval; and
 - a separately scoped, human-approved guideline.
+- a live Oracle Deep Data Security comparison using separate Ava organizer and
+  Leo participant data roles on the managed memory table.
 
 Compared with the current Java merge-request branch, the Python package still
 provides the more complete lifecycle surface: named memory/message update and
@@ -45,6 +47,11 @@ Open <http://127.0.0.1:8092>. In a second terminal:
 cd memory/python-agent
 ./smoke-test.sh
 ```
+
+For the database-enforced Ava versus Leo proof, run the one-time setup in
+`memory/deep-data-security` first. The browser's **Deep Data Security proof**
+panel executes the same memory query as each local end user and shows the rows
+returned by Oracle AI Database. The Leo cross-user probe must return zero.
 
 The same page includes an optional AR simulator. It starts a consent-scoped
 session, sends “remember this” observations through Oracle Agent Memory, and

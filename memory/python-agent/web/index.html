@@ -66,7 +66,7 @@
 
         <div class="metrics">
           <article><span id="memory-count">0</span><p>active Ava memories</p></article>
-          <article><span id="trace-count">0</span><p>privacy-safe traces</p></article>
+          <article><span id="trace-count">0</span><p>privacy-gated synthetic traces</p></article>
           <article><span id="skill-count">0</span><p>shared guidelines</p></article>
           <article class="isolation"><span id="leak-count">?</span><p>Ava memories visible to Leo</p></article>
         </div>
@@ -101,6 +101,24 @@
           </section>
         </div>
       </div>
+    </section>
+
+    <section class="security-lab" aria-labelledby="security-title">
+      <div class="security-heading">
+        <div>
+          <p class="eyebrow">Database-enforced memory boundary</p>
+          <h2 id="security-title">Prove isolation with Oracle Deep Data Security.</h2>
+          <p>The app runs the same memory query as Ava and Leo. Oracle AI Database applies each end user's data role before returning rows.</p>
+        </div>
+        <button id="refresh-security">Run identity comparison</button>
+      </div>
+      <div id="security-status" class="security-status">Checking Deep Data Security...</div>
+      <div class="security-grid" id="security-identities"></div>
+      <div class="security-probe" id="security-probe">
+        <b>Cross-user probe</b>
+        <span>Waiting for database evidence.</span>
+      </div>
+      <p class="security-boundary"><strong>Important:</strong> DDS enforces row and column access and approval authority. It does not automatically de-identify traces, detect every PII value, prevent poisoned examples, or make embeddings anonymous. The privacy gate, aggregation threshold, human review, TTL, and audit remain separate controls.</p>
     </section>
 
     <section class="quest-lab" aria-labelledby="quest-title">

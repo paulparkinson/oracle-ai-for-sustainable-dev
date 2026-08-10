@@ -24,6 +24,8 @@ document.querySelectorAll("[data-park-action]").forEach(button => {
 
 document.getElementById("refresh-database").addEventListener("click", () =>
   refreshDatabaseTables().catch(error => showDatabaseStatus(error.message)));
+document.getElementById("refresh-security").addEventListener("click", () =>
+  loadSecurityState().catch(error => renderSecurityError(error)));
 
 document.getElementById("ar-recording").addEventListener("change", updateArPrivacyBeacon);
 document.getElementById("ar-start").addEventListener("click", startArSession);
@@ -60,12 +62,50 @@ async function runAction(action, button) {
     setResult(titles[action], result.message);
     if (result.contextCard) renderContext(result.contextCard);
     await loadState();
-    await refreshDatabaseTables();
+    await Promise.all([refreshDatabaseTables(), loadSecurityState()]);
   } catch (error) {
     setResult("Action failed", error.message);
   } finally {
     buttons.forEach(value => value.disabled = false);
   }
+}
+
+async function loadSecurityState() {
+  const response = await fetch("/api/security/state");
+  const state = await response.json();
+  if (!response.ok) throw new Error(state.error || "Security proof unavailable");
+  const status = document.getElementById("security-status");
+  status.className = `security-status ${state.databaseEnforced ? "enforced" : "setup-required"}`;
+  status.textContent = state.message;
+  const identities = document.getElementById("security-identities");
+  identities.innerHTML = (state.identities || []).map(identity => {
+    const rows = (identity.rows || []).map(row => `
+      <li><b>${escapeHtml(row.RECORD_ID)}</b><span>${escapeHtml(row.MEMORY_TYPE)} · ${escapeHtml(row.USER_ID || "SHARED")}</span></li>
+    `).join("") || "<li><span>No rows visible.</span></li>";
+    const isolation = identity.id === "LEO"
+      ? `<strong>${identity.avaPrivateRows} Ava-private rows returned</strong>`
+      : `<strong>${identity.privateRows} own private rows returned</strong>`;
+    return `<article class="security-identity">
+      <header><span>${escapeHtml(identity.id)}</span><div><b>${escapeHtml(identity.role)}</b><small>${escapeHtml(identity.dataRole)}</small></div></header>
+      <p>${isolation}<span>${identity.rowCount} total authorized rows</span></p>
+      <ul>${rows}</ul>
+    </article>`;
+  }).join("") || `<article class="security-identity"><b>Setup required</b><p>${escapeHtml(state.detail || "Run the DDS bootstrap.")}</p></article>`;
+  const probe = state.crossUserProbe;
+  const probeRoot = document.getElementById("security-probe");
+  if (probe) {
+    probeRoot.className = `security-probe ${probe.blocked ? "blocked" : "warning"}`;
+    probeRoot.innerHTML = `<b>${probe.blocked ? "BLOCKED IN DATABASE" : "REVIEW REQUIRED"}</b><code>${escapeHtml(probe.sql)}</code><span>Executed as ${escapeHtml(probe.executedAs)} · ${probe.returnedRows} rows returned</span>`;
+  } else {
+    probeRoot.className = "security-probe warning";
+    probeRoot.innerHTML = "<b>NOT YET ENFORCED</b><span>Run the bootstrap, then restart the app.</span>";
+  }
+}
+
+function renderSecurityError(error) {
+  const status = document.getElementById("security-status");
+  status.className = "security-status setup-required";
+  status.textContent = error.message;
 }
 
 function setResult(title, text) {
@@ -370,7 +410,7 @@ async function initialize() {
     status.querySelector("span").textContent =
       `${health.sdk} · ${health.schema}@${health.database}`;
     document.getElementById("strategy").textContent = health.strategy;
-    await Promise.all([loadState(), loadParkState()]);
+    await Promise.all([loadState(), loadParkState(), loadSecurityState()]);
     await refreshDatabaseTables({ baseline: true });
     updateArPrivacyBeacon();
   } catch (error) {

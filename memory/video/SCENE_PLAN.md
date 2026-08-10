@@ -11,9 +11,9 @@ captions provide the complete explanation.
 | 2 | Recall and reuse Ava-scoped context for a personalized plan. | `recall()` | Scoped, ranked reads; no row changes. |
 | 3 | Correct fireworks to the lantern show. | `correct()` | Memory content and provenance updated. |
 | 4 | Expire the temporary garden-path closure. | `expire()` | TTL state updated; expired row excluded from recall. |
-| 5 | Generalize three rainy-route successes. | `dream()` | Pending shared guideline added beside source traces. |
-| 6 | Approve the candidate guideline. | `approve()` | Approval status, reviewer, and time updated. |
-| 7 | Help Leo without exposing Ava's private memory. | `next_day()` | Separate scoped reads; no row changes. |
+| 5 | Privacy-gate three synthetic rainy-route outcomes and propose a pending lesson. | `dream()` | Pending guideline added only after scope and identifier checks. |
+| 6 | Approve the candidate as Ava's organizer identity. | `approve_guideline()` | Deep Data Security authorizes the metadata update. |
+| 7 | Help Leo and run the cross-user attack probe. | `_rows_for()` and `next_day()` | Participant data grant returns one approved guideline, zero Ava rows, and zero raw traces. |
 | 8 | Reset quest results while preserving the park world. | `reset()` | Progress, badges, and reward audit cleared. |
 | 9 | Plan a covered, step-free route on the map. | `plan()` | Property Graph and Spatial reads; no row changes. |
 | 10 | Form the consent-bounded party and start the quest. | `start()` | Progress and `QUEST_STARTED` audit inserted transactionally. |

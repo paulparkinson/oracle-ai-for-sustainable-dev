@@ -12,6 +12,7 @@ for action in reset retain recall correct expire dream approve next-day; do
     "${BASE_URL}/api/actions/${action}"
 done
 curl -fsS "${BASE_URL}/api/state"
+curl -fsS "${BASE_URL}/api/security/state"
 curl -fsS "${BASE_URL}/api/park/state"
 for action in reset plan start complete-step complete-step complete-step graphrag; do
   curl -fsS -H 'Content-Type: application/json' -d '{}' \

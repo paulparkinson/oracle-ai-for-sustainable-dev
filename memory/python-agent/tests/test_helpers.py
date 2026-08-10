@@ -5,7 +5,7 @@ from pathlib import Path
 APP_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(APP_DIR))
 
-from app import result_to_dict, utc_iso  # noqa: E402
+from app import MagicMemoryService, result_to_dict, utc_iso  # noqa: E402
 from ar import ArExperienceService  # noqa: E402
 
 
@@ -23,6 +23,19 @@ class FakeRecord:
 class FakeResult:
     record = FakeRecord()
     content = "retrieved content"
+
+
+class FakeTraceRecord:
+    user_id = None
+    metadata = {
+        "privacy_safe": True,
+        "contains_direct_identifiers": False,
+    }
+
+
+class FakeTrace:
+    record = FakeTraceRecord()
+    content = "Covered connector and early dinner succeeded."
 
 
 class HelpersTest(unittest.TestCase):
@@ -44,6 +57,19 @@ class HelpersTest(unittest.TestCase):
         self.assertEqual("ar-session_1", ArExperienceService._identifier("ar-session_1", "id"))
         with self.assertRaises(ValueError):
             ArExperienceService._identifier("ar-session' OR 1=1", "id")
+
+    def test_privacy_gate_accepts_minimized_unscoped_trace(self):
+        self.assertTrue(MagicMemoryService._trace_is_shareable(FakeTrace()))
+
+    def test_privacy_gate_rejects_scoped_or_identifier_bearing_trace(self):
+        scoped = FakeTrace()
+        scoped.record = FakeTraceRecord()
+        scoped.record.user_id = "AVA"
+        self.assertFalse(MagicMemoryService._trace_is_shareable(scoped))
+
+        email = FakeTrace()
+        email.content = "Email ava@example.com after the covered route."
+        self.assertFalse(MagicMemoryService._trace_is_shareable(email))
 
 
 if __name__ == "__main__":
