@@ -200,6 +200,8 @@ END;
 /</code></pre>
     <p>The application schema owns the AI credential and profile. A database administrator performs only the prerequisites: package grants and a network ACL for the selected provider endpoint. This separation keeps daily agent execution away from the administrator account.</p>
     <p class="note"><strong>Provider portability:</strong> the A2A surface does not need to change when the Select AI provider changes. Create a separate profile for each approved provider, test generated SQL, and select the desired profile through protected runtime configuration.</p>
+    <p>In the verified OpenAI path, the database-owned profile generated SQL against the allowlisted supply-chain objects, and the public A2A agent reported <code>executionMode=select-ai</code> with <code>DBMS_CLOUD_AI.GENERATE</code> as its source. The application VM did not retain a direct OpenAI API key; model credentials remained inside Oracle AI Database.</p>
+    <p>One Oracle AI Database 26ai detail is worth capturing for repeatable automation: the public <code>DBMS_CLOUD</code> synonym can target a patch-versioned package object. The setup therefore discovers the synonym target before granting <code>EXECUTE</code>, instead of hard-coding a package suffix that will change with database updates.</p>
   </section>
 
   <section id="managed-agent">
