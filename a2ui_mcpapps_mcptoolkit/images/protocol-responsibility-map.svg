@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
   <title id="title">Protocol responsibility map for MCP, A2A, AG-UI, A2UI, and MCP Apps</title>
-  <desc id="desc">A user-facing application communicates with a Java backend through AG-UI. A2UI renders native controls in the browser and Gemini Enterprise, while MCP Apps renders a sandboxed dashboard in ChatGPT, Claude, and Gemini Enterprise. MCP connects the backend to tools, and A2A connects Gemini Enterprise to its native adapter. All paths reach Oracle AI Database.</desc>
+  <desc id="desc">A user-facing application communicates with a Java backend through AG-UI. A2UI renders native controls in capable hosts, while MCP Apps renders a sandboxed dashboard in MCP Apps-capable hosts. MCP connects the backend to tools, and A2A connects an A2A-capable host to its adapter. All paths reach Oracle AI Database.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f9fafb"/>
@@ -48,11 +48,11 @@
     <rect x="425" y="162" width="255" height="118" rx="18" fill="#eef7fb" stroke="#8ec9df" stroke-width="2"/>
     <text x="552" y="201" text-anchor="middle" class="heading">A2UI</text>
     <text x="552" y="232" text-anchor="middle" class="body">Declarative native UI</text>
-    <text x="552" y="257" text-anchor="middle" class="body">browser + Gemini Enterprise</text>
+    <text x="552" y="257" text-anchor="middle" class="body">A2UI-capable hosts</text>
     <rect x="720" y="162" width="255" height="118" rx="18" fill="#f4eef9" stroke="#b9a0d1" stroke-width="2"/>
     <text x="847" y="201" text-anchor="middle" class="heading">MCP Apps</text>
     <text x="847" y="232" text-anchor="middle" class="body">Sandboxed rich UI</text>
-    <text x="847" y="257" text-anchor="middle" class="body">ChatGPT · Claude · Gemini Ent.</text>
+    <text x="847" y="257" text-anchor="middle" class="body">MCP Apps-capable hosts</text>
   </g>
 
   <g filter="url(#shadow)">
@@ -84,8 +84,8 @@
     <rect x="1170" y="458" width="50" height="46" rx="12" fill="#7652a2" opacity=".16"/>
     <circle cx="1183" cy="479" r="5" fill="#7652a2"/><circle cx="1207" cy="479" r="5" fill="#7652a2"/>
     <path d="M1184 493 Q1195 501 1206 493" fill="none" stroke="#7652a2" stroke-width="4" stroke-linecap="round"/>
-    <text x="1195" y="535" text-anchor="middle" class="heading">Gemini Enterprise</text>
-    <text x="1195" y="565" text-anchor="middle" class="body">native A2UI host · A2A client</text>
+    <text x="1195" y="535" text-anchor="middle" class="heading">A2UI-capable host</text>
+    <text x="1195" y="565" text-anchor="middle" class="body">native renderer · A2A client</text>
   </g>
   <path d="M1060 520 C995 520 976 585 930 585" class="purpleFlow"/>
   <rect x="830" y="478" width="235" height="52" rx="26" class="pill"/>

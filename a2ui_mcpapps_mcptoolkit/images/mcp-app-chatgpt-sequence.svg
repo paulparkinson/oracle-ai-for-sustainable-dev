@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1550" viewBox="0 0 1600 1550" role="img" aria-labelledby="title desc">
-  <title id="title">MCP App request and approval sequence in ChatGPT</title>
-  <desc id="desc">A supply-chain planner asks ChatGPT for a dashboard. ChatGPT invokes the Node MCP App server, which calls the service. The host loads a ui resource in a sandboxed iframe. Selection updates model context, and approval travels through the host bridge and an app-only MCP tool to the governed database operation.</desc>
+  <title id="title">MCP App request and approval sequence</title>
+  <desc id="desc">A supply-chain planner asks an MCP Apps-capable host for a dashboard. The host invokes the Node MCP App server, which calls the service. The host loads a UI resource in a sandboxed iframe. Selection updates model context, and approval travels through the host bridge and an app-only MCP tool to the governed database operation.</desc>
   <defs>
     <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#167da6"/></marker>
     <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#008f83"/></marker>
@@ -9,7 +9,7 @@
     </style>
   </defs>
   <rect width="1600" height="1550" fill="#ffffff"/>
-  <text x="55" y="70" class="title">MCP App sequence: ChatGPT</text>
+  <text x="55" y="70" class="title">MCP App sequence</text>
   <text x="55" y="110" class="subtitle">The host loads supplied web code instead of interpreting an A2UI component declaration.</text>
 
   <g>
@@ -19,7 +19,7 @@
     <line x1="137" y1="195" x2="121" y2="214" stroke="#193653" stroke-width="3"/>
     <line x1="137" y1="195" x2="153" y2="214" stroke="#193653" stroke-width="3"/>
     <text x="137" y="240" class="actorText">Supply-chain planner</text>
-    <rect x="295" y="145" width="225" height="70" rx="10" class="actor"/><text x="407" y="176" class="actorText">ChatGPT host</text><text x="407" y="201" class="actorText">+ model</text>
+    <rect x="295" y="145" width="225" height="70" rx="10" class="actor"/><text x="407" y="176" class="actorText">MCP Apps host</text><text x="407" y="201" class="actorText">+ model</text>
     <rect x="565" y="145" width="225" height="70" rx="10" class="actor"/><text x="677" y="176" class="actorText">Node MCP App</text><text x="677" y="201" class="actorText">server</text>
     <rect x="835" y="145" width="225" height="70" rx="10" class="actor"/><text x="947" y="176" class="actorText">Sandboxed MCP</text><text x="947" y="201" class="actorText">App iframe</text>
     <rect x="1105" y="145" width="210" height="70" rx="10" class="actor"/><text x="1210" y="188" class="actorText">Agent service</text>
