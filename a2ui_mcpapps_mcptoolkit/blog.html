@@ -81,6 +81,29 @@
   "protocolVersion": "0.3.0"
 }</code></pre>
     <p><code>protocolVersion</code> identifies A2A v0.3. The extension URI advertises A2UI v0.8, and <code>supportedCatalogIds</code> identifies the standard component catalog the agent can produce. Because <code>required</code> is <code>false</code>, the extension is optional for the interaction rather than a requirement imposed on every A2A client. A local run can inspect the generated card with <code>curl -s http://127.0.0.1:3002/.well-known/agent-card.json</code>.</p>
+
+    <h3>Who Decides Whether to Return A2UI?</h3>
+    <p>Advertising A2UI support does not require every response to contain a UI. An agent implementation can choose text, A2UI, or both according to the request, workflow state, host capabilities, and product policy. That choice can be deterministic application routing, a constrained model decision, or a combination, but the host should still validate every A2UI message against the advertised version and catalog.</p>
+    <p>In this reference implementation, there is no LLM decision such as “this request needs a UI.” <code>SupplyChainExecutor.execute()</code> makes a deterministic routing decision:</p>
+    <pre><code>action = _extract_user_action(context)
+
+if action:
+    parts = await _handle_action(action)
+else:
+    review = await asyncio.to_thread(
+        _post_agent,
+        "/api/reviews",
+        query_parameters,
+    )
+    messages = review_messages(
+        review["recommendations"],
+        review["approvalId"],
+    )
+    parts = [
+        Part(root=TextPart(text=summary)),
+        *(create_a2ui_part(message) for message in messages),
+    ]</code></pre>
+    <p>A normal request therefore returns a short text summary plus an A2UI review surface chosen by <code>review_messages()</code>. An approve or cancel <code>userAction</code> returns text plus a smaller A2UI result surface from <code>result_messages()</code>. The current executor does not negotiate host capabilities before adding A2UI, so every successful workflow response contains both forms. A host that does not render the optional A2UI extension can still use the accompanying text part. If the workflow fails, the exception path returns a text error only. More generally, an agent that elects not to return A2UI can return ordinary A2A text or another supported A2A part or artifact.</p>
   </section>
 
   <section id="why-a2ui-now">
