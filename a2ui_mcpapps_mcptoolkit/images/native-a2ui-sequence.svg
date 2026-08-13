@@ -13,12 +13,17 @@
   <text x="70" y="110" class="subtitle">The agent sends declarative UI; Gemini Enterprise owns native rendering.</text>
 
   <g>
-    <rect x="40" y="145" width="240" height="68" rx="10" class="actor"/><text x="160" y="187" class="actorText">Supply-chain planner</text>
+    <circle cx="160" cy="154" r="13" fill="none" stroke="#193653" stroke-width="3"/>
+    <line x1="160" y1="167" x2="160" y2="195" stroke="#193653" stroke-width="3"/>
+    <line x1="141" y1="177" x2="179" y2="177" stroke="#193653" stroke-width="3"/>
+    <line x1="160" y1="195" x2="144" y2="214" stroke="#193653" stroke-width="3"/>
+    <line x1="160" y1="195" x2="176" y2="214" stroke="#193653" stroke-width="3"/>
+    <text x="160" y="240" class="actorText">Supply-chain planner</text>
     <rect x="350" y="145" width="240" height="68" rx="10" class="actor"/><text x="470" y="176" class="actorText">Gemini Enterprise</text><text x="470" y="201" class="actorText">host</text>
     <rect x="675" y="145" width="250" height="68" rx="10" class="actor"/><text x="800" y="176" class="actorText">A2A adapter +</text><text x="800" y="201" class="actorText">A2UI builder</text>
     <rect x="1010" y="145" width="230" height="68" rx="10" class="actor"/><text x="1125" y="187" class="actorText">Agent service</text>
     <rect x="1310" y="145" width="250" height="68" rx="10" class="actor"/><text x="1435" y="176" class="actorText">MCP Toolkit +</text><text x="1435" y="201" class="actorText">Oracle AI Database</text>
-    <line x1="160" y1="213" x2="160" y2="1320" class="lane"/><line x1="470" y1="213" x2="470" y2="1320" class="lane"/><line x1="800" y1="213" x2="800" y2="1320" class="lane"/><line x1="1125" y1="213" x2="1125" y2="1320" class="lane"/><line x1="1435" y1="213" x2="1435" y2="1320" class="lane"/>
+    <line x1="160" y1="250" x2="160" y2="1320" class="lane"/><line x1="470" y1="213" x2="470" y2="1320" class="lane"/><line x1="800" y1="213" x2="800" y2="1320" class="lane"/><line x1="1125" y1="213" x2="1125" y2="1320" class="lane"/><line x1="1435" y1="213" x2="1435" y2="1320" class="lane"/>
   </g>
 
   <line x1="160" y1="270" x2="470" y2="270" class="call"/><text x="315" y="255" class="label">Request transfers at risk</text>

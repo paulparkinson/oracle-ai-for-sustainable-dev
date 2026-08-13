@@ -58,6 +58,31 @@
     </ul>
   </section>
 
+  <section id="a2ui-agent-card">
+    <h2>The A2A Agent Explicitly Advertises A2UI Support</h2>
+    <p class="callout"><strong>The adapter publishes a dynamically generated agent card at <code>GET /.well-known/agent-card.json</code>. Its A2A protocol version and A2UI extension are separate declarations, so a host can discover both the communication contract and the supported UI capability before invoking the agent.</strong></p>
+    <p><code>build_agent_card()</code> in <code>gemini-enterprise-a2a/main.py</code> creates the live card. The following static representation shows the relevant fields:</p>
+    <pre><code>{
+  "capabilities": {
+    "streaming": true,
+    "extensions": [
+      {
+        "uri": "https://a2ui.org/a2a-extension/a2ui/v0.8",
+        "description": "Provides agent driven UI using the A2UI JSON format.",
+        "required": false,
+        "params": {
+          "supportedCatalogIds": [
+            "https://a2ui.org/specification/v0_8/standard_catalog_definition.json"
+          ]
+        }
+      }
+    ]
+  },
+  "protocolVersion": "0.3.0"
+}</code></pre>
+    <p><code>protocolVersion</code> identifies A2A v0.3. The extension URI advertises A2UI v0.8, and <code>supportedCatalogIds</code> identifies the standard component catalog the agent can produce. Because <code>required</code> is <code>false</code>, the extension is optional for the interaction rather than a requirement imposed on every A2A client. A local run can inspect the generated card with <code>curl -s http://127.0.0.1:3002/.well-known/agent-card.json</code>.</p>
+  </section>
+
   <section id="why-a2ui-now">
     <h2>Why Agent-Generated UI Needs a Runtime Contract</h2>
     <p>As the <a href="https://southleft.com/insights/ai/a2ui-how-ai-agents-build-real-user-interfaces/">Southleft A2UI overview</a> explains, agents increasingly need to present approval workflows, forms, comparisons, and visualizations rather than another chat bubble. The challenge is delivering an interface at runtime without treating unreviewed model output as trusted application code.</p>
@@ -416,23 +441,7 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
       <img src="images/a2a-a2ui-decoupled-deployment.png" alt="Diagram showing a valid decoupled deployment with a host, separate A2A agent, A2UI generation service, and backend connected in sequence.">
       <figcaption>A2UI generation can instead be a library, separate service, downstream agent, validated model step, or deterministic builder. The external version, catalog, message, and action contracts are what matter.</figcaption>
     </figure>
-    <p class="callout"><strong>The adapter advertises its A2UI capability through a dynamically generated agent card served at <code>GET /.well-known/agent-card.json</code>. The A2A protocol version and A2UI extension are separate declarations.</strong></p>
-    <pre><code>{
-  "capabilities": {
-    "streaming": true,
-    "extensions": [{
-      "uri": "https://a2ui.org/a2a-extension/a2ui/v0.8",
-      "required": false,
-      "params": {
-        "supportedCatalogIds": [
-          "https://a2ui.org/specification/v0_8/standard_catalog_definition.json"
-        ]
-      }
-    }]
-  },
-  "protocolVersion": "0.3.0"
-}</code></pre>
-    <p><code>protocolVersion</code> identifies A2A v0.3. The extension URI identifies A2UI v0.8, and <code>supportedCatalogIds</code> tells the host which trusted component catalog the adapter can produce. A local run can inspect the declaration with <code>curl -s http://127.0.0.1:3002/.well-known/agent-card.json</code>.</p>
+    <p>The agent card shown near the beginning of this article advertises the A2UI v0.8 extension and standard catalog that this co-located builder produces. A decoupled implementation would advertise the same external contract.</p>
 
     <h3>Connect the MCP App as a Custom MCP Server</h3>
     <p>Romain Lancelot's June 12, 2026 guide, <em>Running Interactive MCP Apps in Gemini Enterprise</em>, establishes the missing host path: deploy the standards-based MCP App directly to private Cloud Run, grant invocation only to the project's Discovery Engine service agent, and connect it as a Custom MCP Server data store. This requires no intermediary proxy and leaves the A2A/A2UI agent intact as a separate native option.</p>

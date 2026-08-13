@@ -13,13 +13,18 @@
   <text x="55" y="110" class="subtitle">The host loads supplied web code instead of interpreting an A2UI component declaration.</text>
 
   <g>
-    <rect x="25" y="145" width="225" height="70" rx="10" class="actor"/><text x="137" y="188" class="actorText">Supply-chain planner</text>
+    <circle cx="137" cy="154" r="13" fill="none" stroke="#193653" stroke-width="3"/>
+    <line x1="137" y1="167" x2="137" y2="195" stroke="#193653" stroke-width="3"/>
+    <line x1="118" y1="177" x2="156" y2="177" stroke="#193653" stroke-width="3"/>
+    <line x1="137" y1="195" x2="121" y2="214" stroke="#193653" stroke-width="3"/>
+    <line x1="137" y1="195" x2="153" y2="214" stroke="#193653" stroke-width="3"/>
+    <text x="137" y="240" class="actorText">Supply-chain planner</text>
     <rect x="295" y="145" width="225" height="70" rx="10" class="actor"/><text x="407" y="176" class="actorText">ChatGPT host</text><text x="407" y="201" class="actorText">+ model</text>
     <rect x="565" y="145" width="225" height="70" rx="10" class="actor"/><text x="677" y="176" class="actorText">Node MCP App</text><text x="677" y="201" class="actorText">server</text>
     <rect x="835" y="145" width="225" height="70" rx="10" class="actor"/><text x="947" y="176" class="actorText">Sandboxed MCP</text><text x="947" y="201" class="actorText">App iframe</text>
     <rect x="1105" y="145" width="210" height="70" rx="10" class="actor"/><text x="1210" y="188" class="actorText">Agent service</text>
     <rect x="1360" y="145" width="215" height="70" rx="10" class="actor"/><text x="1467" y="176" class="actorText">MCP Toolkit +</text><text x="1467" y="201" class="actorText">Oracle Database</text>
-    <line x1="137" y1="215" x2="137" y2="1500" class="lane"/><line x1="407" y1="215" x2="407" y2="1500" class="lane"/><line x1="677" y1="215" x2="677" y2="1500" class="lane"/><line x1="947" y1="215" x2="947" y2="1500" class="lane"/><line x1="1210" y1="215" x2="1210" y2="1500" class="lane"/><line x1="1467" y1="215" x2="1467" y2="1500" class="lane"/>
+    <line x1="137" y1="250" x2="137" y2="1500" class="lane"/><line x1="407" y1="215" x2="407" y2="1500" class="lane"/><line x1="677" y1="215" x2="677" y2="1500" class="lane"/><line x1="947" y1="215" x2="947" y2="1500" class="lane"/><line x1="1210" y1="215" x2="1210" y2="1500" class="lane"/><line x1="1467" y1="215" x2="1467" y2="1500" class="lane"/>
   </g>
 
   <line x1="137" y1="270" x2="407" y2="270" class="call"/><text x="272" y="255" class="label">Show transfer dashboard</text>
