@@ -58,6 +58,13 @@
     </ul>
   </section>
 
+  <section id="why-a2ui-now">
+    <h2>Why Agent-Generated UI Needs a Runtime Contract</h2>
+    <p>Agents increasingly need forms, comparisons, visualizations, and approval controls, but production applications should not execute arbitrary model-generated frontend code. Fixed widgets are safer yet too rigid for task-specific interfaces.</p>
+    <p>A2UI closes that gap with declarative JSON for components, layout, data bindings, and actions. The host validates the declaration and renders approved native components from its own catalog, preserving its design system and accessibility while rejecting unsupported capabilities.</p>
+    <p>This runtime contract lets interfaces appear and update during a conversation without code generation. In this application, the agent composes an inventory-transfer review while the host controls rendering and Oracle AI Database retains authority over the transaction.</p>
+  </section>
+
   <section id="responsibilities">
     <h2>Which Protocols Connect Which Responsibility?</h2>
     <p>MCP connects agents and applications to tools, A2A connects one agent or host to another agent, and A2UI describes a user interface for a trusted host renderer. AG-UI streams an agent run to a custom frontend, while MCP Apps add executable web interfaces to MCP tool results. They are complementary contracts, not interchangeable names for one process.</p>
@@ -127,21 +134,6 @@ else:
         *(create_a2ui_part(message) for message in messages),
     ]</code></pre>
     <p>A normal request therefore returns a short text summary plus an A2UI review surface chosen by <code>review_messages()</code>. An approve or cancel <code>userAction</code> returns text plus a smaller A2UI result surface from <code>result_messages()</code>. The current executor does not negotiate host capabilities before adding A2UI, so every successful workflow response contains both forms. A host that does not render the optional A2UI extension can still use the accompanying text part. If the workflow fails, the exception path returns a text error only. More generally, an agent that elects not to return A2UI can return ordinary A2A text or another supported A2A part or artifact.</p>
-  </section>
-
-  <section id="why-a2ui-now">
-    <h2>Why Agent-Generated UI Needs a Runtime Contract</h2>
-    <p>As the <a href="https://southleft.com/insights/ai/a2ui-how-ai-agents-build-real-user-interfaces/">Southleft A2UI overview</a> explains, agents increasingly need to present approval workflows, forms, comparisons, and visualizations rather than another chat bubble. The challenge is delivering an interface at runtime without treating unreviewed model output as trusted application code.</p>
-
-    <h3>The Problem with AI-Generated UI Today</h3>
-    <p>Three common approaches each leave a gap. Generating React or other source code is useful during development, but arbitrary model-generated code should not execute directly in production. Describing a desired interface still requires a developer to implement it. A fixed library of complete widgets is safe but cannot adapt when the conversation requires a slightly different combination.</p>
-
-    <h3>What A2UI Actually Is</h3>
-    <p>A2UI separates what the agent wants to show from how the host renders it. The agent returns a declarative JSON recipe describing component types, layout, data bindings, and actions. The host validates that data and maps each type to a pre-approved native component from its own design system. The same declaration can therefore preserve a host's styling and accessibility without letting the agent inject JavaScript, call undisclosed APIs, or request components outside the catalog.</p>
-    <p>A2UI is a runtime interaction protocol, unlike development tools that generate application code for review and deployment. Its component structure uses references between component IDs rather than deeply nesting every element. That flat graph is easier to generate incrementally and lets a renderer update the interface progressively as messages arrive. User actions travel back with explicit context, allowing the agent to update the surface or request a governed backend operation.</p>
-
-    <h3>Why This Matters Now</h3>
-    <p>Longer, more capable agent workflows need temporary task-specific interfaces: an approval card for one recommendation, a form for missing information, or a comparison assembled from the current conversation. A2UI lets those interfaces appear when needed while the host retains control of components, validation, rendering, and interaction boundaries. In this supply-chain exchange, that means the agent can compose a useful transfer review without generating frontend code or gaining authority over the Oracle transaction.</p>
   </section>
 
   <section id="ui-contract-choice">
