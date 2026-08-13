@@ -36,17 +36,51 @@
 <main>
   <p class="eyebrow">Oracle AI Database · Supply-chain AI · MCP · Agent-to-UI protocols</p>
   <h1>Develop A2UI and MCP Apps running in Gemini Enterprise, ChatGPT, and Claude, using Oracle AI Database and Java MCP Toolkit</h1>
-  <p class="subtitle">Find products at risk of stockout, explain the inventory factors, and approve a feasible transfer without giving an AI agent unrestricted SQL or write access.</p>
+  <p class="subtitle">Find products at risk of stockout, explain the inventory factors, and approve a feasible transfer through trusted native A2UI controls or a rich MCP App, without giving an AI agent unrestricted SQL or write access.</p>
 
   <p>How can an AI agent investigate stockout risk and safely initiate an inventory transfer? This runnable reference application uses Oracle AI Database to calculate feasible source-to-target recommendations from inventory, forecast, safety stock, and transfer-lane data. The Oracle Database MCP Java Toolkit exposes those recommendations as allowlisted tools, AG-UI streams the workflow, A2UI renders native approval controls, and a separate MCP App displays the same governed results in compatible conversational hosts.</p>
   <p>The key design choice is that the model and browser do not invent the transfer. Oracle SQL determines the product, source, target, and safe quantity. A person explicitly approves one returned recommendation, and an Oracle stored procedure locks both inventory positions and revalidates the quantities before it reserves stock and records the audited transfer.</p>
-  <p>I prefer the MCP Toolkit approach for this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. Every application database read and approved write uses the Toolkit; only the separate one-time schema installer connects directly through UCP.</p>
+  <p>The MCP Toolkit approach is perfectly suited to this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. Every application database read and approved write uses the Toolkit; only the separate one-time schema installer connects directly through UCP.</p>
   <p>All Java, JavaScript, TypeScript, SQL, YAML, security notes, and setup instructions are in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit">project folder on GitHub</a>.</p>
+
+  <section id="responsibilities">
+    <h2>Which Protocols Connect Which Responsibility?</h2>
+    <p>MCP connects agents and applications to tools, A2A connects one agent or host to another agent, and A2UI describes a user interface for a trusted host renderer. AG-UI streams an agent run to a custom frontend, while MCP Apps add executable web interfaces to MCP tool results. They are complementary contracts, not interchangeable names for one process.</p>
+    <table>
+      <tr><th>Layer</th><th>Primary job</th><th>In this application</th></tr>
+      <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, text, MCP tool activity, A2UI messages, state, and recoverable errors over SSE.</td></tr>
+      <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders trusted native components.</td><td>Describes inventory-transfer recommendation cards, notes, approve, and cancel controls with v0.9.1 envelopes.</td></tr>
+      <tr><td>MCP Apps</td><td>Return a rich HTML interface as a <code>ui://</code> resource for a host-controlled sandbox.</td><td>ChatGPT, Claude, and Gemini Enterprise can consume the same read-only recommendation dashboard.</td></tr>
+      <tr><td>MCP</td><td>Standardize how an AI application discovers and invokes tools and resources.</td><td>Connects the agent service to five governed Oracle Database operations.</td></tr>
+      <tr><td>A2A</td><td>Standardize agent discovery, requests, and results across hosts and agents.</td><td>Gemini Enterprise invokes the supply-chain adapter over A2A v0.3; that adapter returns A2UI v0.8 DataParts.</td></tr>
+      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities to agents and MCP-compatible clients.</td><td>Runs an exact allowlist of YAML-defined recommendation reads, ID reservation, procedure-backed approval, and verification.</td></tr>
+      <tr><td>Oracle AI Database</td><td>Remain the trusted system of record and execution layer.</td><td>Stores supply-chain state, computes recommendations, and enforces locking, transactions, authorization, and auditing.</td></tr>
+    </table>
+    <figure>
+      <img src="images/mcp-a2a-a2ui-contracts.png" alt="Comparison of MCP for tools, A2A for agent communication, and A2UI for declarative host-rendered user interfaces.">
+      <figcaption>Three complementary contracts: MCP exposes tools, A2A connects agents, and A2UI lets an agent declare controls that the host renders.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/protocol-responsibility-map.svg" alt="Protocol responsibility map showing AG-UI between the standalone browser and backend, MCP between the agent and governed tools, A2A between Gemini Enterprise and its adapter, A2UI in native host interfaces, MCP Apps in compatible conversational hosts, and Oracle AI Database below the Toolkit.">
+      <figcaption>MCP connects the service to tools, AG-UI connects the custom browser to the service, and A2A connects Gemini Enterprise to its hosted agent. A2UI and MCP Apps remain different UI rendering models.</figcaption>
+    </figure>
+    <p class="callout"><strong>Keep the boundaries clear:</strong> the Oracle Database MCP Java Toolkit is database-facing. Orchestration and approval policy belong in the agent service; A2UI rendering belongs in the host or web client; rich MCP App content belongs behind the host bridge.</p>
+  </section>
 
   <figure class="cover">
     <img src="images/interactive-ai-architecture.svg" alt="Architecture diagram showing a browser using AG-UI and A2UI, conversational hosts using an MCP App, and Gemini Enterprise also using A2A plus native A2UI, all reaching one Java service, Oracle Database MCP Java Toolkit, and Oracle AI Database transaction layer.">
-    <figcaption>The host adapter changes—AG-UI/A2UI, MCP Apps, or A2A/A2UI—but Oracle AI Database remains the authoritative inventory, feasibility, transaction, and audit layer. Gemini Enterprise supports both the MCP App and native A2UI paths.</figcaption>
+    <figcaption>The host adapter changes across AG-UI/A2UI, MCP Apps, and A2A/A2UI, but Oracle AI Database remains the authoritative inventory, feasibility, transaction, and audit layer. Gemini Enterprise supports both the MCP App and native A2UI paths.</figcaption>
   </figure>
+
+  <section id="ui-contract-choice">
+    <h2>Choose A2UI Consistency or MCP App Flexibility</h2>
+    <table>
+      <tr><th>UI contract</th><th>How it works</th><th>Advantage</th><th>Tradeoff</th></tr>
+      <tr><td><strong>A2UI: consistent and safe</strong></td><td>The agent returns a declarative JSON blueprint that the host maps to prebuilt, trusted native components such as React or Flutter widgets.</td><td>Native look and accessibility, predictable behavior, no agent-generated frontend code, and a host-controlled component allowlist.</td><td>Dynamism is scoped to the host catalog. The agent can compose and rearrange supported controls but cannot invent a new component or arbitrary JavaScript.</td></tr>
+      <tr><td><strong>MCP Apps: maximum flexibility</strong></td><td>An agent or MCP server returns an interactive HTML/JavaScript resource through a <code>ui://</code> pointer; the host renders it in a sandboxed iframe or mobile WebView.</td><td>Custom charts, maps, canvases, and complete mini-applications can travel with the MCP server without being prebuilt into every host frontend.</td><td>The sandbox adds overhead, Content Security Policy constraints, and a visual boundary that may not perfectly match the host's native interface.</td></tr>
+    </table>
+    <p>The practical choice is trust and consistency versus open-ended presentation. This project implements both over the same governed recommendation and approval workflow so the database rules do not change with the host.</p>
+  </section>
 
   <figure id="video-walkthrough">
     <div class="video-wrap">
@@ -64,8 +98,9 @@
     <ul>
       <li>Oracle AI Database computes deterministic inventory-transfer recommendations from governed operational data instead of asking the model to guess a movement.</li>
       <li>The Oracle Database MCP Java Toolkit exposes five bounded business operations that can be reused by multiple agents and MCP-compatible clients.</li>
-      <li>AG-UI streams agent progress and tool activity; A2UI describes trusted, client-rendered recommendation and approval controls.</li>
-      <li>ChatGPT and Claude in a regular browser render the MCP App end to end. Gemini Enterprise supports that same sandboxed MCP App through a Custom MCP Server data store as well as the already-validated native A2UI path delivered over A2A.</li>
+      <li>AG-UI streams agent progress and tool activity; A2UI safely composes recommendation and approval experiences from allowlisted native controls, preserving host styling, accessibility, and control over executable code.</li>
+      <li>MCP Apps maximize UI flexibility by packaging custom HTML, JavaScript, charts, maps, or mini-workflows as a portable <code>ui://</code> resource that compatible hosts isolate in a sandbox.</li>
+      <li>ChatGPT and Claude in a regular browser render the MCP App end to end. Gemini Enterprise supports that portable MCP App through a Custom MCP Server data store and a separate native A2UI path delivered over A2A.</li>
       <li>Approval is bound to the exact database recommendation, and the stored procedure revalidates it under locks before making an atomic write.</li>
     </ul>
   </section>
@@ -84,31 +119,21 @@
     <p>The agent can decide when to request recommendations and how to explain them. It cannot choose an arbitrary transfer quantity, execute generated SQL, create new UI capabilities, or substitute a different source and target after approval.</p>
   </section>
 
-  <section id="responsibilities">
-    <h2>What AG-UI, A2UI, MCP Apps, MCP, and A2A Each Solve</h2>
-    <table>
-      <tr><th>Layer</th><th>Primary job</th><th>In this application</th></tr>
-      <tr><td>AG-UI</td><td>Standardize events and shared state between an agent backend and a user-facing application.</td><td>Streams run lifecycle, text, MCP tool activity, A2UI messages, state, and recoverable errors over SSE.</td></tr>
-      <tr><td>A2UI</td><td>Describe UI structure and data declaratively so a client renders trusted native components.</td><td>Describes inventory-transfer recommendation cards, notes, approve, and cancel controls with v0.9.1 envelopes.</td></tr>
-      <tr><td>MCP Apps</td><td>Render rich HTML interfaces inside a host-controlled sandboxed iframe and communicate through the host bridge.</td><td>ChatGPT, Claude, and Gemini Enterprise can consume the same read-only recommendation dashboard. OAuth-protected app-only approve or reject actions remain a production follow-up.</td></tr>
-      <tr><td>MCP</td><td>Standardize how an AI application discovers and invokes tools and resources.</td><td>Connects the Java agent service to five governed Oracle Database operations.</td></tr>
-      <tr><td>A2A</td><td>Standardize agent discovery, requests, and results across hosts and agents.</td><td>Gemini Enterprise invokes the supply-chain adapter over A2A v0.3; that adapter returns A2UI v0.8 DataParts.</td></tr>
-      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities to agents and MCP-compatible clients.</td><td>Runs an exact allowlist of YAML-defined recommendation reads, ID reservation, procedure-backed approval, and verification.</td></tr>
-      <tr><td>Oracle AI Database</td><td>Remain the trusted system of record and execution layer.</td><td>Stores products, locations, positions, lanes, and transfers; computes recommendations and enforces locking, transactions, authorization, and auditing.</td></tr>
-    </table>
-    <figure>
-      <img src="images/protocol-responsibility-map.svg" alt="Protocol responsibility map showing AG-UI between the standalone browser and Java backend, MCP between the agent and governed tools, A2A between Gemini Enterprise and its adapter, A2UI in native host interfaces, MCP Apps in ChatGPT, and Oracle AI Database below the Toolkit.">
-      <figcaption>MCP connects the service to tools, AG-UI connects the custom browser to the service, and A2A connects Gemini Enterprise to its hosted agent. A2UI and MCP Apps remain different UI rendering models.</figcaption>
-    </figure>
-    <p class="callout"><strong>Keep the boundaries clear:</strong> the Oracle Database MCP Java Toolkit is database-facing. Orchestration and approval policy belong in the agent service; A2UI rendering belongs in the web client; rich MCP App content belongs behind the host bridge.</p>
-  </section>
-
   <section id="protocol-overlap">
     <h2>Where the Protocols Complement and Overlap</h2>
     <p>A2UI does not mandate one transport. This application carries each A2UI envelope in AG-UI's standard <code>CUSTOM</code> event named <code>a2ui.message</code>. AG-UI supplies lifecycle and state synchronization; A2UI supplies the declarative surface.</p>
     <p>The same principle gives Gemini Enterprise two presentation choices. Its native custom-agent path calls the application through A2A and currently expects A2UI v0.8. Its Custom MCP Server path invokes a private Cloud Run endpoint and renders the portable <code>ui://</code> application in a sandboxed iframe. The standalone browser remains on A2UI v0.9.1 over AG-UI. A host adapter selects the wire contract; it does not duplicate inventory rules or approval policy.</p>
     <p>A2UI and MCP Apps can both make an agent interaction visual, but they use different trust and rendering models. A2UI sends declarative components that this application maps to its own allowlisted design system. MCP Apps sends an HTML resource rendered by the host in a sandboxed iframe. “Sandboxed” is a characteristic of the MCP Apps host model, not merely a choice made for this test application.</p>
     <p>AG-UI and MCP both carry tool-related information in different relationships. MCP is the downstream agent-to-tool call. AG-UI is the upstream agent-to-user-interface account of that call, expressed here as <code>TOOL_CALL_START</code>, <code>TOOL_CALL_ARGS</code>, <code>TOOL_CALL_END</code>, and <code>TOOL_CALL_RESULT</code>.</p>
+    <figure>
+      <img src="images/three-ui-paths-shared-backend.png" alt="Component diagram showing Gemini Enterprise using a native A2UI adapter, ChatGPT and Claude using a Node MCP App, and a standalone browser using an application-specific web client, with all three paths converging on the same backend and Oracle AI Database.">
+      <figcaption>Three UI paths converge on one supply-chain backend. The sibling <code>oracle_agent_java</code> runtime exposes separate A2A agents and is not an implicit hop in these paths.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/a2ui-mcp-app-sequences.png" alt="Two sequence diagrams comparing a native A2UI request from Gemini Enterprise with an MCP App request from ChatGPT or Claude, both calling the service and Oracle Database MCP Toolkit.">
+      <figcaption>Native A2UI and MCP Apps reach the same business operation but assign rendering to different owners. Gemini renders A2UI DataParts; an MCP App host loads the returned <code>ui://</code> application.</figcaption>
+    </figure>
+    <p>The standalone <code>web-client</code> is intentionally application-specific. It validates allowlisted A2UI state and then constructs this exchange's HTML; it is not a general-purpose renderer equivalent to Gemini Enterprise's native A2UI host.</p>
   </section>
 
   <section id="database-model">
@@ -186,7 +211,7 @@ tools:
          ORDER BY stockout_risk_score DESC
       ) WHERE ROWNUM &lt;= :maximumRows</code></pre>
     <p><code>McpToolkitSupplyChainRepository</code> launches the pinned official Toolkit over stdio, completes MCP initialization, verifies the server identity, and requires the exact <code>supply-chain-exchange</code> allowlist. Built-in <code>read-query</code>, <code>write-query</code>, table, and administration tools are never enabled.</p>
-    <p class="note"><strong>Stdio compatibility:</strong> the pinned Toolkit revision can announce dynamic tool-list changes before its stdio transport is ready when several tools register at startup. The build applies a checked-in one-line patch that disables only those stdio list-change notifications. Static discovery and invocation remain enabled, and the agent fails closed unless all five expected tools—and no others—are present.</p>
+    <p class="note"><strong>Stdio compatibility:</strong> the pinned Toolkit revision can announce dynamic tool-list changes before its stdio transport is ready when several tools register at startup. The build applies a checked-in one-line patch that disables only those stdio list-change notifications. Static discovery and invocation remain enabled, and the agent fails closed unless all five expected tools, and no others, are present.</p>
   </section>
 
   <section id="ag-ui">
@@ -358,6 +383,34 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
     <h2>Use Both MCP Apps and Native A2UI in Gemini Enterprise</h2>
     <p>Gemini Enterprise provides two useful integration models for this application. The Custom MCP Server path consumes the same <code>ui://</code> HTML resource as ChatGPT and Claude and renders it in a secure sandboxed iframe. The existing custom-agent path uses A2A as the conversation transport and A2UI as declarative UI cargo. As of July 28, 2026, the native A2UI feature is Preview, supports A2A v0.3 compatibility, and renders A2UI v0.8 rather than the v0.9.1 envelopes used by this application's standalone browser.</p>
 
+    <h3>Separate A2A Transport from A2UI Presentation</h3>
+    <p>In this repository, <code>gemini-enterprise-a2a/main.py</code> co-locates the A2A endpoint, request executor, Java API client, and deterministic A2UI v0.8 builder in one process. That is a compact implementation choice, not a protocol requirement. A2A carries messages, tasks, artifacts, and DataParts between Gemini Enterprise and the remote agent; A2UI is the declarative presentation placed in those DataParts.</p>
+    <figure>
+      <img src="images/a2a-a2ui-colocated-adapter.png" alt="Diagram showing Gemini Enterprise sending an A2A request to one adapter process that contains the A2A endpoint and A2UI builder, then calls the supply-chain service.">
+      <figcaption>The demonstration co-locates A2A transport and A2UI generation because the builder is small and deterministic and the adapter can keep Gemini-specific UI versions out of the domain service.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/a2a-a2ui-decoupled-deployment.png" alt="Diagram showing a valid decoupled deployment with a host, separate A2A agent, A2UI generation service, and backend connected in sequence.">
+      <figcaption>A2UI generation can instead be a library, separate service, downstream agent, validated model step, or deterministic builder. The external version, catalog, message, and action contracts are what matter.</figcaption>
+    </figure>
+    <p>The adapter advertises this capability through a dynamically generated agent card served at <code>GET /.well-known/agent-card.json</code>. The A2A protocol version and A2UI extension are separate declarations:</p>
+    <pre><code>{
+  "capabilities": {
+    "streaming": true,
+    "extensions": [{
+      "uri": "https://a2ui.org/a2a-extension/a2ui/v0.8",
+      "required": false,
+      "params": {
+        "supportedCatalogIds": [
+          "https://a2ui.org/specification/v0_8/standard_catalog_definition.json"
+        ]
+      }
+    }]
+  },
+  "protocolVersion": "0.3.0"
+}</code></pre>
+    <p><code>protocolVersion</code> identifies A2A v0.3. The extension URI identifies A2UI v0.8, and <code>supportedCatalogIds</code> tells the host which trusted component catalog the adapter can produce. A local run can inspect the declaration with <code>curl -s http://127.0.0.1:3002/.well-known/agent-card.json</code>.</p>
+
     <h3>Connect the MCP App as a Custom MCP Server</h3>
     <p>Romain Lancelot's June 12, 2026 guide, <em>Running Interactive MCP Apps in Gemini Enterprise</em>, establishes the missing host path: deploy the standards-based MCP App directly to private Cloud Run, grant invocation only to the project's Discovery Engine service agent, and connect it as a Custom MCP Server data store. This requires no intermediary proxy and leaves the A2A/A2UI agent intact as a separate native option.</p>
     <pre><code>Gemini Enterprise Custom MCP Server
@@ -426,6 +479,10 @@ paulparkdb_tp in Oracle Database@Google Cloud</code></pre>
   <section id="transactional-approval">
     <h2>Bind Human Approval to One Exact Transfer</h2>
     <p>When the read completes, the agent service issues a short-lived approval ID bound to the actor and an immutable map of every returned recommendation. The browser posts only the approval ID, recommendation ID, and notes. It cannot replace the product, source, target, or quantity.</p>
+    <figure>
+      <img src="images/shared-approval-transaction.png" alt="Sequence diagram showing the service calling the Oracle Database MCP Java Toolkit, selecting eligible rows, invoking the approval procedure, locking and revalidating inventory, auditing the result, and committing the transaction.">
+      <figcaption>Every UI path converges at the same write boundary. Oracle AI Database, not the host or model, performs the authoritative lock, revalidation, audit, and atomic commit.</figcaption>
+    </figure>
     <p>The Toolkit's YAML schema does not currently express callable OUT parameters, so the write path first reserves a transfer ID from a sequence and then calls an input-only procedure. Inside the procedure, Oracle locks the source and target inventory positions in location order, recomputes current surplus and shortage, and rejects any quantity greater than the current safe amount:</p>
     <pre><code>v_safe_transfer_qty := LEAST(v_source_surplus, v_target_shortage);
 
