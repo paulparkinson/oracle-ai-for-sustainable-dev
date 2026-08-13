@@ -58,6 +58,29 @@
     </ul>
   </section>
 
+  <section id="responsibilities">
+    <h2>Which Protocols Connect Which Responsibility?</h2>
+    <p>MCP connects agents and applications to tools, A2A connects one agent or host to another agent, and A2UI describes a user interface for a trusted host renderer. AG-UI streams an agent run to a custom frontend, while MCP Apps add executable web interfaces to MCP tool results. They are complementary contracts, not interchangeable names for one process.</p>
+    <figure>
+      <img src="images/mcp-a2a-a2ui-contracts.png" alt="Comparison of MCP for tools, A2A for agent communication, and A2UI for declarative host-rendered user interfaces.">
+      <figcaption>Three complementary contracts: MCP exposes tools, A2A connects agents, and A2UI lets an agent declare controls that the host renders.</figcaption>
+    </figure>
+    <figure>
+      <img src="images/protocol-responsibility-map.svg" alt="Protocol responsibility map showing AG-UI between the standalone browser and backend, MCP between the agent and governed tools, A2A between a capable host and its adapter, A2UI in native host interfaces, MCP Apps in compatible hosts, and Oracle AI Database below the Toolkit.">
+      <figcaption>MCP connects the service to tools, AG-UI connects the custom browser to the service, and A2A connects a capable host to its agent. A2UI and MCP Apps remain different UI rendering models.</figcaption>
+    </figure>
+    <table>
+      <tr><th>Layer</th><th>Primary job</th><th>In this application</th></tr>
+      <tr><td>AG-UI</td><td>Stream events and shared state between an agent backend and a custom frontend.</td><td>Carries run lifecycle, text, MCP tool activity, A2UI messages, state, and errors over SSE.</td></tr>
+      <tr><td>A2UI</td><td>Describe UI structure and data so a host renders trusted native components.</td><td>Defines inventory cards, notes, approval, and cancel controls.</td></tr>
+      <tr><td>MCP Apps</td><td>Return a rich HTML interface as a <code>ui://</code> resource for a host sandbox.</td><td>Provides the portable recommendation dashboard for compatible conversational hosts.</td></tr>
+      <tr><td>MCP</td><td>Standardize discovery and invocation of tools and resources.</td><td>Connects the service to five governed Oracle Database operations.</td></tr>
+      <tr><td>A2A</td><td>Standardize agent discovery, requests, and results.</td><td>Carries host requests and A2UI v0.8 DataParts.</td></tr>
+      <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities.</td><td>Runs the exact YAML-defined allowlist of reads and procedure-backed writes.</td></tr>
+      <tr><td>Oracle AI Database</td><td>Remain the trusted data and execution layer.</td><td>Computes recommendations and enforces locking, transactions, authorization, and auditing.</td></tr>
+    </table>
+  </section>
+
   <section id="a2ui-agent-card">
     <h2>The A2A Agent Explicitly Advertises A2UI Support</h2>
     <p class="callout"><strong>The adapter publishes a dynamically generated agent card at <code>GET /.well-known/agent-card.json</code>. Its A2A protocol version and A2UI extension are separate declarations, so a host can discover both the communication contract and the supported UI capability before invoking the agent.</strong></p>
@@ -174,28 +197,6 @@ else:
     </figure>
     <p>The standalone <code>web-client</code> is intentionally application-specific. It validates allowlisted A2UI state and then constructs this exchange's HTML; it is not a general-purpose native A2UI renderer.</p>
 
-    <section id="responsibilities">
-      <h3>Which Protocols Connect Which Responsibility?</h3>
-      <p>MCP connects agents and applications to tools, A2A connects one agent or host to another agent, and A2UI describes a user interface for a trusted host renderer. AG-UI streams an agent run to a custom frontend, while MCP Apps add executable web interfaces to MCP tool results. They are complementary contracts, not interchangeable names for one process.</p>
-      <table>
-        <tr><th>Layer</th><th>Primary job</th><th>In this application</th></tr>
-        <tr><td>AG-UI</td><td>Stream events and shared state between an agent backend and a custom frontend.</td><td>Carries run lifecycle, text, MCP tool activity, A2UI messages, state, and errors over SSE.</td></tr>
-        <tr><td>A2UI</td><td>Describe UI structure and data so a host renders trusted native components.</td><td>Defines inventory cards, notes, approval, and cancel controls.</td></tr>
-        <tr><td>MCP Apps</td><td>Return a rich HTML interface as a <code>ui://</code> resource for a host sandbox.</td><td>Provides the portable recommendation dashboard for compatible conversational hosts.</td></tr>
-        <tr><td>MCP</td><td>Standardize discovery and invocation of tools and resources.</td><td>Connects the service to five governed Oracle Database operations.</td></tr>
-        <tr><td>A2A</td><td>Standardize agent discovery, requests, and results.</td><td>Carries host requests and A2UI v0.8 DataParts.</td></tr>
-        <tr><td>Oracle Database MCP Java Toolkit</td><td>Expose reusable Oracle Database capabilities.</td><td>Runs the exact YAML-defined allowlist of reads and procedure-backed writes.</td></tr>
-        <tr><td>Oracle AI Database</td><td>Remain the trusted data and execution layer.</td><td>Computes recommendations and enforces locking, transactions, authorization, and auditing.</td></tr>
-      </table>
-      <figure>
-        <img src="images/mcp-a2a-a2ui-contracts.png" alt="Comparison of MCP for tools, A2A for agent communication, and A2UI for declarative host-rendered user interfaces.">
-        <figcaption>Three complementary contracts: MCP exposes tools, A2A connects agents, and A2UI lets an agent declare controls that the host renders.</figcaption>
-      </figure>
-      <figure>
-        <img src="images/protocol-responsibility-map.svg" alt="Protocol responsibility map showing AG-UI between the standalone browser and backend, MCP between the agent and governed tools, A2A between a capable host and its adapter, A2UI in native host interfaces, MCP Apps in compatible hosts, and Oracle AI Database below the Toolkit.">
-        <figcaption>MCP connects the service to tools, AG-UI connects the custom browser to the service, and A2A connects a capable host to its agent. A2UI and MCP Apps remain different UI rendering models.</figcaption>
-      </figure>
-    </section>
     <p class="callout"><strong>Keep the boundaries clear:</strong> the Oracle Database MCP Java Toolkit is database-facing. Orchestration and approval policy belong in the agent service; A2UI rendering belongs in the host or web client; rich MCP App content belongs behind the host bridge.</p>
   </section>
 
@@ -344,6 +345,11 @@ registerAppTool(server, "approve-inventory-transfer", {
   _meta: { ui: { visibility: ["app"] } }
 }, approveExactReviewedTransfer);</code></pre>
     <p>The model-visible tool calls <code>/api/reviews</code> on the Java service. The service invokes the Toolkit's allowlisted read tool and binds a short-lived approval handle to the exact returned rows. The handle travels in widget-only result metadata rather than model-visible content. Selecting a card calls <code>updateModelContext</code>; approving or canceling calls an app-only tool that the model cannot invoke. The iframe receives neither wallet files nor database credentials.</p>
+  </section>
+
+  <section id="host-walkthroughs">
+    <h2>Full Setup and Runtime Walkthroughs for A2UI and MCP Apps</h2>
+    <p>The following walkthroughs show the validated host examples in detail: MCP Apps in ChatGPT and Claude, followed by native A2UI over A2A in Gemini Enterprise. These products demonstrate the two UI approaches without defining or limiting which capable hosts can implement them.</p>
   </section>
 
   <section id="chatgpt-mcp-app">
