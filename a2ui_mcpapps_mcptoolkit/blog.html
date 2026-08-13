@@ -52,16 +52,32 @@
     <h2>Key Takeaways</h2>
     <ul>
       <li>Oracle AI Database computes deterministic inventory-transfer recommendations; the Oracle Database MCP Java Toolkit exposes five bounded operations reusable by multiple agents and clients.</li>
-      <li>A2UI composes trusted native controls from an allowlist; MCP Apps package custom web experiences as portable <code>ui://</code> resources isolated by compatible hosts. AG-UI streams a custom frontend, while A2A connects Gemini Enterprise to its agent.</li>
+      <li>A2UI is a runtime protocol, not a code generator: an agent describes intent as validated JSON and the host renders approved native components from its own design system.</li>
+      <li>Rich agent tasks need interfaces beyond chat. A2UI provides safe, consistent composition; MCP Apps provide portable custom web experiences through sandboxed <code>ui://</code> resources.</li>
       <li>Every UI path binds approval to the exact database recommendation, which Oracle revalidates under locks before an atomic write.</li>
     </ul>
+  </section>
+
+  <section id="why-a2ui-now">
+    <h2>Why Agent-Generated UI Needs a Runtime Contract</h2>
+    <p>As the <a href="https://southleft.com/insights/ai/a2ui-how-ai-agents-build-real-user-interfaces/">Southleft A2UI overview</a> explains, agents increasingly need to present approval workflows, forms, comparisons, and visualizations rather than another chat bubble. The challenge is delivering an interface at runtime without treating unreviewed model output as trusted application code.</p>
+
+    <h3>The Problem with AI-Generated UI Today</h3>
+    <p>Three common approaches each leave a gap. Generating React or other source code is useful during development, but arbitrary model-generated code should not execute directly in production. Describing a desired interface still requires a developer to implement it. A fixed library of complete widgets is safe but cannot adapt when the conversation requires a slightly different combination.</p>
+
+    <h3>What A2UI Actually Is</h3>
+    <p>A2UI separates what the agent wants to show from how the host renders it. The agent returns a declarative JSON recipe describing component types, layout, data bindings, and actions. The host validates that data and maps each type to a pre-approved native component from its own design system. The same declaration can therefore preserve a host's styling and accessibility without letting the agent inject JavaScript, call undisclosed APIs, or request components outside the catalog.</p>
+    <p>A2UI is a runtime interaction protocol, unlike development tools that generate application code for review and deployment. Its component structure uses references between component IDs rather than deeply nesting every element. That flat graph is easier to generate incrementally and lets a renderer update the interface progressively as messages arrive. User actions travel back with explicit context, allowing the agent to update the surface or request a governed backend operation.</p>
+
+    <h3>Why This Matters Now</h3>
+    <p>Longer, more capable agent workflows need temporary task-specific interfaces: an approval card for one recommendation, a form for missing information, or a comparison assembled from the current conversation. A2UI lets those interfaces appear when needed while the host retains control of components, validation, rendering, and interaction boundaries. In this supply-chain exchange, that means the agent can compose a useful transfer review without generating frontend code or gaining authority over the Oracle transaction.</p>
   </section>
 
   <section id="ui-contract-choice">
     <h2>Choose A2UI Consistency or MCP App Flexibility</h2>
     <table>
       <tr><th>UI contract</th><th>How it works</th><th>Advantage</th><th>Tradeoff</th></tr>
-      <tr><td><strong>A2UI: consistent and safe</strong></td><td>The agent returns a declarative JSON blueprint that the host maps to prebuilt, trusted native components such as React or Flutter widgets.</td><td>Native look and accessibility, predictable behavior, no agent-generated frontend code, and a host-controlled component allowlist.</td><td>Dynamism is scoped to the host catalog. The agent can compose and rearrange supported controls but cannot invent a new component or arbitrary JavaScript.</td></tr>
+      <tr><td><strong>A2UI: consistent and safe</strong></td><td>The host renders the agent's validated declarative recipe with trusted native components.</td><td>Native appearance, accessibility, predictable behavior, and a host-controlled catalog.</td><td>The agent can compose supported controls but cannot invent a new component or arbitrary JavaScript.</td></tr>
       <tr><td><strong>MCP Apps: maximum flexibility</strong></td><td>An agent or MCP server returns an interactive HTML/JavaScript resource through a <code>ui://</code> pointer; the host renders it in a sandboxed iframe or mobile WebView.</td><td>Custom charts, maps, canvases, and complete mini-applications can travel with the MCP server without being prebuilt into every host frontend.</td><td>The sandbox adds overhead, Content Security Policy constraints, and a visual boundary that may not perfectly match the host's native interface.</td></tr>
     </table>
     <p>The practical choice is trust and consistency versus open-ended presentation. This project implements both over the same governed recommendation and approval workflow so the database rules do not change with the host.</p>
@@ -586,6 +602,7 @@ cd agent-service
       <li><a href="https://github.com/oracle/mcp/blob/main/src/oracle-db-mcp-java-toolkit/README.md">Oracle Database MCP Java Toolkit README</a></li>
       <li><a href="https://docs.ag-ui.com/introduction">AG-UI protocol overview</a></li>
       <li><a href="https://a2ui.org/">A2UI project and specification</a></li>
+      <li><a href="https://southleft.com/insights/ai/a2ui-how-ai-agents-build-real-user-interfaces/">Southleft: A2UI, How AI Agents Build Real User Interfaces</a></li>
       <li><a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a></li>
       <li><a href="https://modelcontextprotocol.io/extensions/apps/build">Build an MCP App</a></li>
       <li><a href="https://github.com/modelcontextprotocol/ext-apps/">Official MCP Apps SDK, examples, and basic host</a></li>
