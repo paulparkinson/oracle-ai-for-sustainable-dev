@@ -477,6 +477,35 @@ Oracle AI Database private service</code></pre>
       <figcaption>A live Oracle Database MCP Toolkit result rendered natively by Gemini Enterprise from A2UI v0.8 delivered over A2A v0.3.</figcaption>
     </figure>
     <p>For scheduled demonstrations, warm the Cloud Run service immediately beforehand or configure a minimum instance. Otherwise, the adapter, service, and Toolkit cold start can exceed the waiting request and produce an invalid SSE response.</p>
+
+    <h3>Demo Walkthrough</h3>
+    <p>Use the following sequence to demonstrate the native A2UI path without publishing project IDs, service URLs, database service names, or identities. Replace each angle-bracketed value from your private deployment notes.</p>
+    <p>On macOS, authenticate and warm the private service immediately before presenting:</p>
+    <pre><code>gcloud auth login &lt;GOOGLE_ACCOUNT&gt;
+gcloud config set account &lt;GOOGLE_ACCOUNT&gt;
+gcloud config set project &lt;GOOGLE_CLOUD_PROJECT&gt;
+
+SERVICE_URL=$(gcloud run services describe &lt;CLOUD_RUN_SERVICE&gt; \
+  --project=&lt;GOOGLE_CLOUD_PROJECT&gt; \
+  --region=&lt;GOOGLE_CLOUD_REGION&gt; \
+  --format='value(status.url)')
+
+IDENTITY_TOKEN=$(gcloud auth print-identity-token)
+curl --fail --silent --show-error \
+  -H "Authorization: Bearer ${IDENTITY_TOKEN}" \
+  "${SERVICE_URL}/.well-known/agent-card.json"</code></pre>
+    <table>
+      <tr><th>Step</th><th>Action</th><th>What to explain</th><th>Expected result</th></tr>
+      <tr><td>1</td><td>Authenticate with Google Cloud, select <code>&lt;GOOGLE_CLOUD_PROJECT&gt;</code>, and retrieve <code>&lt;CLOUD_RUN_SERVICE_URL&gt;</code>.</td><td>The A2A/A2UI adapter is a private Cloud Run service. No database endpoint or credential is exposed to the host.</td><td>The service description reports a ready revision.</td></tr>
+      <tr><td>2</td><td>Warm <code>&lt;CLOUD_RUN_SERVICE_URL&gt;/.well-known/agent-card.json</code> with a Google identity token.</td><td>The agent card advertises A2A v0.3 separately from the optional A2UI v0.8 extension and supported catalog.</td><td>The authenticated request returns HTTP 200 and the agent card; an anonymous request remains denied.</td></tr>
+      <tr><td>3</td><td>Open the <code>&lt;GEMINI_ENTERPRISE_APP&gt;</code> application and select <code>&lt;REGISTERED_A2A_AGENT&gt;</code> under <em>From your organization</em>.</td><td>Gemini Enterprise is the A2A client and native A2UI renderer. The remote adapter owns the domain-specific response construction.</td><td>The custom agent opens and is ready for a prompt.</td></tr>
+      <tr><td>4</td><td>Enter: <q>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations.</q></td><td>Gemini Enterprise sends an A2A request. The adapter calls the application service, which invokes an allowlisted Oracle Database MCP Java Toolkit tool.</td><td>The response contains text plus A2UI DataParts rather than generated frontend code.</td></tr>
+      <tr><td>5</td><td>Inspect the recommendation card, metrics, rationale, notes field, and action buttons.</td><td>The host maps the declared A2UI components to trusted native controls from its supported catalog.</td><td>The card shows the governed recommendation returned by Oracle AI Database.</td></tr>
+      <tr><td>6</td><td>Select <em>Cancel without writing</em>.</td><td>The A2UI <code>userAction</code> returns through A2A, but the application deliberately performs no database write.</td><td>The result surface confirms cancellation.</td></tr>
+      <tr><td>7</td><td>Run the same prompt again, enter an approval note, and select the exact recommendation's approval button.</td><td>The UI sends only the short-lived approval handle, recommendation ID, and note. It cannot substitute the product, locations, or quantity.</td><td>The adapter forwards the action to the governed approval API.</td></tr>
+      <tr><td>8</td><td>Show the completion result and, if available, the corresponding audit row.</td><td>The Toolkit invokes the stored procedure. Oracle AI Database locks and revalidates inventory, writes the audited action, and commits atomically.</td><td>The native result surface displays the transfer ID and completion status.</td></tr>
+    </table>
+    <p class="note"><strong>Safe presentation practice:</strong> keep browser address bars, Cloud console resource URLs, project and agent IDs, identity tokens, wallet paths, and database service names outside screenshots and screen sharing. Never paste an identity token or database password into Gemini Enterprise.</p>
   </section>
 
   <section id="transactional-approval">
@@ -521,7 +550,7 @@ cd agent-service
   </section>
 
   <section id="walkthrough">
-    <h2>Walk Through the Application End to End</h2>
+    <h2>Run the Application Locally End to End</h2>
     <ol>
       <li><strong>Prepare the database.</strong> Run <code>agent-service/setup-database.sh</code>. The installer creates four locations, five products, twenty inventory positions, twelve lanes, the recommendation view, the transfer sequence, and the input-only approval procedure.</li>
       <li><strong>Start the Java service and Toolkit.</strong> Run <code>agent-service/run.sh</code>. <code>McpToolkitSupplyChainRepository</code> starts the Toolkit over stdio, completes MCP initialization, verifies its identity and exact tool allowlist, and exposes the web client and API.</li>
