@@ -479,7 +479,7 @@ Oracle AI Database private service</code></pre>
     <p>For scheduled demonstrations, warm the Cloud Run service immediately beforehand or configure a minimum instance. Otherwise, the adapter, service, and Toolkit cold start can exceed the waiting request and produce an invalid SSE response.</p>
 
     <h3>Demo Walkthrough</h3>
-    <p>Use the following sequence to demonstrate the native A2UI path without publishing project IDs, service URLs, database service names, or identities. Replace each angle-bracketed value from your private deployment notes.</p>
+    <p>Use the following sequence to demonstrate the native A2UI path without publishing project IDs, service URLs, database service names, or identities. Replace each angle-bracketed value from your private deployment notes. Select the registered custom agent before entering the prompt: Core Assistant does not automatically delegate to every agent listed or pinned in the application.</p>
     <p>On macOS, authenticate and warm the private service immediately before presenting:</p>
     <pre><code>gcloud auth login &lt;GOOGLE_ACCOUNT&gt;
 gcloud config set account &lt;GOOGLE_ACCOUNT&gt;

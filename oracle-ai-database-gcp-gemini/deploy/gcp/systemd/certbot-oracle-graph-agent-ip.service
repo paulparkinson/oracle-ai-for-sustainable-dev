@@ -5,4 +5,4 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/certbot renew --cert-name oracle-graph-agent-ip --non-interactive --quiet
+ExecStart=/usr/local/bin/certbot renew --cert-name oracle-graph-agent-ip --non-interactive --quiet --no-random-sleep-on-renew
