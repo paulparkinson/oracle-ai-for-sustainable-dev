@@ -4,7 +4,9 @@ param(
     [string]$WalletDirectory =
         "C:\Users\paulp\Downloads\Wallet_PAULPARKDB",
     [string]$WalletSecret = "a2ui-paulparkdb-wallet",
-    [string]$DatabasePasswordSecret = "a2ui-paulparkdb-financial-password"
+    [string]$DatabasePasswordSecret = "a2ui-paulparkdb-financial-password",
+    [string]$RestrictedDatabasePasswordSecret =
+        "a2ui-paulparkdb-environmental-planner-password"
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,6 +38,7 @@ Invoke-Gcloud services enable secretmanager.googleapis.com --project=$ProjectId
 
 Ensure-Secret $WalletSecret
 Ensure-Secret $DatabasePasswordSecret
+Ensure-Secret $RestrictedDatabasePasswordSecret
 
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) (
     "a2ui-gcp-secrets-" + [guid]::NewGuid().ToString("N"))
@@ -60,6 +63,19 @@ try {
     Invoke-Gcloud secrets versions add $DatabasePasswordSecret `
         --project=$ProjectId `
         --data-file=$passwordFile
+
+    $restrictedSecurePassword = Read-Host `
+        "Enter the ENVIRONMENTAL_PLANNER password for paulparkdb" `
+        -AsSecureString
+    $restrictedCredential = [pscredential]::new(
+        "ENVIRONMENTAL_PLANNER", $restrictedSecurePassword)
+    [IO.File]::WriteAllText(
+        $passwordFile,
+        $restrictedCredential.GetNetworkCredential().Password,
+        [Text.UTF8Encoding]::new($false))
+    Invoke-Gcloud secrets versions add $RestrictedDatabasePasswordSecret `
+        --project=$ProjectId `
+        --data-file=$passwordFile
 }
 finally {
     if (Test-Path -LiteralPath $passwordFile) {
@@ -73,4 +89,4 @@ finally {
     }
 }
 
-Write-Host "Wallet and database password versions are staged in Secret Manager."
+Write-Host "Wallet and both database password versions are staged in Secret Manager."

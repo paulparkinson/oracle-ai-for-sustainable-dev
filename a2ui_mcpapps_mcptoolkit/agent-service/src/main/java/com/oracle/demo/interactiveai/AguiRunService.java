@@ -101,12 +101,17 @@ public final class AguiRunService {
                         "minimumStockoutRisk", minimumStockoutRisk)));
         a2ui(output, A2uiPayloads.createSurface());
         a2ui(output, A2uiPayloads.components());
-        a2ui(output, A2uiPayloads.data(recommendations, approvalId));
+        a2ui(output, A2uiPayloads.data(
+                recommendations,
+                approvalId,
+                repository.writesAllowed()));
         send(output, Map.of(
                 "type", "TEXT_MESSAGE_CONTENT",
                 "messageId", messageId,
                 "delta",
-                "Select one database-calculated transfer recommendation and explicitly approve or cancel it."));
+                repository.writesAllowed()
+                        ? "Select one database-calculated transfer recommendation and explicitly approve or cancel it."
+                        : "Oracle Deep Data Security returned only the product category authorized for this read-only identity."));
         send(output, Map.of(
                 "type", "TEXT_MESSAGE_END",
                 "messageId", messageId));

@@ -13,19 +13,25 @@ See [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) for the requirements and [`docs/imple
 
 ## Run through the Oracle Database MCP Java Toolkit
 
-The default runtime uses the same `financialdb_high` database alias and `FINANCIAL` schema as the observability demo. It requires JDK 21, Maven 3.9+, Git, and network access for the first Toolkit build.
+The runtime uses an Oracle AI Database 26ai service and the `FINANCIAL` schema. It requires JDK 21, Maven 3.9+, Git, and network access for the first Toolkit build. Deep Data Security uses a second locally managed end user, so no external IAM or Entra propagation is required.
 
 ```bash
 cp .env.example .env
-# Edit .env: set the wallet path and DB_PASSWORD.
+# Edit .env: set the wallet, DB_PASSWORD, DB_USERNAME2, DB_PASSWORD2,
+# DB_ADMIN_USERNAME, and DB_ADMIN_PASSWORD.
 
 cd agent-service
 ./setup-database.sh
+./setup-deepsec.sh
 ./test.sh
 ./run.sh
 ```
 
-Open `http://127.0.0.1:8080`, retrieve stockout-risk recommendations, choose a concrete source-to-target transfer, and approve or cancel it. On first start, `run.sh` downloads the pinned official Oracle Toolkit source into ignored `.runtime/`, builds it, and starts it as an MCP stdio child process. `McpToolkitSupplyChainRepository` discovers the exact tool allowlist and invokes every runtime database read and write through MCP. The Toolkit owns Oracle UCP and the runtime database connections.
+Open `http://127.0.0.1:8080`. Run the broad inventory query first as the supply-chain planner and then as the environmental planner. The second Toolkit session logs on as `DB_USERNAME2`; Oracle Deep Data Security returns only `Environmental Monitoring` rows and exposes no write tools. The full-access planner can choose a concrete source-to-target transfer and approve or cancel it. On first start, `run.sh` downloads the pinned official Oracle Toolkit source into ignored `.runtime/`, builds it, and starts each allowlisted toolset as an MCP stdio child process. The Toolkit owns Oracle UCP and the runtime database connections.
+
+`setup-deepsec.sh` executes the checked-in [`database/07-deep-data-security.sql`](database/07-deep-data-security.sql) policy through an idempotent installer. It creates a local Deep Data Security end user from `DB_USERNAME2` and `DB_PASSWORD2`, a read-only data role, a direct-logon role containing `CREATE SESSION`, and a predicated data grant on `FINANCIAL.STOCKOUT_TRANSFER_RECOMMENDATION_V`. It then enables mandatory data-grant enforcement and verifies that the second user sees only the authorized category.
+
+The deployed Gemini Enterprise path uses two separately registered and permissioned A2A agents. Each Cloud Run service fixes `TRUSTED_ACCESS_PROFILE` to either `full` or `environmental`; the adapter ignores profile names in prompts and A2UI actions. Gemini Enterprise agent sharing determines who can invoke each endpoint, and the selected endpoint determines which Toolkit/database identity is used. The local browser retains an identity selector only as a teaching control.
 
 The ignored `financial/setup/.env` is reused automatically when it is present, so this project does not duplicate the financial password. Its deployment-only JDBC URL is replaced locally with `financialdb_high` plus the configured wallet directory. The one-time setup runner uses UCP only to install the Toolkit's database objects; it is not an application data path. It never drops existing objects, refuses unsafe partial supply-chain state, can resume after the base supply-chain schema has been installed, and becomes a no-op after successful installation. SQLcl users can alternatively run `database/setup.sql`.
 

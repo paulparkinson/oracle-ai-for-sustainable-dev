@@ -10,25 +10,26 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
 public final class Main {
-    private final SupplyChainRepository repository;
+    private final Map<String, SupplyChainRepository> repositories;
     private final ApprovalService approvals;
-    private final AguiRunService runs;
     private final String actor =
             System.getenv().getOrDefault(
                     "REQUESTED_BY",
                     "supply.planner@example.com");
     private final Path webRoot;
 
-    private Main(Path webRoot, SupplyChainRepository repository) {
+    private Main(
+            Path webRoot,
+            Map<String, SupplyChainRepository> repositories) {
         this.webRoot = webRoot;
-        this.repository = repository;
+        this.repositories = Map.copyOf(repositories);
         this.approvals = new ApprovalService();
-        this.runs = new AguiRunService(repository, approvals);
     }
 
     public static void main(String[] args) throws Exception {
@@ -36,15 +37,22 @@ public final class Main {
                 System.getenv().getOrDefault("AGENT_PORT", "8080"));
         Path webRoot = Path.of(
                 System.getProperty("web.root", "../web-client"));
-        SupplyChainRepository repository =
-                McpToolkitSupplyChainRepository.fromEnvironment(System.getenv());
-        if (repository instanceof AutoCloseable closeable) {
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread(
-                            () -> closeQuietly(closeable),
-                            "repository-shutdown"));
+        Map<String, SupplyChainRepository> repositories = new LinkedHashMap<>();
+        repositories.put(
+                "full",
+                McpToolkitSupplyChainRepository.fromEnvironment(System.getenv()));
+        if (System.getenv().containsKey("DB_USERNAME2")
+                && System.getenv().containsKey("DB_PASSWORD2")) {
+            repositories.put(
+                    "environmental",
+                    McpToolkitSupplyChainRepository.secondaryFromEnvironment(
+                            System.getenv()));
         }
-        new Main(webRoot, repository).start(port);
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(
+                        () -> repositories.values().forEach(Main::closeQuietly),
+                        "repository-shutdown"));
+        new Main(webRoot, repositories).start(port);
     }
 
     private void start(int port) throws IOException {
@@ -90,8 +98,9 @@ public final class Main {
                     query.getOrDefault("maximumRows", "10"));
             InputValidation.minimumStockoutRisk(minimumStockoutRisk);
             InputValidation.maximumRows(maximumRows);
+            String accessProfile = accessProfile(query);
             List<TransferRecommendation> recommendations =
-                    repository.findTransferRecommendations(
+                    repository(accessProfile).findTransferRecommendations(
                             minimumStockoutRisk,
                             maximumRows);
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
@@ -128,17 +137,19 @@ public final class Main {
                     form.getOrDefault("maximumRows", "10"));
             InputValidation.minimumStockoutRisk(minimumStockoutRisk);
             InputValidation.maximumRows(maximumRows);
+            String accessProfile = accessProfile(form);
             exchange.getResponseHeaders().set(
                     "Content-Type",
                     "text/event-stream; charset=utf-8");
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
             exchange.sendResponseHeaders(200, 0);
             try (var output = exchange.getResponseBody()) {
-                runs.stream(
+                new AguiRunService(
+                        repository(accessProfile), approvals).stream(
                         output,
                         minimumStockoutRisk,
                         maximumRows,
-                        actor);
+                        scopedActor(accessProfile));
             }
         } catch (IllegalArgumentException exception) {
             respond(
@@ -168,17 +179,22 @@ public final class Main {
                     form.getOrDefault("maximumRows", "10"));
             InputValidation.minimumStockoutRisk(minimumStockoutRisk);
             InputValidation.maximumRows(maximumRows);
+            String accessProfile = accessProfile(form);
             List<TransferRecommendation> recommendations =
-                    repository.findTransferRecommendations(
+                    repository(accessProfile).findTransferRecommendations(
                             minimumStockoutRisk,
                             maximumRows);
-            String approvalId = approvals.issue(actor, recommendations);
+            String approvalId = approvals.issue(
+                    scopedActor(accessProfile), recommendations);
             exchange.getResponseHeaders().set("Cache-Control", "no-store");
             respond(
                     exchange,
                     200,
                     "application/json",
-                    reviewJson(recommendations, approvalId));
+                    reviewJson(
+                            recommendations,
+                            approvalId,
+                            repository(accessProfile).writesAllowed()));
         } catch (IllegalArgumentException exception) {
             respond(
                     exchange,
@@ -201,18 +217,24 @@ public final class Main {
         }
         try {
             Map<String, String> form = form(exchange);
+            String accessProfile = accessProfile(form);
             String recommendationId = required(form, "recommendationId");
             String approvalId = required(form, "approvalId");
             String notes = required(form, "approvalNotes");
             TransferRecommendation recommendation =
-                    approvals.consume(approvalId, recommendationId, actor);
-            InputValidation.approval(recommendation, notes, actor);
+                    approvals.consume(
+                            approvalId,
+                            recommendationId,
+                            scopedActor(accessProfile));
+            InputValidation.approval(
+                    recommendation, notes, scopedActor(accessProfile));
             TransferResult result =
-                    repository.approveTransfer(recommendation, notes, actor);
+                    repository(accessProfile).approveTransfer(
+                            recommendation, notes, scopedActor(accessProfile));
             System.out.printf(
                     "audit tool=approve-inventory-transfer actor=%s "
                             + "recommendationId=%s result=APPROVED transferId=%d%n",
-                    actor,
+                    scopedActor(accessProfile),
                     recommendationId,
                     result.transferId());
             respond(
@@ -246,11 +268,13 @@ public final class Main {
         }
         try {
             Map<String, String> form = form(exchange);
-            approvals.reject(required(form, "approvalId"), actor);
+            String accessProfile = accessProfile(form);
+            approvals.reject(
+                    required(form, "approvalId"), scopedActor(accessProfile));
             System.out.printf(
                     "audit tool=approve-inventory-transfer actor=%s "
                             + "result=REJECTED%n",
-                    actor);
+                    scopedActor(accessProfile));
             respond(
                     exchange,
                     200,
@@ -333,6 +357,23 @@ public final class Main {
         return value;
     }
 
+    private String accessProfile(Map<String, String> values) {
+        String profile = values.getOrDefault("accessProfile", "full");
+        if (!repositories.containsKey(profile)) {
+            throw new IllegalArgumentException(
+                    "Unknown or unavailable access profile: " + profile);
+        }
+        return profile;
+    }
+
+    private SupplyChainRepository repository(String accessProfile) {
+        return repositories.get(accessProfile);
+    }
+
+    private String scopedActor(String accessProfile) {
+        return actor + ":" + accessProfile;
+    }
+
     static String recommendationsJson(
             List<TransferRecommendation> recommendations) {
         return Json.value(Map.of(
@@ -345,10 +386,12 @@ public final class Main {
 
     static String reviewJson(
             List<TransferRecommendation> recommendations,
-            String approvalId) {
+            String approvalId,
+            boolean writesAllowed) {
         return Json.value(Map.of(
                 "source", "oracle-db-mcp-java-toolkit",
                 "approvalId", approvalId,
+                "writesAllowed", writesAllowed,
                 "recommendations",
                 recommendations.stream()
                         .map(Json::recommendationMap)
@@ -369,7 +412,8 @@ public final class Main {
         exchange.close();
     }
 
-    private static void closeQuietly(AutoCloseable closeable) {
+    private static void closeQuietly(Object candidate) {
+        if (!(candidate instanceof AutoCloseable closeable)) return;
         try {
             closeable.close();
         } catch (Exception exception) {

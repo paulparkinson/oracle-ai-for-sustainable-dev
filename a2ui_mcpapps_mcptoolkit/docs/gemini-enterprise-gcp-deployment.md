@@ -41,8 +41,8 @@ Gemini Enterprise
   -> paulparkdb_tp over wallet-authenticated TCPS
 ```
 
-The wallet ZIP and the `FINANCIAL` database password are separate Secret
-Manager secrets. They are excluded from the Cloud Build upload by
+The wallet ZIP, `FINANCIAL` password, and local Deep Data Security
+`ENVIRONMENTAL_PLANNER` password are separate Secret Manager secrets. They are excluded from the Cloud Build upload by
 `.gcloudignore`. The runtime service account receives Secret Manager access;
 no database secret is built into the image or stored in Git.
 
@@ -73,7 +73,7 @@ cd a2ui_mcpapps_mcptoolkit
 ```
 
 The script packages `Wallet_PAULPARKDB`, prompts securely for the `FINANCIAL`
-password, creates secret versions, and erases its temporary plaintext file.
+passwords, creates secret versions, and erases its temporary plaintext file.
 
 ## Build and deploy
 
@@ -123,6 +123,21 @@ Validated deployment evidence on 2026-08-01:
 - authenticated agent-card request: HTTP `200`
 - registered state: `ENABLED`
 - read-only A2A smoke test: result returned with A2UI v0.8 content and no error
+
+## Bind authenticated users to Deep Data Security profiles
+
+Do not select a database profile from prompt text. Deploy the same image as two
+private Cloud Run services and set an immutable profile on each service:
+
+- `TRUSTED_ACCESS_PROFILE=full` for the full planner
+- `TRUSTED_ACCESS_PROFILE=environmental` for the read-only environmental planner
+
+Register each service as a separate Gemini Enterprise A2A agent. In the Gemini
+Enterprise console, open each agent's **User permissions** tab. Grant the full
+agent only to the privileged user or group and grant the environmental agent to
+the restricted user or group. The adapter ignores `accessProfile` values from
+prompts and A2UI actions. The selected, permissioned endpoint chooses the
+Toolkit session, and Oracle Deep Data Security performs the row filtering.
 
 ## Source material
 

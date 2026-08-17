@@ -11,41 +11,73 @@ import java.util.stream.StreamSupport;
 
 /** Calls purpose-built Oracle Database MCP Java Toolkit tools over MCP stdio. */
 public final class McpToolkitSupplyChainRepository implements SupplyChainRepository, AutoCloseable {
-    private static final Set<String> REQUIRED_TOOLS = Set.of(
+    private static final Set<String> WRITE_TOOLS = Set.of(
             "find-stockout-transfer-recommendations",
             "get-stockout-transfer-details",
             "reserve-inventory-transfer-id",
             "approve-inventory-transfer",
             "count-inventory-transfers");
+    private static final Set<String> READ_TOOLS = Set.of(
+            "find-stockout-transfer-recommendations",
+            "get-stockout-transfer-details");
 
     private final McpStdioClient client;
+    private final boolean writesAllowed;
 
-    private McpToolkitSupplyChainRepository(McpStdioClient client) {
+    private McpToolkitSupplyChainRepository(
+            McpStdioClient client,
+            boolean writesAllowed) {
         this.client = client;
-        verifyToolkit();
+        this.writesAllowed = writesAllowed;
+        verifyToolkit(writesAllowed ? WRITE_TOOLS : READ_TOOLS);
     }
 
     public static McpToolkitSupplyChainRepository fromEnvironment(Map<String, String> environment) {
+        return create(environment, "DB_USERNAME", "DB_PASSWORD", true);
+    }
+
+    public static McpToolkitSupplyChainRepository secondaryFromEnvironment(
+            Map<String, String> environment) {
+        return create(environment, "DB_USERNAME2", "DB_PASSWORD2", false);
+    }
+
+    private static McpToolkitSupplyChainRepository create(
+            Map<String, String> environment,
+            String usernameName,
+            String passwordName,
+            boolean writesAllowed) {
         Path toolkitJar = requiredPath(environment, "ORACLE_MCP_TOOLKIT_JAR");
         Path configFile = optionalPath(environment, "ORACLE_MCP_CONFIG_FILE",
                 Path.of("../oracle-db-mcp-toolkit/config/tools.yaml"));
         String databaseUrl = required(environment, "DB_URL");
-        String databaseUser = firstNonBlank(environment.get("DB_USERNAME"), environment.get("DB_USER"));
-        String databasePassword = required(environment, "DB_PASSWORD");
-        if (databaseUser == null) throw new IllegalArgumentException("DB_USERNAME or DB_USER is required");
+        String databaseUser = environment.get(usernameName);
+        if ("DB_USERNAME".equals(usernameName)) {
+            databaseUser = firstNonBlank(databaseUser, environment.get("DB_USER"));
+        }
+        String databasePassword = required(environment, passwordName);
+        if (databaseUser == null || databaseUser.isBlank()) {
+            throw new IllegalArgumentException(usernameName + " is required");
+        }
 
         String javaCommand = Path.of(System.getProperty("java.home"), "bin", "java").toString();
         McpStdioClient client = new McpStdioClient(
                 List.of(javaCommand,
                         "-DconfigFile=" + configFile,
-                        "-Dtools=supply-chain-exchange",
+                        "-Dtools=" + (writesAllowed
+                                ? "supply-chain-exchange"
+                                : "supply-chain-exchange-read"),
                         "-jar", toolkitJar.toString()),
                 Map.of(
                         "DB_URL", databaseUrl,
                         "DB_USERNAME", databaseUser,
                         "DB_PASSWORD", databasePassword));
         client.initialize();
-        return new McpToolkitSupplyChainRepository(client);
+        return new McpToolkitSupplyChainRepository(client, writesAllowed);
+    }
+
+    @Override
+    public boolean writesAllowed() {
+        return writesAllowed;
     }
 
     @Override
@@ -88,6 +120,10 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
             TransferRecommendation recommendation,
             String approvalNotes,
             String requestedBy) {
+        if (!writesAllowed) {
+            throw new IllegalStateException(
+                    "This Deep Data Security identity has read-only inventory access");
+        }
         InputValidation.approval(recommendation, approvalNotes, requestedBy);
         long transferId = longValue(
                 firstRow(client.callTool("reserve-inventory-transfer-id", Map.of())),
@@ -109,6 +145,10 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
 
     @Override
     public int transferCount() {
+        if (!writesAllowed) {
+            throw new IllegalStateException(
+                    "This Deep Data Security identity cannot inspect transfer audit rows");
+        }
         return Math.toIntExact(longValue(
                 firstRow(client.callTool("count-inventory-transfers", Map.of())),
                 "TRANSFER_COUNT"));
@@ -119,14 +159,14 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
         client.close();
     }
 
-    private void verifyToolkit() {
+    private void verifyToolkit(Set<String> requiredTools) {
         if (!"oracle-db-mcp-toolkit".equals(client.serverName())) {
             throw new IllegalStateException("Connected MCP server is not Oracle Database MCP Java Toolkit");
         }
         Set<String> available = client.listTools();
-        if (!available.equals(REQUIRED_TOOLS)) {
+        if (!available.equals(requiredTools)) {
             throw new IllegalStateException("Oracle Database MCP Toolkit tool allowlist mismatch; expected "
-                    + REQUIRED_TOOLS.stream().sorted().toList() + " but received " + available.stream().sorted().toList());
+                    + requiredTools.stream().sorted().toList() + " but received " + available.stream().sorted().toList());
         }
         System.out.printf("MCP initialized with %s %s; enabled tools=%s%n",
                 client.serverName(), client.serverVersion(), available.stream().sorted().toList());

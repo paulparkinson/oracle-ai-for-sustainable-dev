@@ -41,6 +41,30 @@ class A2uiPayloadTests(unittest.TestCase):
         self.assertEqual(2, len(messages))
         self.assertIn("surfaceUpdate", messages[1])
 
+    def test_restricted_review_is_read_only(self):
+        messages = review_messages(
+            [
+                {
+                    "recommendationId": "1004:102:104",
+                    "sku": "WATER-SENSE",
+                    "productName": "Connected Water Sensor",
+                    "sourceLocationCode": "PHX-DC",
+                    "targetLocationCode": "SEA-FC",
+                    "recommendedTransferQuantity": 42,
+                    "stockoutRiskScore": 74.6,
+                    "riskLevel": "HIGH",
+                    "rationale": "Authorized environmental inventory result.",
+                }
+            ],
+            "approval-handle",
+            "environmental",
+            False,
+        )
+        encoded = str(messages)
+        self.assertIn("Environmental Monitoring only", encoded)
+        self.assertNotIn("approveInventoryTransfer", encoded)
+        self.assertNotIn("rejectInventoryTransferReview", encoded)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -28,7 +28,7 @@ tools:
                safety_stock_qty, shortage_qty, recommended_transfer_qty,
                transit_days, unit_transfer_cost, stockout_risk_score,
                risk_level, rationale
-          FROM stockout_transfer_recommendation_v
+          FROM FINANCIAL.stockout_transfer_recommendation_v
          WHERE stockout_risk_score >= :minimumStockoutRisk
          ORDER BY stockout_risk_score DESC, shortage_qty DESC
       ) WHERE ROWNUM <= :maximumRows
@@ -57,7 +57,7 @@ tools:
              safety_stock_qty, shortage_qty, recommended_transfer_qty,
              transit_days, unit_transfer_cost, stockout_risk_score,
              risk_level, rationale
-        FROM stockout_transfer_recommendation_v
+        FROM FINANCIAL.stockout_transfer_recommendation_v
        WHERE product_id = :productId
          AND source_location_id = :sourceLocationId
          AND target_location_id = :targetLocationId
@@ -66,7 +66,7 @@ tools:
     dataSource: financial-db
     description: Reserves one database-generated identifier for an approved inventory transfer.
     parameters: []
-    statement: SELECT inventory_transfer_mcp_seq.NEXTVAL AS transfer_id FROM dual
+    statement: SELECT FINANCIAL.inventory_transfer_mcp_seq.NEXTVAL AS transfer_id FROM dual
 
   approve-inventory-transfer:
     dataSource: financial-db
@@ -102,7 +102,7 @@ tools:
         required: true
     statement: >-
       BEGIN
-        approve_inventory_transfer_mcp(
+        FINANCIAL.approve_inventory_transfer_mcp(
           :transferId, :productId, :sourceLocationId, :targetLocationId,
           :transferQuantity, :approvalNotes, :requestedBy);
       END;
@@ -111,7 +111,7 @@ tools:
     dataSource: financial-db
     description: Returns the number of audited inventory transfers for verification.
     parameters: []
-    statement: SELECT COUNT(*) AS transfer_count FROM inventory_transfers
+    statement: SELECT COUNT(*) AS transfer_count FROM FINANCIAL.inventory_transfers
 
 toolsets:
   supply-chain-exchange-read:

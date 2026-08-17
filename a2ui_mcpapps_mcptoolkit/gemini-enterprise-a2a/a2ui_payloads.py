@@ -9,6 +9,8 @@ from uuid import uuid4
 def review_messages(
     recommendations: list[dict[str, Any]],
     approval_id: str,
+    access_profile: str = "full",
+    writes_allowed: bool = True,
 ) -> list[dict[str, Any]]:
     surface_id = f"inventory-transfer-review-{uuid4()}"
     children = ["title", "source"]
@@ -25,7 +27,14 @@ def review_messages(
         ),
         _text(
             "source",
-            "Live results from the Oracle Database MCP Java Toolkit",
+            (
+                "Live results from the Oracle Database MCP Java Toolkit. "
+                + (
+                    "Deep Data Security: Environmental Monitoring only, read-only."
+                    if access_profile == "environmental"
+                    else "Supply-chain planner: all authorized categories."
+                )
+            ),
             "caption",
         ),
     ]
@@ -36,6 +45,14 @@ def review_messages(
         approve_id = f"approve-{index}"
         approve_text_id = f"approve-text-{index}"
         children.append(card_id)
+        card_children = [
+            f"name-{index}",
+            f"route-{index}",
+            f"risk-{index}",
+            f"rationale-{index}",
+        ]
+        if writes_allowed:
+            card_children.append(approve_id)
         components.extend(
             [
                 _component(card_id, "Card", {"child": content_id}),
@@ -44,13 +61,7 @@ def review_messages(
                     "Column",
                     {
                         "children": {
-                            "explicitList": [
-                                f"name-{index}",
-                                f"route-{index}",
-                                f"risk-{index}",
-                                f"rationale-{index}",
-                                approve_id,
-                            ]
+                            "explicitList": card_children
                         }
                     },
                 ),
@@ -75,7 +86,7 @@ def review_messages(
                     ),
                 ),
                 _text(f"rationale-{index}", recommendation["rationale"]),
-                _component(
+                *([_component(
                     approve_id,
                     "Button",
                     {
@@ -100,16 +111,24 @@ def review_messages(
                                     "key": "approvalNotes",
                                     "value": {"path": "/approvalNotes"},
                                 },
+                                {
+                                    "key": "accessProfile",
+                                    "value": {
+                                        "literalString": access_profile
+                                    },
+                                },
                             ],
                         },
                     },
                 ),
-                _text(approve_text_id, "Approve this exact transfer"),
+                _text(approve_text_id, "Approve this exact transfer")]
+                  if writes_allowed else []),
             ]
         )
 
-    children.extend(["approval-notes", "cancel-review", "cancel-text"])
-    components.extend(
+    if writes_allowed:
+        children.extend(["approval-notes", "cancel-review", "cancel-text"])
+        components.extend(
         [
             _component(
                 "approval-notes",
@@ -132,14 +151,18 @@ def review_messages(
                             {
                                 "key": "approvalId",
                                 "value": {"literalString": approval_id},
-                            }
+                            },
+                            {
+                                "key": "accessProfile",
+                                "value": {"literalString": access_profile},
+                            },
                         ],
                     },
                 },
             ),
             _text("cancel-text", "Cancel review without writing"),
         ]
-    )
+        )
     return [
         {
             "beginRendering": {

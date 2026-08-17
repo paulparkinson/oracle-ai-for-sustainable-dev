@@ -55,6 +55,7 @@
       <li>A2UI is a runtime protocol, not a code generator: an agent describes intent as validated JSON and the host renders approved native components from its own design system.</li>
       <li>Rich agent tasks need interfaces beyond chat. A2UI provides safe, consistent composition; MCP Apps provide portable custom web experiences through sandboxed <code>ui://</code> resources.</li>
       <li>Both UI paths can collect explicit human approval while the application and database retain execution authority.</li>
+      <li>Oracle Deep Data Security applies the same broad inventory query to two database identities. Separately permissioned A2A endpoints bind each authenticated Gemini user to a fixed server-side profile, so prompt text cannot elevate access.</li>
     </ul>
   </section>
 
@@ -423,6 +424,10 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
   <section id="gemini-enterprise">
     <h2>Run Native A2UI in Gemini Enterprise</h2>
     <p>Gemini Enterprise is the A2UI-capable host used in this reference application. Its custom-agent path uses A2A as the conversation transport and A2UI as declarative UI cargo. Its current native A2UI integration uses A2A v0.3 and A2UI v0.8 rather than the v0.9.1 envelopes used by this application's standalone browser. This is one implementation example, not a coupling between A2UI and Gemini Enterprise.</p>
+    <p>The Inventory System application also retains the graph, spatial, inventory-action, Select AI, and Oracle AI Database agents. The two A2UI agents are only the full and restricted presentation paths for this Deep Data Security comparison; they do not replace the other domain agents.</p>
+    <p>This walkthrough does not depend on the Marketplace-delivered Oracle AI Database Agent. While its managed A2A endpoint is being investigated, the registered custom A2A/A2UI adapter remains the complete demo path: it calls the application service, the service invokes the Oracle Database MCP Java Toolkit, and the Toolkit queries Oracle AI Database. A2UI provides the interface contract; it does not provide SQL access or database authorization.</p>
+
+    <p class="note"><strong>Model boundary:</strong> this custom A2UI adapter does not currently invoke an LLM. It parses bounded query values deterministically and builds A2UI from database results. Gemini Enterprise provides hosting, routing, and rendering, while its managed Core Assistant model is not exposed in this agent configuration. If a future planning or explanation step needs a model, <code>gemini-3.7-flash</code> is available to this project. Gemini 3.x requests should omit <code>temperature</code>, <code>top_p</code>, and <code>top_k</code> and use <code>thinking_level</code> when reasoning control is required.</p>
 
     <h3>Separate A2A Transport from A2UI Presentation</h3>
     <p>In this repository, <code>gemini-enterprise-a2a/main.py</code> co-locates the A2A endpoint, request executor, Java API client, and deterministic A2UI v0.8 builder in one process. That is a compact implementation choice, not a protocol requirement. A2A carries messages, tasks, artifacts, and DataParts between Gemini Enterprise and the remote agent; A2UI is the declarative presentation placed in those DataParts.</p>
@@ -479,7 +484,7 @@ Oracle AI Database private service</code></pre>
     <p>For scheduled demonstrations, warm the Cloud Run service immediately beforehand or configure a minimum instance. Otherwise, the adapter, service, and Toolkit cold start can exceed the waiting request and produce an invalid SSE response.</p>
 
     <h3>Demo Walkthrough</h3>
-    <p>Use the following sequence to demonstrate the native A2UI path without publishing project IDs, service URLs, database service names, or identities. Replace each angle-bracketed value from your private deployment notes. Select the registered custom agent before entering the prompt: Core Assistant does not automatically delegate to every agent listed or pinned in the application.</p>
+    <p>Use the following sequence to demonstrate the custom native A2UI path and database-enforced authorization without the Oracle AI Database Agent. Replace each angle-bracketed value from your private deployment notes. Select the registered custom agent before entering the prompt: Core Assistant does not automatically delegate to every agent listed or pinned in the application.</p>
     <p>On macOS, authenticate and warm the private service immediately before presenting:</p>
     <pre><code>gcloud auth login &lt;GOOGLE_ACCOUNT&gt;
 gcloud config set account &lt;GOOGLE_ACCOUNT&gt;
@@ -498,13 +503,16 @@ curl --fail --silent --show-error \
       <tr><th>Step</th><th>Action</th><th>What to explain</th><th>Expected result</th></tr>
       <tr><td>1</td><td>Authenticate with Google Cloud, select <code>&lt;GOOGLE_CLOUD_PROJECT&gt;</code>, and retrieve <code>&lt;CLOUD_RUN_SERVICE_URL&gt;</code>.</td><td>The A2A/A2UI adapter is a private Cloud Run service. No database endpoint or credential is exposed to the host.</td><td>The service description reports a ready revision.</td></tr>
       <tr><td>2</td><td>Warm <code>&lt;CLOUD_RUN_SERVICE_URL&gt;/.well-known/agent-card.json</code> with a Google identity token.</td><td>The agent card advertises A2A v0.3 separately from the optional A2UI v0.8 extension and supported catalog.</td><td>The authenticated request returns HTTP 200 and the agent card; an anonymous request remains denied.</td></tr>
-      <tr><td>3</td><td>Open the <code>&lt;GEMINI_ENTERPRISE_APP&gt;</code> application and select <code>&lt;REGISTERED_A2A_AGENT&gt;</code> under <em>From your organization</em>.</td><td>Gemini Enterprise is the A2A client and native A2UI renderer. The remote adapter owns the domain-specific response construction.</td><td>The custom agent opens and is ready for a prompt.</td></tr>
-      <tr><td>4</td><td>Enter: <q>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations.</q></td><td>Gemini Enterprise sends an A2A request. The adapter calls the application service, which invokes an allowlisted Oracle Database MCP Java Toolkit tool.</td><td>The response contains text plus A2UI DataParts rather than generated frontend code.</td></tr>
+      <tr><td>3</td><td>In Gemini Enterprise, grant the privileged user or group access to <code>Oracle Supply-Chain A2UI</code>, grant the restricted user or group access to <code>Oracle Environmental Inventory A2UI</code>, then select the full-access agent under <em>From your organization</em>.</td><td>Gemini Enterprise authenticates users and enforces per-agent sharing. The selected agent reaches a server endpoint whose <code>TRUSTED_ACCESS_PROFILE=full</code> setting cannot be changed by prompt text.</td><td>The full-access custom agent opens only for an authorized user.</td></tr>
+      <tr><td>4</td><td>Enter: <q>Show inventory transfers with a minimum stockout risk of 50, limited to 10 recommendations.</q></td><td>The fixed full-access adapter calls the application service, which invokes the Toolkit toolset as <code>DB_USERNAME</code>.</td><td>The response contains text plus A2UI DataParts with every category authorized to the schema owner.</td></tr>
       <tr><td>5</td><td>Inspect the recommendation card, metrics, rationale, notes field, and action buttons.</td><td>The host maps the declared A2UI components to trusted native controls from its supported catalog.</td><td>The card shows the governed recommendation returned by Oracle AI Database.</td></tr>
-      <tr><td>6</td><td>Select <em>Cancel without writing</em>.</td><td>The A2UI <code>userAction</code> returns through A2A, but the application deliberately performs no database write.</td><td>The result surface confirms cancellation.</td></tr>
-      <tr><td>7</td><td>Run the same prompt again, enter an approval note, and select the exact recommendation's approval button.</td><td>The UI sends only the short-lived approval handle, recommendation ID, and note. It cannot substitute the product, locations, or quantity.</td><td>The adapter forwards the action to the governed approval API.</td></tr>
-      <tr><td>8</td><td>Show the completion result and, if available, the corresponding audit row.</td><td>The Toolkit invokes the stored procedure. Oracle AI Database locks and revalidates inventory, writes the audited action, and commits atomically.</td><td>The native result surface displays the transfer ID and completion status.</td></tr>
+      <tr><td>6</td><td>Sign in as the restricted user, open <code>Oracle Environmental Inventory A2UI</code>, and enter the identical prompt from step 4.</td><td>Its endpoint fixes <code>TRUSTED_ACCESS_PROFILE=environmental</code> and invokes the read-only Toolkit session as <code>DB_USERNAME2</code>. Prompt text and returned A2UI actions cannot choose another profile.</td><td>Oracle returns only <code>Environmental Monitoring</code> rows allowed by <code>INVENTORY_ENVIRONMENTAL_ROLE</code>.</td></tr>
+      <tr><td>7</td><td>Compare the two result surfaces.</td><td>No prompt filter or application <code>WHERE category_name</code> clause protects the data. The predicated data grant and mandatory enforcement operate inside Oracle AI Database.</td><td>The restricted surface identifies its read-only role and contains no approval control.</td></tr>
+      <tr><td>8</td><td>Return to the supply-chain planner and select <em>Cancel without writing</em>.</td><td>The A2UI <code>userAction</code> returns through A2A, but the application deliberately performs no database write.</td><td>The result surface confirms cancellation.</td></tr>
+      <tr><td>9</td><td>Run the full-access prompt again, enter an approval note, and select the exact recommendation's approval button.</td><td>The UI sends only the short-lived approval handle, recommendation ID, and note. It cannot substitute the product, locations, or quantity.</td><td>The adapter forwards the action to the governed approval API.</td></tr>
+      <tr><td>10</td><td>Show the completion result and, if available, the corresponding audit row.</td><td>The Toolkit invokes the stored procedure. Oracle AI Database locks and revalidates inventory, writes the audited action, and commits atomically.</td><td>The native result surface displays the transfer ID and completion status.</td></tr>
     </table>
+    <p class="note"><strong>Trusted identity boundary:</strong> <code>DB_USERNAME2</code> is a locally managed Deep Data Security end user authenticated by the restricted Toolkit session. Gemini Enterprise authenticates users and applies separate sharing permissions to the full and environmental agents. Each registered agent targets a Cloud Run service with an immutable server-side profile. The adapter ignores profile claims in prompts and A2UI action payloads, so a restricted user cannot request the full database identity.</p>
     <p class="note"><strong>Safe presentation practice:</strong> keep browser address bars, Cloud console resource URLs, project and agent IDs, identity tokens, wallet paths, and database service names outside screenshots and screen sharing. Never paste an identity token or database password into Gemini Enterprise.</p>
   </section>
 
@@ -535,27 +543,44 @@ UPDATE inventory_positions
 
   <section id="run">
     <h2>Run the Supply-Chain Exchange</h2>
-    <p>The default configuration reuses the <code>financialdb_high</code> database alias and <code>FINANCIAL</code> schema from the observability demo. Copy the environment template, point it at the wallet, and supply the password locally:</p>
+    <p>Use Oracle AI Database 26ai and the <code>FINANCIAL</code> schema. The second identity is a local Deep Data Security end user, so this database-side demonstration requires neither OCI IAM nor Entra propagation. Copy the environment template, point it at the wallet, and set the secrets only in the ignored <code>.env</code>:</p>
     <pre><code>cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
-# Set DB_PASSWORD and confirm WALLET_DIR.
+# Set DB_URL, TNS_ADMIN, DB_USERNAME, and DB_PASSWORD.
+# Set DB_USERNAME2 and DB_PASSWORD2 for the restricted local end user.
+# Set DB_ADMIN_USERNAME and DB_ADMIN_PASSWORD for one-time policy setup.
 
 cd agent-service
 ./setup-database.sh
+./setup-deepsec.sh
 ./test.sh
 ./run.sh
 
 # Open http://127.0.0.1:8080</code></pre>
-    <p>The guarded installer creates the supply-chain objects without dropping or modifying unrelated schema objects. The runtime launches a pinned revision of the Oracle Database MCP Java Toolkit over stdio, enables only <code>supply-chain-exchange</code>, verifies the exact tools, and lets the Toolkit's UCP pool own every runtime database connection.</p>
+    <p>The guarded schema installer creates the supply-chain objects without dropping or modifying unrelated schema objects. <code>setup-deepsec.sh</code> installs the policy retained in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/database/07-deep-data-security.sql"><code>database/07-deep-data-security.sql</code></a>. It creates the local end user, grants <code>INVENTORY_ENVIRONMENTAL_ROLE</code>, creates a predicated <code>SELECT</code> data grant, enables mandatory enforcement, and verifies that the user sees only <code>Environmental Monitoring</code>.</p>
+    <pre><code>CREATE DATA ROLE IF NOT EXISTS inventory_environmental_role;
+GRANT DATA ROLE inventory_environmental_role TO &lt;DB_USERNAME2&gt;;
+
+CREATE OR REPLACE DATA GRANT financial.inventory_environmental_read
+  AS SELECT
+  ON financial.stockout_transfer_recommendation_v
+  WHERE category_name = 'Environmental Monitoring'
+  TO inventory_environmental_role;
+
+SET USE DATA GRANTS ONLY
+  ON financial.stockout_transfer_recommendation_v ENABLED;</code></pre>
+    <p>The runtime launches one pinned Oracle Database MCP Java Toolkit child for each database identity. The full-access child enables <code>supply-chain-exchange</code>; the restricted child enables only <code>supply-chain-exchange-read</code>. Both execute the same broad recommendation SQL. Oracle AI Database filters the restricted rows through the active data role before the Toolkit, service, host, or model can receive them.</p>
   </section>
 
   <section id="walkthrough">
     <h2>Run the Application Locally End to End</h2>
     <ol>
       <li><strong>Prepare the database.</strong> Run <code>agent-service/setup-database.sh</code>. The installer creates four locations, five products, twenty inventory positions, twelve lanes, the recommendation view, the transfer sequence, and the input-only approval procedure.</li>
+      <li><strong>Install Deep Data Security.</strong> Run <code>agent-service/setup-deepsec.sh</code>. It creates the local restricted end user, direct-logon and data roles, predicated data grant, and mandatory enforcement, then verifies the authorized category.</li>
       <li><strong>Start the Java service and Toolkit.</strong> Run <code>agent-service/run.sh</code>. <code>McpToolkitSupplyChainRepository</code> starts the Toolkit over stdio, completes MCP initialization, verifies its identity and exact tool allowlist, and exposes the web client and API.</li>
       <li><strong>Open the inventory exchange.</strong> Browse to <code>http://127.0.0.1:8080</code>. The page contains the request form, AG-UI event rail, and an initially empty A2UI surface.</li>
-      <li><strong>Set the query bounds.</strong> Choose a minimum stockout-risk score and maximum recommendation count, then run the analysis. The service validates both values and begins the SSE response.</li>
+      <li><strong>Run as the supply-chain planner.</strong> Select the full-access identity, choose a minimum stockout-risk score of <code>50</code> and maximum of <code>10</code>, then run the analysis. The first Toolkit session returns every authorized category.</li>
+      <li><strong>Run as the environmental planner.</strong> Keep the same numeric bounds and select the restricted identity. The second Toolkit session executes the same SQL, while Oracle Deep Data Security returns only <code>Environmental Monitoring</code> and the UI removes write controls.</li>
       <li><strong>Retrieve governed recommendations.</strong> The repository calls <code>find-stockout-transfer-recommendations</code>. The Toolkit borrows a UCP connection, binds the values, queries <code>STOCKOUT_TRANSFER_RECOMMENDATION_V</code>, and returns structured rows through MCP.</li>
       <li><strong>Inspect the streamed result.</strong> AG-UI displays the lifecycle and tool activity. A2UI renders cards with SKU, product, source, target, stockout risk, shortage, recommended quantity, transit time, unit cost, and rationale.</li>
       <li><strong>Approve or cancel.</strong> Select one database-returned recommendation, enter approval notes, and approve. The short-lived approval token recovers the exact bound transfer. Cancel instead consumes the approval and performs no write.</li>
@@ -580,6 +605,7 @@ cd agent-service
       <li>Log tool, actor, timestamp, recommendation, approval, and status without logging secrets.</li>
       <li>Allowlist A2UI catalogs and components; treat MCP App content as untrusted and apply sandbox, CSP, and permission controls.</li>
       <li>Keep wallets, passwords, tokens, and client secrets out of the browser, model context, and repository.</li>
+      <li>Bind database identities to separately permissioned agent endpoints with immutable server-side profiles. Never derive authorization from prompts, browser selectors, or returned A2UI action fields.</li>
     </ul>
   </section>
 
@@ -600,7 +626,7 @@ cd agent-service
     <h2>Limitations and Next Steps</h2>
     <p>This reference application uses a transparent single-transfer heuristic. It does not replace supply-network optimization, order management, transportation planning, or warehouse execution. Approval state is stored in process, so production deployments need durable, shared approval and idempotency storage. Remote MCP write actions also require actor-bound OAuth authorization rather than the read-only demonstration configuration.</p>
     <p>Gemini Enterprise's A2UI support is Preview and currently limited to v0.8. The browser's v0.9.1 payload and Gemini Enterprise's v0.8 payload are intentionally separate builders over one domain API. Future host upgrades should be handled by explicit capability/version negotiation and compatibility tests rather than silently changing every client at once.</p>
-    <p>Production next steps include authenticated identity, durable approvals and idempotency, Oracle row-level authorization, Streamable HTTP with TLS and OAuth 2.0, Model Armor configured in the A2A application path, location and value authority limits, concurrent-transfer testing, richer forecasting, and an optimizer that evaluates multiple interacting transfers. Gemini Enterprise's console-level Model Armor settings do not automatically protect a separately hosted A2A agent. Vector search or retrieval-augmented generation could add policy and disruption explanations, while the deterministic database operation remains the final execution boundary.</p>
+    <p>The deployed demo includes database-enforced row authorization and separately permissioned full and restricted agent endpoints. Production next steps include enterprise-group lifecycle automation, durable approvals and idempotency, Streamable HTTP with TLS and OAuth 2.0, Model Armor configured in the A2A application path, location and value authority limits, concurrent-transfer testing, richer forecasting, and an optimizer that evaluates multiple interacting transfers. Gemini Enterprise's console-level Model Armor settings do not automatically protect a separately hosted A2A agent. Vector search or retrieval-augmented generation could add policy and disruption explanations, while the deterministic database operation remains the final execution boundary.</p>
   </section>
 
   <section id="references">
@@ -636,6 +662,8 @@ cd agent-service
       <li><a href="https://modelcontextprotocol.io/specification/latest">Model Context Protocol specification</a></li>
       <li><a href="https://a2a-protocol.org/latest/">Agent2Agent protocol documentation</a></li>
       <li><a href="https://www.oracle.com/database/">Oracle AI Database</a></li>
+      <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/configure-oracle-deep-data-security-direct-logon-local-end-users.html">Oracle Deep Data Security direct logon with local end users</a></li>
+      <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/26/ddscg/create-data-grants.html">Create Oracle Deep Data Security data grants</a></li>
     </ul>
   </section>
 

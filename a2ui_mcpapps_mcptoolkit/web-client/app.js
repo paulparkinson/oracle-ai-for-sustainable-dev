@@ -101,7 +101,14 @@ function renderReview() {
   state.recommendations.forEach((recommendation, index) =>
     grid.append(recommendationCard(recommendation, index === 0)));
   surfaceEl.append(summary, grid);
-  if (state.recommendations.length > 0) surfaceEl.append(approvalForm());
+  if (state.recommendations.length > 0 && state.data.writesAllowed !== false) {
+    surfaceEl.append(approvalForm());
+  } else if (state.recommendations.length > 0) {
+    const notice = document.createElement("p");
+    notice.className = "result";
+    notice.textContent = "Read-only Deep Data Security role: no transfer approval control is available.";
+    surfaceEl.append(notice);
+  }
 }
 
 function recommendationCard(recommendation, checked) {
@@ -192,6 +199,7 @@ async function submitApproval(event) {
   const form = new FormData(event.currentTarget);
   form.set("recommendationId", selected.value);
   form.set("approvalId", state.approvalId);
+  form.set("accessProfile", runForm.elements.accessProfile.value);
   await postAction(
     "/api/approve",
     form,
@@ -203,6 +211,7 @@ async function submitApproval(event) {
 async function rejectApproval() {
   const form = new FormData();
   form.set("approvalId", state.approvalId);
+  form.set("accessProfile", runForm.elements.accessProfile.value);
   await postAction(
     "/api/reject",
     form,

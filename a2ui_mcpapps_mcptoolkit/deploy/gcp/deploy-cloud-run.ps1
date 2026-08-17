@@ -7,9 +7,12 @@ param(
     [string]$RuntimeServiceAccount = "a2ui-gemini-runner",
     [string]$DatabaseServiceName = "paulparkdb_tp",
     [string]$DatabaseUsername = "FINANCIAL",
+    [string]$RestrictedDatabaseUsername = "ENVIRONMENTAL_PLANNER",
     [string]$WalletSecret = "a2ui-paulparkdb-wallet",
     [string]$DatabasePasswordSecret =
         "a2ui-paulparkdb-financial-password",
+    [string]$RestrictedDatabasePasswordSecret =
+        "a2ui-paulparkdb-environmental-planner-password",
     [switch]$AllowUnauthenticated
 )
 
@@ -65,7 +68,10 @@ if (-not (Test-GcloudResource iam service-accounts describe `
         --display-name="Gemini Enterprise A2UI runtime"
 }
 
-foreach ($secret in @($WalletSecret, $DatabasePasswordSecret)) {
+foreach ($secret in @(
+        $WalletSecret,
+        $DatabasePasswordSecret,
+        $RestrictedDatabasePasswordSecret)) {
     if (-not (Test-GcloudResource secrets versions describe latest `
             --secret=$secret --project=$ProjectId)) {
         throw (
@@ -113,8 +119,8 @@ $commonArguments = @(
     "--network=default",
     "--subnet=default",
     "--vpc-egress=private-ranges-only",
-    "--set-env-vars=DB_SERVICE_NAME=$DatabaseServiceName,DB_USERNAME=$DatabaseUsername,AGENT_PORT=8081,AGENT_SERVICE_URL=http://127.0.0.1:8081,PUBLIC_A2A_URL=https://pending.invalid",
-    "--set-secrets=/var/run/secrets/oracle-wallet/wallet.zip=$WalletSecret`:latest,DB_PASSWORD=$DatabasePasswordSecret`:latest",
+    "--set-env-vars=DB_SERVICE_NAME=$DatabaseServiceName,DB_USERNAME=$DatabaseUsername,DB_USERNAME2=$RestrictedDatabaseUsername,AGENT_PORT=8081,AGENT_SERVICE_URL=http://127.0.0.1:8081,PUBLIC_A2A_URL=https://pending.invalid",
+    "--set-secrets=/var/run/secrets/oracle-wallet/wallet.zip=$WalletSecret`:latest,DB_PASSWORD=$DatabasePasswordSecret`:latest,DB_PASSWORD2=$RestrictedDatabasePasswordSecret`:latest",
     $accessFlag
 )
 Invoke-Gcloud @commonArguments

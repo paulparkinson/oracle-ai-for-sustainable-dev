@@ -83,7 +83,8 @@ public final class A2uiPayloads {
 
     public static Map<String, Object> data(
             List<TransferRecommendation> recommendations,
-            String approvalId) {
+            String approvalId,
+            boolean writesAllowed) {
         List<Map<String, Object>> rows =
                 recommendations.stream().map(Json::recommendationMap).toList();
         return Map.of(
@@ -97,6 +98,7 @@ public final class A2uiPayloads {
                                         + " governed inventory transfer recommendation(s) require review.",
                                 "recommendations", rows,
                                 "approvalId", approvalId,
+                                "writesAllowed", writesAllowed,
                                 "form", Map.of(
                                         "approvalNotes",
                                         "Approve the database-recommended transfer to reduce stockout exposure."))));

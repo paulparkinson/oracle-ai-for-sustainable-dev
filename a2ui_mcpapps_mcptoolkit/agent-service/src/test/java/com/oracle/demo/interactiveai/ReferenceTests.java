@@ -187,7 +187,8 @@ final class ReferenceTests {
                         .getFirst();
         String payload = Main.reviewJson(
                 List.of(recommendation),
-                "test-approval-handle");
+                "test-approval-handle",
+                true);
         assertTrue(payload.contains(
                 "\"source\":\"oracle-db-mcp-java-toolkit\""));
         assertTrue(payload.contains(

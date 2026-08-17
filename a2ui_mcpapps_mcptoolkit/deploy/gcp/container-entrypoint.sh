@@ -11,6 +11,8 @@ required() {
 
 required DB_USERNAME
 required DB_PASSWORD
+required DB_USERNAME2
+required DB_PASSWORD2
 required DB_SERVICE_NAME
 required PUBLIC_A2A_URL
 

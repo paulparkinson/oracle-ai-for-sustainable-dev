@@ -51,6 +51,21 @@ PORT = int(
 PUBLIC_A2A_URL = os.environ.get(
     "PUBLIC_A2A_URL", f"http://127.0.0.1:{PORT}"
 ).rstrip("/")
+TRUSTED_ACCESS_PROFILE = os.environ.get(
+    "TRUSTED_ACCESS_PROFILE", "full"
+).strip().lower()
+if TRUSTED_ACCESS_PROFILE not in {"full", "environmental"}:
+    raise ValueError(
+        "TRUSTED_ACCESS_PROFILE must be full or environmental"
+    )
+AGENT_DISPLAY_NAME = os.environ.get(
+    "A2A_AGENT_DISPLAY_NAME",
+    (
+        "Oracle Environmental Inventory Planner"
+        if TRUSTED_ACCESS_PROFILE == "environmental"
+        else "Oracle Supply-Chain Inventory Exchange"
+    ),
+)
 STANDARD_CATALOG = (
     "https://a2ui.org/specification/v0_8/"
     "standard_catalog_definition.json"
@@ -73,17 +88,27 @@ def build_agent_card() -> AgentCard:
         defaultInputModes=["text/plain", "application/json+a2ui"],
         defaultOutputModes=["text/plain", "application/json+a2ui"],
         description=(
-            "Shows Oracle-governed inventory-transfer recommendations and "
-            "requires an explicit A2UI approval before a database write."
+            "Shows read-only environmental inventory recommendations "
+            "filtered by Oracle Deep Data Security."
+            if TRUSTED_ACCESS_PROFILE == "environmental"
+            else (
+                "Shows Oracle-governed inventory-transfer recommendations "
+                "and requires explicit A2UI approval before a database write."
+            )
         ),
-        name="Oracle Supply-Chain Inventory Exchange",
+        name=AGENT_DISPLAY_NAME,
         preferredTransport="JSONRPC",
         protocolVersion="0.3.0",
         skills=[
             AgentSkill(
                 description=(
-                    "Review stockout-risk recommendations and approve or "
-                    "cancel one exact inventory transfer."
+                    "Review Deep Data Security-filtered environmental "
+                    "inventory recommendations."
+                    if TRUSTED_ACCESS_PROFILE == "environmental"
+                    else (
+                        "Review stockout-risk recommendations and approve or "
+                        "cancel one exact inventory transfer."
+                    )
                 ),
                 examples=[
                     (
@@ -93,9 +118,17 @@ def build_agent_card() -> AgentCard:
                 ],
                 id="inventory-transfer-review",
                 inputModes=["text/plain", "application/json+a2ui"],
-                name="Inventory transfer review",
+                name=(
+                    "Environmental inventory review"
+                    if TRUSTED_ACCESS_PROFILE == "environmental"
+                    else "Inventory transfer review"
+                ),
                 outputModes=["text/plain", "application/json+a2ui"],
-                tags=["inventory", "oracle", "a2ui", "approval"],
+                tags=(
+                    ["inventory", "oracle", "a2ui", "deep-data-security"]
+                    if TRUSTED_ACCESS_PROFILE == "environmental"
+                    else ["inventory", "oracle", "a2ui", "approval"]
+                ),
             )
         ],
         supportsAuthenticatedExtendedCard=False,
@@ -111,9 +144,10 @@ class SupplyChainExecutor(AgentExecutor):
             await updater.submit()
         await updater.start_work()
         try:
+            access_profile = TRUSTED_ACCESS_PROFILE
             action = _extract_user_action(context)
             if action:
-                parts = await _handle_action(action)
+                parts = await _handle_action(action, access_profile)
             else:
                 prompt = context.get_user_input("")
                 minimum_risk, maximum_rows = _query_parameters(prompt)
@@ -123,11 +157,14 @@ class SupplyChainExecutor(AgentExecutor):
                     {
                         "minimumStockoutRisk": minimum_risk,
                         "maximumRows": maximum_rows,
+                        "accessProfile": access_profile,
                     },
                 )
                 messages = review_messages(
                     review["recommendations"],
                     review["approvalId"],
+                    access_profile,
+                    bool(review["writesAllowed"]),
                 )
                 parts = [
                     Part(
@@ -161,7 +198,9 @@ class SupplyChainExecutor(AgentExecutor):
         raise TaskNotCancelableError()
 
 
-async def _handle_action(action: dict[str, Any]) -> list[Part]:
+async def _handle_action(
+    action: dict[str, Any], access_profile: str
+) -> list[Part]:
     name = action.get("name")
     values = action.get("context")
     if not isinstance(values, dict):
@@ -179,6 +218,7 @@ async def _handle_action(action: dict[str, Any]) -> list[Part]:
                     values, "recommendationId"
                 ),
                 "approvalNotes": notes,
+                "accessProfile": access_profile,
             },
         )
         detail = (
@@ -200,7 +240,10 @@ async def _handle_action(action: dict[str, Any]) -> list[Part]:
         await asyncio.to_thread(
             _post_agent,
             "/api/reject",
-            {"approvalId": _required(values, "approvalId")},
+            {
+                "approvalId": _required(values, "approvalId"),
+                "accessProfile": access_profile,
+            },
         )
         detail = "The review was cancelled. No database write was executed."
         return [
