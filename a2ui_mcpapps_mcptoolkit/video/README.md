@@ -1,39 +1,31 @@
-# Interactive AI blog walkthrough
+# A2UI and MCP Apps blog walkthrough
 
 This directory contains the reproducible source and publication assets for the
-silent, captioned blog walkthrough. It deliberately has no voice track so
-narration can be recorded and mixed later. The current walkthrough shows the
-verified Gemini Enterprise A2UI, ChatGPT MCP App, and Claude MCP App host models.
+silent, captioned walkthrough embedded in `../blog.html`. The video demonstrates
+native A2UI and portable MCP Apps over the same Oracle-governed supply-chain
+workflow, including examples in Gemini Enterprise, ChatGPT, and Claude.
 
-On Windows with Microsoft PowerPoint installed:
-
-```powershell
-cd a2ui_mcpapps_mcptoolkit/video
-.\build-video.ps1
-.\verify-video.ps1
-```
-
-The PowerPoint build creates an eleven-scene, 1920x1080 walkthrough expected to
-run for 2 minutes 34 seconds. Its scene plan is in `SCENE_PLAN.md`.
-
-The earlier macOS AVFoundation generator remains available for reference, but
-its scene content predates the current three-host walkthrough and must be
-updated before it can reproduce this cut:
+Build and verify on macOS:
 
 ```bash
 cd a2ui_mcpapps_mcptoolkit/video
-./build-video.swift
-./verify-video.swift
+swift build-video.swift
+swift verify-video.swift
+../../scripts/audit_video.sh \
+  interactive-ai-walkthrough.mp4 \
+  interactive-ai-walkthrough.srt \
+  ../blog.html
 ```
 
-The current PowerShell build creates:
+The build creates:
 
-- `interactive-ai-walkthrough.mp4` — silent 1920×1080 H.264 video with burned subtitles
-- `interactive-ai-walkthrough-poster.png` — blog poster frame
-- `interactive-ai-walkthrough.srt` — YouTube-ready subtitles
-- `interactive-ai-walkthrough.vtt` — captions used by the HTML5 blog embed
+- `interactive-ai-walkthrough.mp4`: silent 1920x1080 H.264 video with burned captions
+- `interactive-ai-walkthrough-poster.png`: blog poster frame
+- `interactive-ai-walkthrough.srt`: downloadable and YouTube-ready subtitles
+- `interactive-ai-walkthrough.vtt`: captions used by the HTML5 embed
 
-No `.env` file, password, wallet, token, or private connection string is read by
-the video build.
-
-The caption-source files and both caption formats retain the canonical names `A2UI`, `AG-UI`, `A2A`, `MCP`, and `MCP Apps`; there are no phonetic speech-synthesis substitutions.
+Authentic product screenshots are rendered inside a controlled frame with
+animated cursor movement and click pulses. Browser chrome is cropped, and no
+secret, private endpoint, account, project, agent, or database identifier is
+included. The scripted animation is safer and more reproducible than publishing
+an unedited desktop recording.

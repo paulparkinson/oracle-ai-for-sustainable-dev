@@ -1,89 +1,38 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:03.400
-One governed supply-chain workflow now runs through three conversational host models.
+00:00:00.200 --> 00:00:11.800
+Compare native A2UI with portable MCP Apps over the same Oracle-governed supply-chain service.
 
-00:00:03.500 --> 00:00:06.900
-Gemini Enterprise renders native A2UI delivered over A2A.
+00:00:12.200 --> 00:00:23.800
+A2A connects hosts to agents. A2UI declares native UI. MCP Apps return sandboxed web UI. MCP exposes governed tools.
 
-00:00:07.000 --> 00:00:10.400
-ChatGPT and Claude render the same Oracle-backed results as an MCP App.
+00:00:24.200 --> 00:00:35.800
+The host discovers A2UI v0.8 and its supported component catalog before it renders any response.
 
-00:00:10.500 --> 00:00:13.900
-The video is silent and fully captioned.
+00:00:36.200 --> 00:00:47.800
+The user asks for three recommendations above risk 70. The adapter calls the governed service and returns A2UI DataParts.
 
-00:00:14.000 --> 00:00:17.400
-The host adapter changes, but the governed core does not.
+00:00:48.200 --> 00:00:59.800
+Move to the recommendation, enter notes, and select the exact-transfer action. The host sends a bounded userAction back over A2A.
 
-00:00:17.500 --> 00:00:20.900
-Gemini Enterprise calls an A2A agent carrying declarative A2UI.
+00:01:00.200 --> 00:01:11.800
+The MCP server exposes one bounded dashboard tool and points the host to a portable HTML application.
 
-00:00:21.000 --> 00:00:24.400
-ChatGPT and Claude call a Streamable HTTP MCP server carrying a sandboxed HTML resource.
+00:01:12.200 --> 00:01:23.800
+ChatGPT displays the Toolkit result and loads the sandboxed MCP App. The cursor selects Review this transfer inside the supplied interface.
 
-00:00:24.500 --> 00:00:27.900
-Every path reaches the same Java service, Toolkit, and Oracle AI Database.
+00:01:24.200 --> 00:01:35.800
+Claude discovers the same bounded tool and renders the same ui:// dashboard through its connector and sandbox bridge.
 
-00:00:28.000 --> 00:00:34.900
-The Java service launches a pinned Oracle Database MCP Java Toolkit over standard input and output, verifies the exact five-tool allowlist, and rejects broader capabilities.
+00:01:36.200 --> 00:01:47.800
+Create an OAuth-backed private connector, reload custom actions, and enable only show-inventory-transfer-dashboard.
 
-00:00:35.000 --> 00:00:41.900
-Oracle SQL calculates the feasible product, source, target, quantity, transit time, cost, and stockout risk.
+00:01:48.200 --> 00:01:59.800
+The service binds approval to the actor and exact recommendation. Oracle locks, revalidates, audits, and commits atomically.
 
-00:00:42.000 --> 00:00:48.900
-Gemini Enterprise registers the Cloud Run adapter as a custom A2A agent.
+00:02:00.200 --> 00:02:11.800
+Deep Data Security filters rows by the authenticated database identity before the Toolkit, service, host, or model receives them.
 
-00:00:49.000 --> 00:00:55.900
-The adapter streams A2UI version zero point eight DataParts, while the host owns the native component catalog, layout, accessibility, and interaction model.
-
-00:00:56.000 --> 00:01:02.900
-The live Gemini result shows the Oracle-governed WATER-SENSE recommendation: move forty-two units from PHX-DC to SEA-FC at stockout risk seventy-four point six.
-
-00:01:03.000 --> 00:01:09.900
-Gemini renders native approval notes and exact-transfer controls without loading an MCP App iframe.
-
-00:01:10.000 --> 00:01:16.900
-ChatGPT Developer Mode connects to the dedicated public HTTPS MCP endpoint for the time-bounded synthetic read-only test.
-
-00:01:17.000 --> 00:01:23.900
-Discovery exposes exactly one model-visible dashboard tool with bounded stockout-risk and row-limit inputs; write tools remain unregistered.
-
-00:01:24.000 --> 00:01:30.900
-ChatGPT calls the tool, loads the versioned UI resource, and renders the Toolkit-labeled dashboard inline.
-
-00:01:31.000 --> 00:01:37.900
-The recommendation, route, quantity, risk score, and model-readable summary match the private Cloud Run and Oracle Database preflight.
-
-00:01:38.000 --> 00:01:44.900
-Claude adds the same endpoint as a custom web connector, verifies its single interactive tool and permission policy, and enables it for a conversation.
-
-00:01:45.000 --> 00:01:51.900
-The connector uses the same Streamable HTTP server and the same self-contained MCP App resource as ChatGPT.
-
-00:01:52.000 --> 00:01:58.900
-In a regular browser, Claude invokes the tool and renders the same live WATER-SENSE dashboard inline.
-
-00:01:59.000 --> 00:02:05.900
-The installed Chrome-app surface failed during this test, so the verified claim is deliberately limited to Claude in a regular browser.
-
-00:02:06.000 --> 00:02:09.400
-The three hosts use different UI trust models.
-
-00:02:09.500 --> 00:02:12.900
-Gemini receives declarative A2UI and renders native controls.
-
-00:02:13.000 --> 00:02:16.400
-ChatGPT and Claude receive sandboxed HTML through MCP Apps.
-
-00:02:16.500 --> 00:02:19.900
-All three share the governed recommendation service, identifiers, Toolkit operations, and Oracle transaction boundary.
-
-00:02:20.000 --> 00:02:24.567
-Public validation remains synthetic and read-only.
-
-00:02:24.667 --> 00:02:29.233
-The widget says so explicitly and disables its preview action when no approval handle exists.
-
-00:02:29.333 --> 00:02:33.900
-Production approval requires OAuth, durable actor-bound state, least-privileged Oracle access, revalidation under locks, auditing, and immediate removal of temporary anonymous access.
+00:02:12.200 --> 00:02:23.800
+Use A2UI for native, catalog-controlled components. Use MCP Apps for rich portable web interfaces. Keep Oracle AI Database authoritative.
 

@@ -1,21 +1,22 @@
-# Three-host interactive AI walkthrough
+# A2UI and MCP Apps walkthrough
 
-The silent, captioned walkthrough is intentionally under five minutes. It uses
-only repository diagrams and sanitized validation screenshots.
+The 2 minute 24 second silent video uses authentic, sanitized product captures,
+repository source, burned captions, and animated cursor and click indicators.
 
-| Scene | Visual | Point demonstrated |
+| Scene | Visual | Demonstration |
 |---|---|---|
-| 1 | Title | One governed workflow, three host models |
-| 2 | Architecture | Host adapters converge on one Java, Toolkit, and Oracle core |
-| 3 | Protocol map | Exact responsibility boundaries and governed tools |
-| 4 | Gemini Enterprise agent registration | A2A custom agent setup |
-| 5 | Gemini Enterprise live result | Native A2UI v0.8 rendering |
-| 6 | ChatGPT tool discovery | One bounded model-visible MCP tool |
-| 7 | ChatGPT live result | Sandboxed MCP App rendering |
-| 8 | Claude connector permission | Same endpoint as an interactive connector |
-| 9 | Claude live result | Sandboxed MCP App rendering in a regular browser |
-| 10 | Architecture comparison | Native A2UI versus sandboxed MCP Apps |
-| 11 | Security recap | Read-only validation and production OAuth boundary |
+| 1 | Title | Two UI contracts share one governed workflow |
+| 2 | Responsibility map | A2A, A2UI, MCP Apps, and MCP boundaries |
+| 3 | Agent-card source | A2UI support and catalog advertisement |
+| 4 | Gemini Enterprise capture | Prompt and native A2UI response |
+| 5 | Gemini Enterprise capture | Exact recommendation and user action |
+| 6 | MCP App source | Bounded tool and `ui://` resource |
+| 7 | ChatGPT capture | Sandboxed MCP App interaction |
+| 8 | Claude capture | Same portable MCP App interaction |
+| 9 | Gemini connector configuration | Private OAuth-backed MCP connector |
+| 10 | Stored procedure | Lock, revalidate, audit, and commit |
+| 11 | Deep Data Security SQL | Identity-bound database row filtering |
+| 12 | Recap | Choose native A2UI or portable MCP Apps |
 
-Each slide lasts 14 seconds, for an expected duration of 2 minutes 34 seconds.
-The narration text is burned into each slide and also emitted as SRT and WebVTT.
+Browser chrome is cropped from product captures. The build never reads `.env`,
+wallet, token, client-secret, private endpoint, project, or account data.

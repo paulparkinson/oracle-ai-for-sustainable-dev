@@ -155,7 +155,7 @@ else:
         Your browser does not support embedded video. <a href="video/interactive-ai-walkthrough.mp4">Open the walkthrough video</a>.
       </video>
     </div>
-    <figcaption>A silent, captioned walkthrough under five minutes shows the common Oracle-governed core and three host examples: native A2UI over A2A in Gemini Enterprise, plus MCP Apps in ChatGPT and Claude. A <a href="video/interactive-ai-walkthrough.srt">downloadable SRT file</a> is also provided.</figcaption>
+    <figcaption>A silent, captioned walkthrough under five minutes shows native A2UI over A2A and the portable MCP App in compatible hosts, including both paths in Gemini Enterprise. Sanitized product captures, animated cursor movement, source code, and the Oracle transaction boundary make each interaction visible. A <a href="video/interactive-ai-walkthrough.srt">downloadable SRT file</a> is also provided.</figcaption>
   </figure>
 
   <section id="use-case">
@@ -342,7 +342,7 @@ registerAppTool(server, "approve-inventory-transfer", {
 
   <section id="host-walkthroughs">
     <h2>Full Setup and Runtime Walkthroughs for A2UI and MCP Apps in ChatGPT, Claude, and Gemini Enterprise</h2>
-    <p>The following walkthroughs show MCP Apps in ChatGPT and Claude, followed by native A2UI over A2A in Gemini Enterprise. These products demonstrate the two UI approaches without defining or limiting which capable hosts can implement them.</p>
+    <p>The following walkthroughs show the portable MCP App in ChatGPT, Claude, and Gemini Enterprise, followed by native A2UI over A2A in Gemini Enterprise. These products demonstrate the two UI approaches without defining or limiting which capable hosts can implement them.</p>
   </section>
 
   <section id="chatgpt-mcp-app">
@@ -419,6 +419,31 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
       <img src="images/claude-mcp-app-dashboard.png" alt="Claude in a regular browser rendering the live Supply-Chain Inventory Exchange MCP App with the WATER-SENSE recommendation.">
       <figcaption>Claude invokes <code>show-inventory-transfer-dashboard</code>, displays the Toolkit result, and renders the Oracle-backed MCP App inline.</figcaption>
     </figure>
+  </section>
+
+  <section id="gemini-enterprise-mcp-app">
+    <h2>Run the MCP App in Gemini Enterprise</h2>
+    <p>Gemini Enterprise can load the same <code>ui://</code> dashboard through a Custom MCP Server data store. This is separate from its native A2UI/A2A agent: the MCP path discovers a tool and loads sandboxed web content, while the A2UI path receives declarative component messages and renders native controls.</p>
+    <pre><code>Gemini Enterprise
+  |  private Custom MCP Server connector
+  |  Streamable HTTP + OAuth
+  v
+TypeScript MCP App server
+  |  ui:// inventory dashboard
+  v
+Java service -&gt; Oracle DB MCP Toolkit -&gt; Oracle AI Database</code></pre>
+    <h3>Private connector setup</h3>
+    <ol>
+      <li>Deploy <code>deploy/gcp/deploy-gemini-enterprise-mcp.ps1</code>. Keep Cloud Run private, disable MCP writes for the read-only demonstration, and grant invocation only to the Discovery Engine service agent.</li>
+      <li>Create a Google OAuth web client with the authorized redirect URI <code>https://vertexaisearch.cloud.google.com/oauth-redirect</code>. Keep the client secret outside Git, screenshots, logs, and model context.</li>
+      <li>Create a <em>Custom MCP Server</em> data store. Enter the private service URL ending in <code>/mcp</code>, authorization URL <code>https://accounts.google.com/o/oauth2/auth</code>, token URL <code>https://oauth2.googleapis.com/token</code>, and authorization parameter <code>&amp;access_type=offline</code>.</li>
+      <li>Request <code>openid email profile https://www.googleapis.com/auth/cloud-platform</code>, enable PKCE, enable HTTP Basic authentication, select <em>Login</em>, and complete the Google authorization flow.</li>
+      <li>Name the connector <em>Oracle Supply-Chain MCP App</em>, connect it to the target Gemini Enterprise application, and wait until its status is <em>Active</em>.</li>
+      <li>Open <em>Actions</em>, select <em>Reload custom actions</em>, enable <code>show-inventory-transfer-dashboard</code>, and verify that no broader SQL or write tool is model-visible.</li>
+      <li>In the Gemini Enterprise application, enable the connector and ask: <q>Show the inventory transfer dashboard for products with a minimum stockout risk of 70, limited to 3 recommendations.</q></li>
+      <li>Confirm that the tool result and sandboxed widget agree on the governed recommendation and display the read-only boundary. The native A2UI agent is not involved in this path.</li>
+    </ol>
+    <p class="note"><strong>Validation boundary:</strong> OAuth authorization, private connector creation, and active data-store status were verified. If action discovery is still empty after <em>Reload custom actions</em>, inspect the MCP initialization response and Cloud Run request logs before claiming that the widget rendered in Gemini Enterprise.</p>
   </section>
 
   <section id="gemini-enterprise">
@@ -588,6 +613,7 @@ SET USE DATA GRANTS ONLY
       <li><strong>Run the smoke test.</strong> From another terminal, run <code>scripts/smoke-test.sh</code>. It exercises the live recommendation, approval, rejection, and health paths.</li>
       <li><strong>Open the MCP App locally.</strong> Keep the Java service running. Run <code>mcp-app/run.sh</code>, then <code>mcp-app/run-basic-host.sh</code> in a third terminal. Open <code>http://127.0.0.1:8082</code>, select <code>show-inventory-transfer-dashboard</code>, and invoke it. Select a card and verify both explicit approval and cancel paths.</li>
       <li><strong>Use the MCP App in ChatGPT.</strong> Deploy the secured MCP service, enable ChatGPT Developer Mode, and register its <code>/mcp</code> URL as a plugin connection. Submit the bounded stockout-risk prompt and confirm the Toolkit-backed card.</li>
+      <li><strong>Use the MCP App in Gemini Enterprise.</strong> Deploy the private read-only MCP service, create the OAuth-backed Custom MCP Server data store, reload and enable its dashboard action, then submit the bounded stockout-risk prompt. Confirm the sandboxed widget and tool result agree.</li>
       <li><strong>Use native A2UI in Gemini Enterprise.</strong> Deploy the adapter to authenticated Cloud Run, register its card as a custom A2A agent in the same app and location as the user license, and grant the user the per-agent <code>Agent User</code> role. Open the shared agent under <em>From your organization</em> and submit the stockout-risk prompt. Gemini Enterprise renders the A2UI v0.8 review natively.</li>
       <li><strong>Use the MCP App in Claude.</strong> Register the secured <code>/mcp</code> endpoint as a custom connector, inspect its tool permissions, enable it for a conversation, and submit the bounded stockout-risk prompt. Confirm the Toolkit result and inline MCP App.</li>
     </ol>
@@ -614,8 +640,8 @@ SET USE DATA GRANTS ONLY
     <table>
       <tr><th>Use</th><th>When</th></tr>
       <tr><td>AG-UI</td><td>You own a custom agent frontend and need streamed messages, tool activity, progress, and synchronized state.</td></tr>
-      <tr><td>A2UI</td><td>The agent should compose native, accessible controls from a restricted catalog without sending executable code. Gemini Enterprise is the demonstrated example in this project.</td></tr>
-      <tr><td>MCP Apps</td><td>An MCP Apps-capable host needs a sandboxed HTML dashboard, chart, canvas, or complex embedded workflow. ChatGPT and Claude are the demonstrated examples in this project.</td></tr>
+      <tr><td>A2UI</td><td>The agent should compose native, accessible controls from a restricted catalog without sending executable code. Gemini Enterprise is the native-rendering example in this project.</td></tr>
+      <tr><td>MCP Apps</td><td>An MCP Apps-capable host needs a sandboxed HTML dashboard, chart, canvas, or complex embedded workflow. ChatGPT, Claude, and Gemini Enterprise are the connector examples in this project.</td></tr>
       <tr><td>Oracle Database MCP Java Toolkit</td><td>Governed Oracle data and transactional business operations must be exposed as reusable MCP tools.</td></tr>
       <tr><td>A2A</td><td>An A2A-capable host needs to discover and invoke the externally hosted agent.</td></tr>
       <tr><td>Combined pattern</td><td>A supply-chain experience needs one governed domain workflow presented through host-specific transport and UI adapters.</td></tr>
@@ -680,7 +706,7 @@ SET USE DATA GRANTS ONLY
     <p>No. The custom web client demonstrates AG-UI and A2UI. The separate MCP App renders the same Toolkit-backed recommendations inside a compatible conversational host.</p>
 
     <h3>Are A2UI and MCP Apps tied to specific host products?</h3>
-    <p>No. They are capability-based UI contracts. This project validates Gemini Enterprise as one A2A/A2UI host and ChatGPT and Claude as two MCP Apps hosts, while keeping the governed Java service, Toolkit tools, recommendation IDs, and Oracle transaction boundary independent of those examples.</p>
+    <p>No. They are capability-based UI contracts. This project demonstrates Gemini Enterprise as an A2A/A2UI host and as an MCP Apps host, alongside ChatGPT and Claude MCP App examples. The governed service, Toolkit tools, recommendation IDs, and Oracle transaction boundary remain independent of the host.</p>
 
     <h3>Why not let the agent generate SQL or choose any transfer?</h3>
     <p>A bounded recommendation view and stored procedure make the allowed data, feasibility formula, privileges, locks, transaction, and audit result explicit. Unrestricted SQL or client-selected quantities would expand the attack surface and make execution less deterministic.</p>
