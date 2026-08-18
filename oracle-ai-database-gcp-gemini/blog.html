@@ -34,6 +34,8 @@
     th { background: #edf2f4; }
     figure { margin: 32px 0; }
     figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--soft); }
+    .video-wrap { position: relative; overflow: hidden; border-radius: 11px; background: #111; }
+    .video-wrap video { display: block; width: 100%; height: auto; }
     figcaption { margin-top: 9px; color: var(--muted); font-size: .94rem; }
     .eyebrow { margin: 0 0 10px; color: var(--oracle); font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
     .subtitle { margin: 0 0 24px; color: var(--muted); font-size: 1.3rem; line-height: 1.45; }
@@ -68,9 +70,31 @@
   <p>Oracle AI Database remains the system of record. A small Java service exposes several task-oriented A2A agents, while Gemini Enterprise provides discovery, conversation, and orchestration. The language model can reason over results, but it does not become the data store or bypass database authorization.</p>
   <p>The source, schema scripts, agent cards, and deployment templates are available in the <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/oracle-ai-database-gcp-gemini">project directory</a>. All names and values in the demo data are synthetic.</p>
 
+  <section id="takeaways">
+    <h2>Key Takeaways</h2>
+    <ul>
+      <li>Gemini Enterprise discovers focused agents through A2A; it does not replace their domain logic or database authorization.</li>
+      <li>Oracle AI Database answers relational, property-graph, spatial, and Select AI questions from one governed data foundation.</li>
+      <li>Each specialist is opened explicitly in this demonstration, so the presenter can show which agent and database capability produced each result.</li>
+      <li>A2UI adds native review controls, while a separate MCP App can provide a portable sandboxed dashboard in compatible hosts.</li>
+      <li>Human approval, database revalidation, and least-privileged identities remain required before a recommendation becomes a write.</li>
+    </ul>
+  </section>
+
   <figure>
     <img src="images/gemini-a2a-architecture.svg" alt="Gemini Enterprise invokes A2A agents that use Oracle AI Database for inventory, graph, spatial, Select AI, and governed action analysis.">
     <figcaption>Gemini Enterprise is the conversational host; A2A is the interoperability layer; Oracle AI Database is the governed data and execution layer.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="video-wrap">
+      <video controls preload="metadata" poster="video/gemini-oracle-a2a-walkthrough-poster.png">
+        <source src="video/gemini-oracle-a2a-walkthrough.mp4" type="video/mp4">
+        <track kind="captions" srclang="en" label="English" src="video/gemini-oracle-a2a-walkthrough.vtt" default>
+        Your browser does not support embedded video. <a href="video/gemini-oracle-a2a-walkthrough.mp4">Download the walkthrough</a>.
+      </video>
+    </div>
+    <figcaption>This silent, captioned walkthrough follows the exact demo sequence through relational risk, graph, spatial, governed action, native A2UI, and the optional MCP App. Sanitized interface captures use animated cursor and click indicators; no credential, endpoint, project ID, agent ID, or database identifier is shown. A <a href="video/gemini-oracle-a2a-walkthrough.srt">downloadable SRT file</a> is also provided.</figcaption>
   </figure>
 
   <section id="background">
@@ -213,7 +237,8 @@ END;
       <li><strong>Custom A2A agents</strong> are a good fit for deterministic routing, graph and spatial artifacts, application-specific response formats, and approval workflows.</li>
       <li><strong>Oracle AI Database Agent for Gemini Enterprise</strong> provides a managed route to database-hosted Select AI agent teams and individual database identity.</li>
     </ul>
-    <p>A managed setup typically enables the database A2A capability, configures OAuth, installs the Oracle-provided in-database agent objects, adds the Marketplace integration, and assigns intended users. Users authenticate to Oracle with their own database identity; Gemini Enterprise does not inherit unrestricted database access.</p>
+    <p>The managed agent is the intended primary inventory-analysis entry point when its cross-cloud private-network allowlist is complete. The <code>ORACLE_AI_DATABASE_AGENT</code> team is installed in the application schema and bound to the same narrow supply-chain Select AI profile used for the verified SQL path. Its database-native tools perform SQL generation and execution, distinct-value checks, range checks, and chart generation. The custom Select AI A2A agent provides an explicitly labeled fallback and comparison without changing the graph, spatial, action, or UI specialists.</p>
+    <p>The managed path requires the database A2A capability, Oracle OAuth, the Oracle Marketplace integration, and assigned users. Each user authorizes with an Oracle database identity, so Oracle Database privileges and policies remain the data-access boundary; Gemini Enterprise does not inherit unrestricted database access.</p>
   </section>
 
   <section id="deployment">
@@ -231,17 +256,19 @@ END;
 
   <section id="walkthrough">
     <h2>Demo Walkthrough: Stockout Risk, Graph, Spatial, and Governed Action</h2>
-    <p>Run each verified stage in the named custom agent. Do not enter these prompts in <em>Core Assistant</em>: listing or pinning a custom agent does not make Core Assistant delegate to it automatically. Open a new conversation for each specialist because this demo does not pass prior chat state between those agents.</p>
+    <p>Open each named specialist explicitly. Do not enter these prompts in <em>Core Assistant</em>: listing or pinning an agent does not make Core Assistant delegate to it automatically. Open a new conversation for each specialist because this demonstration does not pass prior chat state between agents.</p>
     <ol start="0">
-      <li><strong>Step 0: Open the correct application.</strong> In Gemini Enterprise, open the <em>Inventory System</em> application, open <em>Agents</em>, and pin the Oracle agents if needed. Start by selecting <code>oracle_select_ai_agent</code>, not Core Assistant.</li>
-      <li><strong>Step 1: Find the stockout risks.</strong> <span class="pill">Verified</span> Ask <code>oracle_select_ai_agent</code>: <code>Using only the Oracle inventory risk demo tables, list the top products at risk of stockouts next quarter, including stockout probability, projected revenue impact, and primary region.</code> The database-backed response identifies SKU-500 at 72 percent risk and also reports SKU-700 and SKU-900.</li>
-      <li><strong>Step 2: Drill into SKU-500.</strong> <span class="pill">Verified</span> In a fresh Select AI conversation, ask: <code>For SKU-500, summarize in business language which warehouses are driving the risk and why.</code> The response uses the warehouse-risk view to explain Newark pressure, coverage, and revenue impact.</li>
+      <li><strong>Step 0: Verify the managed path or select the fallback.</strong> Open the <em>Inventory System</em> application and select <em>Oracle AI Database Agent</em>. Authorize with the intended Oracle database identity. If the managed endpoint is unavailable because its private-network allowlist is incomplete, use <code>oracle_select_ai_agent</code> for Steps 1 and 2 and state that this is the custom A2A fallback.</li>
+      <li><strong>Step 1: Find the stockout risks.</strong> Ask the selected database agent: <code>Using only the Oracle inventory risk demo tables, list the top products at risk of stockouts next quarter, including stockout probability, projected revenue impact, and primary region.</code> The narrow Select AI profile and <code>SQL_TOOL</code> return SKU-500 at 72 percent risk, followed by SKU-700 and SKU-900.</li>
+      <li><strong>Step 2: Drill into SKU-500.</strong> In the same conversation, ask: <code>For SKU-500, summarize in business language which warehouses are driving the risk and why.</code> The warehouse-risk view explains Newark pressure, coverage, and revenue impact.</li>
       <li><strong>Step 3: Visualize dependencies.</strong> <span class="pill">Verified</span> Select <code>oracle_graph_agent</code> and ask: <code>Use the Oracle Database property graph to show supply-chain dependencies for SKU-500 and render the graph as an image.</code> The PNG shows the supplier, plant, port, Newark warehouse, product, and active weather alert path.</li>
       <li><strong>Step 4: Visualize the relief route.</strong> <span class="pill">Verified</span> Select <code>oracle_spatial_agent</code> and ask: <code>Show warehouse hotspots on a map for SKU-500 and highlight the best relief route.</code> The map identifies Newark as the primary pressure node and DFW as the best relief source.</li>
       <li><strong>Step 5: Draft the governed response.</strong> <span class="pill">Verified</span> Select <code>oracle_inventory_action_agent</code> and ask: <code>What inventory action should we take for SKU-500 given the current supply risk? Gather graph, spatial, and external evidence first, then recommend the safest next move and say whether approval is required.</code> The coordinator proposes a 500-unit DFW-to-Newark transfer, creates a draft ID, and requires approval without executing the move.</li>
-      <li><strong>Step 6: Render the approval UI.</strong> <span class="pill partial">A2UI verified; direct handoff pending</span> Select <em>Oracle Supply-Chain A2UI</em> under <em>From your organization</em> and ask: <code>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations.</code> Gemini Enterprise renders native A2UI review controls. This currently starts a separate governed recommendation query; passing the exact Step 5 draft remains planned.</li>
-      <li><strong>Step 7: Explain the next extensions.</strong> BigQuery or Oracle Lakehouse enrichment, Deep Data Security roles, and a portable MCP App are deliberate follow-on stages. Do not imply they participate in the verified flow until their connections and authorization tests are complete.</li>
+      <li><strong>Step 6: Render the native approval UI.</strong> <span class="pill">Verified</span> Select <em>Oracle Supply-Chain A2UI</em> and ask: <code>Show inventory transfers with a minimum stockout risk of 70, limited to 3 recommendations.</code> Gemini Enterprise renders a native A2UI card, notes field, approval button, and cancel button. This starts a separate governed recommendation query; passing the exact Step 5 draft remains future work.</li>
+      <li><strong>Step 7: Compare the MCP App.</strong> Enable the <em>Oracle Supply-Chain MCP App</em> connector and submit the same bounded dashboard prompt. The MCP path should call <code>show-inventory-transfer-dashboard</code> and load its sandboxed <code>ui://</code> resource rather than native A2UI. Connector OAuth and active status are verified; confirm tool discovery before presenting this step as complete.</li>
+      <li><strong>Step 8: Close with governance.</strong> Explain that database identities and Deep Data Security can restrict rows before any host or model sees them. BigQuery or Oracle Lakehouse enrichment is a separate next stage, not part of the demonstrated execution path.</li>
     </ol>
+    <p class="note"><strong>Presentation privacy:</strong> crop browser chrome and mask account names, endpoints, project numbers, agent identifiers, database identifiers, tokens, and credentials. The checked-in video uses sanitized captures and animated interaction markers instead of an unedited screen recording.</p>
   </section>
 
   <section id="security">
@@ -268,7 +295,7 @@ END;
       <li>Application code packages evidence into useful responses and artifacts.</li>
       <li>Human approval remains an explicit boundary for consequential actions.</li>
     </ul>
-    <p>This structure supports incremental adoption: begin with deterministic database-backed specialists, introduce Select AI behind a narrow profile, and add managed database agents where per-user database identity is valuable.</p>
+    <p>This structure combines a managed Oracle AI Database Agent for identity-aware relational analysis with deterministic custom specialists for graph, spatial, visual, and approval behavior. The narrow Select AI profile and Oracle authorization boundary remain consistent across the flow.</p>
   </section>
 
   <section id="references">
@@ -283,6 +310,18 @@ END;
       <li><a href="https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-a2a-agent">Google Cloud: Register and manage an A2A agent</a></li>
       <li><a href="https://github.com/a2aproject/A2A">Agent2Agent protocol</a></li>
     </ul>
+  </section>
+
+  <section id="faq">
+    <h2>Frequently Asked Questions</h2>
+    <h3>Does Core Assistant automatically call every registered agent?</h3>
+    <p>No. This demonstration opens each specialist directly. Registration and pinning make an agent available; they do not guarantee automatic delegation from Core Assistant.</p>
+    <h3>What if the managed Oracle AI Database Agent is unavailable?</h3>
+    <p>Use the custom Select AI A2A agent for the relational steps and label it clearly as the fallback. Graph, spatial, action, and A2UI specialists remain independent.</p>
+    <h3>Are A2UI and MCP Apps the same interface path?</h3>
+    <p>No. A2UI sends declarative component descriptions for native host rendering. MCP Apps send a <code>ui://</code> web resource for sandboxed host rendering.</p>
+    <h3>Does an A2A or MCP connection grant database access?</h3>
+    <p>No. Oracle users, roles, Deep Data Security policies, allowlisted Select AI objects, and transaction procedures still determine the accessible data and actions.</p>
   </section>
 
   <p class="note"><strong>Demo-data note:</strong> all products, organizations, locations, risks, and proposed actions in this reference implementation are synthetic and are not production planning recommendations.</p>
