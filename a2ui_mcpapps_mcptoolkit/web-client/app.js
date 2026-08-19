@@ -1,4 +1,5 @@
-const allowedComponents = new Set(["Column", "Row", "List", "Card", "Text", "Button", "TextField"]);
+const allowedComponents = new Set(["Column", "Row", "List", "Card", "Text", "Image", "Button", "TextField"]);
+const allowedImageOrigins = new Set(["https://www.oracle.com"]);
 const state = { message: "", approvalId: null, recommendations: [], components: new Map(), data: null };
 const statusEl = document.querySelector("#status");
 const messageEl = document.querySelector("#assistant-message");
@@ -93,6 +94,8 @@ function validateEnvelope(envelope) {
 
 function renderReview() {
   surfaceEl.replaceChildren();
+  const logo = renderCatalogImage("oracleLogo");
+  if (logo) surfaceEl.append(logo);
   const summary = document.createElement("p");
   summary.className = "result";
   summary.textContent = state.data.summary;
@@ -109,6 +112,21 @@ function renderReview() {
     notice.textContent = "Read-only Deep Data Security role: no transfer approval control is available.";
     surfaceEl.append(notice);
   }
+}
+
+function renderCatalogImage(componentId) {
+  const component = state.components.get(componentId);
+  if (!component || component.component !== "Image") return null;
+  const url = new URL(component.url);
+  if (url.protocol !== "https:" || !allowedImageOrigins.has(url.origin)) {
+    throw new Error(`A2UI image origin not allowed: ${url.origin}`);
+  }
+  const image = document.createElement("img");
+  image.src = url.href;
+  image.alt = component.description || "";
+  image.width = 150;
+  image.loading = "lazy";
+  return image;
 }
 
 function recommendationCard(recommendation, checked) {

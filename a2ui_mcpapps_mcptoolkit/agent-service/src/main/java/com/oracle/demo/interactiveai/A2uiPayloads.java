@@ -7,6 +7,8 @@ public final class A2uiPayloads {
     public static final String VERSION = "v0.9.1";
     public static final String CATALOG =
             "https://a2ui.org/specification/v0_9_1/catalogs/basic/catalog.json";
+    public static final String ORACLE_LOGO =
+            "https://www.oracle.com/a/ocom/img/oracle-logo.svg";
 
     private A2uiPayloads() {
     }
@@ -25,10 +27,18 @@ public final class A2uiPayloads {
                         "id", "root",
                         "component", "Column",
                         "children", List.of(
+                                "oracleLogo",
                                 "banner",
                                 "recommendationList",
                                 "notes",
                                 "buttons")),
+                Map.of(
+                        "id", "oracleLogo",
+                        "component", "Image",
+                        "url", ORACLE_LOGO,
+                        "description", "Oracle logo for Oracle AI Database",
+                        "fit", "contain",
+                        "variant", "header"),
                 Map.of(
                         "id", "banner",
                         "component", "Text",

@@ -247,7 +247,7 @@ registerAppResource(
           prefersBorder: true,
           csp: {
             connectDomains: [],
-            resourceDomains: []
+            resourceDomains: ["https://www.oracle.com"]
           }
         }
       }

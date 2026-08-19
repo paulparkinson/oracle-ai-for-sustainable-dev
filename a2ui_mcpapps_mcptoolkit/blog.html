@@ -203,8 +203,9 @@
         ChatGPT, or Claude. Its <strong>component catalog</strong> is the allowlist of native controls it knows how to
         validate and render. The host preserves its design system and accessibility while rejecting unsupported
         capabilities.</p>
-      <p>The result is a UI that can appear and update during a conversation without executing agent-generated frontend
-        code. The host controls rendering, and Oracle AI Database retains authority over the transaction.</p>
+      <p><strong>The result is a UI that can appear and update during a conversation without executing agent-generated
+          frontend code. The host controls rendering, and Oracle AI Database retains authority over the
+          transaction.</strong></p>
     </section>
 
     <section id="responsibilities">
@@ -272,43 +273,45 @@
         </tr>
       </table>
 
-      <h3>Repository Map</h3>
+      <h3>GitHub Repos Map</h3>
       <table>
         <tr>
           <th>Directory</th>
           <th>What it contains</th>
         </tr>
         <tr>
-          <td><code>agent-service/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/agent-service"><code>agent-service/</code></a></td>
           <td>Java orchestration, Streamable HTTP MCP client, approval state, AG-UI events, REST endpoints, and A2UI
             payloads.</td>
         </tr>
         <tr>
-          <td><code>oracle-db-mcp-toolkit/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/oracle-db-mcp-toolkit"><code>oracle-db-mcp-toolkit/</code></a></td>
           <td>Standalone Toolkit startup, TLS setup, YAML tool definitions, contracts, and pinned-runtime support.</td>
         </tr>
         <tr>
-          <td><code>database/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/database"><code>database/</code></a></td>
           <td>Sample schema, inventory data, recommendation view, transfer audit, and approval procedure.</td>
         </tr>
         <tr>
-          <td><code>web-client/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/web-client"><code>web-client/</code></a></td>
           <td>Standalone browser that consumes AG-UI events and renders allowlisted A2UI components.</td>
         </tr>
         <tr>
-          <td><code>gemini-enterprise-a2a/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a"><code>gemini-enterprise-a2a/</code></a></td>
           <td>A2A endpoint, generated agent card, Java-service adapter, and A2UI v0.8 response builder.</td>
         </tr>
         <tr>
-          <td><code>mcp-app/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/mcp-app"><code>mcp-app/</code></a></td>
           <td>TypeScript MCP server, <code>ui://</code> resource, sandboxed dashboard, and host-bridge actions.</td>
         </tr>
         <tr>
-          <td><code>deploy/gcp/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/deploy/gcp"><code>deploy/gcp/</code></a></td>
           <td>macOS/Linux deployment scripts and Cloud Build configuration for hosted adapters and MCP Apps.</td>
         </tr>
         <tr>
-          <td><code>scripts/</code>, <code>docs/</code>, and <code>images/</code></td>
+          <td><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/scripts"><code>scripts/</code></a>,
+            <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/docs"><code>docs/</code></a>, and
+            <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/images"><code>images/</code></a></td>
           <td>Smoke tests, setup guidance, sequence diagrams, and sanitized product captures.</td>
         </tr>
       </table>
@@ -327,20 +330,24 @@
         <li>an explicit approval boundary with an operator note; and</li>
         <li>a transfer ID and auditable completion state.</li>
       </ul>
-      <p>The agent can decide when to request recommendations and how to explain them. It cannot choose an arbitrary
-        transfer quantity, execute generated SQL, create new UI capabilities, or substitute a different source and
-        target after approval.</p>
+      <p><strong>The agent can decide when to request recommendations and how to explain them. It cannot choose an
+          arbitrary transfer quantity, execute generated SQL, create new UI capabilities, or substitute a different
+          source and target after approval. These enforced boundaries provide application and database guardrails that
+          reduce manipulation, unauthorized operations, and unintended writes.</strong></p>
     </section>
 
     <section id="protocol-overlap">
       <h2>How the Shared Architecture Connects</h2>
-      <p>A2UI does not mandate a transport. The standalone browser receives A2UI v0.9.1 inside AG-UI
-        <code>CUSTOM</code> events, while Gemini Enterprise receives A2UI v0.8 DataParts over A2A. MCP Apps use MCP
-        Streamable HTTP and a host bridge instead of either A2UI transport.</p>
+      <p>A2UI does not mandate a transport. The standalone browser example receives A2UI v0.9.1 inside AG-UI
+        <code>CUSTOM</code> events, while the Gemini Enterprise Apps example receives A2UI v0.8 DataParts over A2A. The
+        MCP Apps use MCP Streamable HTTP and a host bridge instead of either A2UI transport.</p>
       <p>A <strong>host adapter</strong> translates the shared domain result into the contract supported by a particular
-        host. <code>gemini-enterprise-a2a/main.py</code> adapts the result to A2A/A2UI for Gemini Enterprise;
-        <code>mcp-app/server.ts</code> exposes the MCP App used by ChatGPT, Claude, and Gemini Enterprise; and
-        <code>web-client/app.js</code> consumes AG-UI/A2UI in the standalone browser. These adapters do not duplicate the
+        host. <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>
+        adapts the result to A2A/A2UI for Gemini Enterprise; <a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/server.ts"><code>mcp-app/server.ts</code></a>
+        exposes the MCP App used by ChatGPT, Claude, and Gemini Enterprise; and <a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/web-client/app.js"><code>web-client/app.js</code></a>
+        consumes AG-UI/A2UI in the standalone browser. These adapters do not duplicate the
         Oracle query or approval policy.</p>
       <p class="callout"><strong>Keep the boundaries clear:</strong> the Oracle Database MCP Java Toolkit is
         database-facing. Orchestration and approval policy belong in the agent service; A2UI rendering belongs in the
@@ -364,7 +371,7 @@
         behavior safer, more deterministic, and more auditable than unrestricted SQL; they do not make a tool absolutely
         safe.</p>
       <p>The following toolset and bind-variable query are defined in
-        <code>oracle-db-mcp-toolkit/config/tools.yaml</code>:</p>
+        <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/oracle-db-mcp-toolkit/config/tools.yaml"><code>oracle-db-mcp-toolkit/config/tools.yaml</code></a>:</p>
       <pre><code>toolsets:
   supply-chain-exchange:
     - find-stockout-transfer-recommendations
@@ -395,7 +402,7 @@ tools:
         <code>supply-chain-exchange</code> allowlist. Built-in <code>read-query</code>, <code>write-query</code>, table,
         and administration tools are never enabled.</p>
       <p>The following excerpt from
-        <code>agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java</code>
+        <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java"><code>agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java</code></a>
         validates input and invokes the named MCP tool rather than accepting generated SQL:</p>
       <pre><code>InputValidation.minimumStockoutRisk(minimumStockoutRisk);
 InputValidation.maximumRows(maximumRows);
@@ -459,13 +466,16 @@ if (!available.equals(requiredTools)) {
         resources, unapproved device capabilities, and unauthorized tools.</p>
       <p>The sandbox provides browser isolation, not application authorization. The MCP server must still authenticate
         the actor, validate every tool input, enforce authorization, and protect downstream transactions.</p>
-      <p>The following metadata from <code>mcp-app/server.ts</code> declares no external domains and keeps approval
-        callable by the app rather than the model:</p>
+      <p>The following metadata from <a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/server.ts"><code>mcp-app/server.ts</code></a>
+        keeps network requests disabled, permits the Oracle logo as a static image from one official origin, and keeps
+        approval callable by the app rather than the model. <code>connectDomains</code> governs fetch, XHR, and
+        WebSocket destinations; <code>resourceDomains</code> governs images, scripts, styles, fonts, and media:</p>
       <pre><code>_meta: {
   ui: {
     csp: {
       connectDomains: [],
-      resourceDomains: []
+      resourceDomains: ["https://www.oracle.com"]
     }
   }
 }
@@ -479,7 +489,9 @@ _meta: { ui: { visibility: ["app"] } }</code></pre>
 
     <section id="a2ui">
       <h2>Render Recommendation and Approval Controls with A2UI</h2>
-      <p><code>agent-service/src/main/java/com/oracle/demo/interactiveai/A2uiPayloads.java</code> creates one A2UI v0.9.1
+      <p><a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/src/main/java/com/oracle/demo/interactiveai/A2uiPayloads.java"><code>agent-service/src/main/java/com/oracle/demo/interactiveai/A2uiPayloads.java</code></a>
+        creates one A2UI v0.9.1
         surface, supplies an adjacency-list component tree, and sends recommendation data separately:</p>
       <pre><code>{
   "version": "v0.9.1",
@@ -489,22 +501,38 @@ _meta: { ui: { visibility: ["app"] } }</code></pre>
     "sendDataModel": true
   }
 }</code></pre>
-      <p>The same class declares the native controls and their bounded action names:</p>
+      <p>The same class requests an <code>Image</code> from the host's approved Basic Catalog and declares the bounded
+        action names:</p>
       <pre><code>Map.of(
+    "id", "oracleLogo",
+    "component", "Image",
+    "url", "https://www.oracle.com/a/ocom/img/oracle-logo.svg",
+    "description", "Oracle logo for Oracle AI Database",
+    "fit", "contain",
+    "variant", "header");
+
+Map.of(
     "id", "confirm",
     "component", "Button",
     "text", "Approve inventory transfer",
     "action", Map.of("event", Map.of(
         "name", "approve_inventory_transfer")))</code></pre>
-      <p><code>web-client/app.js</code> accepts only the expected version, catalog, surface, envelope shapes, and
-        component types. Generated values enter the DOM through <code>textContent</code>; no A2UI payload can provide
-        executable JavaScript:</p>
+      <p><a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/web-client/app.js"><code>web-client/app.js</code></a>
+        accepts only the expected version, catalog, surface, component types, and HTTPS image origins. Generated values
+        enter the DOM through <code>textContent</code>; no A2UI payload can provide executable JavaScript:</p>
       <pre><code>const allowedComponents = new Set([
-  "Column", "Row", "List", "Card", "Text", "Button", "TextField"
+  "Column", "Row", "List", "Card", "Text", "Image", "Button", "TextField"
 ]);
+const allowedImageOrigins = new Set(["https://www.oracle.com"]);
 
 if (!allowedComponents.has(component.component)) {
   throw new Error(`A2UI component not allowed: ${component.component}`);
+}
+
+const url = new URL(component.url);
+if (url.protocol !== "https:" || !allowedImageOrigins.has(url.origin)) {
+  throw new Error(`A2UI image origin not allowed: ${url.origin}`);
 }
 
 name.textContent = `${recommendation.sku} · ${recommendation.productName}`;</code></pre>
@@ -519,7 +547,7 @@ name.textContent = `${recommendation.sku} · ${recommendation.productName}`;</co
           <code>GET /.well-known/agent-card.json</code>. Its A2A protocol version and A2UI extension are separate
           declarations, so a host can discover both the communication contract and the supported UI capability before
           invoking the agent.</strong></p>
-      <p><code>build_agent_card()</code> in <code>gemini-enterprise-a2a/main.py</code> generates a card equivalent to
+      <p><code>build_agent_card()</code> in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a> generates a card equivalent to
         this JSON representation:</p>
       <pre><code>{
   "capabilities": {
@@ -548,7 +576,7 @@ name.textContent = `${recommendation.sku} · ${recommendation.productName}`;</co
         both according to the request, workflow state, host capabilities, and product policy. The host must still
         validate every A2UI message against the advertised version and catalog.</p>
       <p>This application makes that choice deterministically rather than asking an LLM. The following excerpt is from
-        <code>SupplyChainExecutor.execute()</code> in <code>gemini-enterprise-a2a/main.py</code>:</p>
+        <code>SupplyChainExecutor.execute()</code> in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>:</p>
       <pre><code>action = _extract_user_action(context)
 
 if action:
@@ -591,7 +619,7 @@ else:
       <h2>Optionally Stream A2UI and Agent State with AG-UI</h2>
       <p>The standalone frontend uses AG-UI because it needs incremental run state and tool activity as well as A2UI.
         The following excerpt from
-        <code>agent-service/src/main/java/com/oracle/demo/interactiveai/AguiRunService.java</code> emits AG-UI events
+        <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/src/main/java/com/oracle/demo/interactiveai/AguiRunService.java"><code>agent-service/src/main/java/com/oracle/demo/interactiveai/AguiRunService.java</code></a> emits AG-UI events
         over Server-Sent Events and carries each A2UI envelope in a <code>CUSTOM</code> event:</p>
       <pre><code>send(output, Map.of(
     "type", "TOOL_CALL_START",
@@ -607,17 +635,17 @@ send(output, Map.of(
     "name", "a2ui.message",
     "value", envelope));</code></pre>
       <p>The frontend can render progress before the full recommendation set arrives and correlate arguments and results
-        with one <code>toolCallId</code>. The standalone <code>web-client/app.js</code> validates allowlisted A2UI state
+        with one <code>toolCallId</code>. The standalone <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/web-client/app.js"><code>web-client/app.js</code></a> validates allowlisted A2UI state
         and renders this exchange's HTML rather than acting as a general-purpose A2UI renderer.</p>
     </section>
 
     <section id="mcp-app">
       <h2>Add a Supply-Chain Dashboard with MCP Apps</h2>
       <p>The web application at <code>http://127.0.0.1:8080</code> demonstrates AG-UI and A2UI. The separate
-        <code>mcp-app/</code> package is a real MCP App demonstration that can run in the official MCP Apps basic host
+        <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/mcp-app"><code>mcp-app/</code></a> package is a real MCP App demonstration that can run in the official MCP Apps basic host
         without a third-party account.
       </p>
-      <p>The following abridged model-visible dashboard tool is defined in <code>mcp-app/server.ts</code>:</p>
+      <p>The following abridged model-visible dashboard tool is defined in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/server.ts"><code>mcp-app/server.ts</code></a>:</p>
       <pre><code>registerAppTool(server, "show-inventory-transfer-dashboard", {
   title: "Show inventory transfer dashboard",
   inputSchema: {
@@ -665,7 +693,7 @@ registerAppTool(server, "approve-inventory-transfer", {
         ui: {
           csp: {
             connectDomains: [],
-            resourceDomains: []
+            resourceDomains: ["https://www.oracle.com"]
           }
         }
       }
@@ -678,7 +706,7 @@ registerAppTool(server, "approve-inventory-transfer", {
         <code>updateModelContext</code>; approving or canceling calls an app-only tool that the model cannot invoke. The
         iframe receives neither wallet files nor database credentials.
       </p>
-      <p>The following abridged excerpt from <code>mcp-app/src/mcp-app.ts</code> shows the iframe requesting its app-only
+      <p>The following abridged excerpt from <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/src/mcp-app.ts"><code>mcp-app/src/mcp-app.ts</code></a> shows the iframe requesting its app-only
         approval tool through the host bridge:</p>
       <pre><code>const result = await app.callServerTool({
   name: "approve-inventory-transfer",
@@ -717,7 +745,7 @@ void app.updateModelContext({
           performs the authoritative lock, revalidation, audit, and atomic commit.</figcaption>
       </figure>
       <p>The write path reserves a transfer ID from a sequence and then calls an input-only procedure. The following
-        excerpt from <code>database/setup.sql</code> shows how Oracle locks the source and target positions, recomputes
+        excerpt from <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/database/setup.sql"><code>database/setup.sql</code></a> shows how Oracle locks the source and target positions, recomputes
         surplus and shortage, and rejects a quantity greater than the current safe amount:</p>
       <pre><code>v_safe_transfer_qty := LEAST(v_source_surplus, v_target_shortage);
 
@@ -763,12 +791,12 @@ cd ../agent-service
       <ol start="0">
         <li><strong>Create Oracle AI Database 26ai.</strong> Use a cloud service or a local installation by following
           the <a href="https://www.oracle.com/database/free/get-started/">Oracle AI Database 26ai quick start</a>.</li>
-        <li><strong>Prepare the database.</strong> Run <code>agent-service/setup-database.sh</code> to create the sample
+        <li><strong>Prepare the database.</strong> Run <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/setup-database.sh"><code>agent-service/setup-database.sh</code></a> to create the sample
           inventory objects, recommendation view, transfer sequence, and approval procedure.</li>
         <li><strong>Start the Toolkit.</strong> In one terminal, run
-          <code>oracle-db-mcp-toolkit/run.sh full</code>. It exposes the allowlisted tools at an authenticated TLS MCP
+          <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/oracle-db-mcp-toolkit/run.sh"><code>oracle-db-mcp-toolkit/run.sh full</code></a>. It exposes the allowlisted tools at an authenticated TLS MCP
           endpoint.</li>
-        <li><strong>Start the application.</strong> In another terminal, run <code>agent-service/run.sh</code>. Its HTTP
+        <li><strong>Start the application.</strong> In another terminal, run <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/run.sh"><code>agent-service/run.sh</code></a>. Its HTTP
           MCP client connects to the Toolkit, verifies its identity and exact allowlist, and exposes the API and web
           client.</li>
         <li><strong>Open the inventory exchange.</strong> Browse to <code>http://127.0.0.1:8080</code>.</li>
@@ -782,9 +810,9 @@ cd ../agent-service
           action.</li>
         <li><strong>Commit through MCP.</strong> Oracle locks and revalidates both positions, writes the audit row, and
           reserves source inventory atomically.</li>
-        <li><strong>Run the smoke test.</strong> From another terminal, run <code>scripts/smoke-test.sh</code>.</li>
-        <li><strong>Open the MCP App locally.</strong> Run <code>mcp-app/run.sh</code> and
-          <code>mcp-app/run-basic-host.sh</code>, open <code>http://127.0.0.1:8082</code>, and invoke
+        <li><strong>Run the smoke test.</strong> From another terminal, run <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/scripts/smoke-test.sh"><code>scripts/smoke-test.sh</code></a>.</li>
+        <li><strong>Open the MCP App locally.</strong> Run <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/run.sh"><code>mcp-app/run.sh</code></a> and
+          <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/run-basic-host.sh"><code>mcp-app/run-basic-host.sh</code></a>, open <code>http://127.0.0.1:8082</code>, and invoke
           <code>show-inventory-transfer-dashboard</code>.</li>
       </ol>
     </section>
@@ -818,7 +846,7 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
         expiry, and scope validation before exposing customer-specific data or write actions.</p>
       <ol>
         <li>Set the required environment variables documented at the top of
-          <code>deploy/gcp/deploy-chatgpt-mcp.sh</code>, then run that script from macOS or Linux to build and deploy the
+          <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/deploy/gcp/deploy-chatgpt-mcp.sh"><code>deploy/gcp/deploy-chatgpt-mcp.sh</code></a>, then run that script from macOS or Linux to build and deploy the
           private read-only service. It reads the wallet and password from Secret Manager.</li>
         <li>With a Google identity token, verify <code>/health</code>, <code>tools/list</code>,
           <code>resources/read</code>, and a read-only <code>tools/call</code>. Confirm that anonymous access still
@@ -934,7 +962,7 @@ Java service -&gt; Oracle DB MCP Toolkit -&gt; Oracle AI Database</code></pre>
       <h3>Private connector setup</h3>
       <ol>
         <li>Set the required environment variables documented at the top of
-          <code>deploy/gcp/deploy-gemini-enterprise-mcp.sh</code>, then run that script from macOS or Linux. It keeps
+          <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/deploy/gcp/deploy-gemini-enterprise-mcp.sh"><code>deploy/gcp/deploy-gemini-enterprise-mcp.sh</code></a>, then run that script from macOS or Linux. It keeps
           Cloud Run private, disables MCP writes, and grants invocation only to the Discovery Engine service agent.</li>
         <li>Create a Google OAuth web client with the authorized redirect URI
           <code>https://vertexaisearch.cloud.google.com/oauth-redirect</code>. Keep the client secret outside Git,
@@ -967,7 +995,7 @@ Java service -&gt; Oracle DB MCP Toolkit -&gt; Oracle AI Database</code></pre>
         coupling between A2UI and Gemini Enterprise.</p>
 
       <h3>Separate A2A Transport from A2UI Presentation</h3>
-      <p>In this repository, <code>gemini-enterprise-a2a/main.py</code> co-locates the A2A endpoint, request executor,
+      <p>In this repository, <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a> co-locates the A2A endpoint, request executor,
         Java API client, and deterministic A2UI v0.8 builder in one process. That is a compact implementation choice,
         not a protocol requirement. A2A carries messages, tasks, artifacts, and DataParts between Gemini Enterprise and
         the remote agent; A2UI is the declarative presentation placed in those DataParts.</p>
@@ -1007,7 +1035,7 @@ Oracle AI Database</code></pre>
         recommendation and Oracle revalidates it under locks. Every host-specific adapter shares this governed workflow
         and transaction without sharing a UI protocol.
       </p>
-      <p>The following excerpt from <code>gemini-enterprise-a2a/a2ui_payloads.py</code> returns the ordered A2UI v0.8
+      <p>The following excerpt from <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/a2ui_payloads.py"><code>gemini-enterprise-a2a/a2ui_payloads.py</code></a> returns the ordered A2UI v0.8
         messages that the host renders:</p>
       <pre><code>return [
     {
@@ -1055,7 +1083,7 @@ Oracle AI Database private service</code></pre>
         the Oracle wallet and injects the dedicated database password at runtime. The entrypoint expands the wallet into
         ephemeral storage, starts Java only on loopback, waits for its health check, and then exposes the A2A adapter on
         Cloud Run's assigned port.</p>
-      <p>The checked-in <code>deploy/gcp</code> scripts build the image with Cloud Build, use a dedicated runtime service
+      <p>The checked-in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit/deploy/gcp"><code>deploy/gcp</code></a> scripts build the image with Cloud Build, use a dedicated runtime service
         account, limit Cloud Run to one instance while approval handles remain in memory, set the final service
         URL in the agent card, and register that card through the official Discovery Engine
         <code>assistants/default_assistant/agents</code> REST resource. The deployed endpoint rejects anonymous calls

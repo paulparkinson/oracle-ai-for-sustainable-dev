@@ -159,6 +159,8 @@ final class ReferenceTests {
     void a2uiHasNoArbitraryActionPicker() {
         String json = Json.value(A2uiPayloads.components());
         assertTrue(json.contains("inventory-transfer-review"));
+        assertTrue(json.contains("\"component\":\"Image\""));
+        assertTrue(json.contains("https://www.oracle.com/a/ocom/img/oracle-logo.svg"));
         assertTrue(json.contains("recommendationList"));
         assertTrue(json.contains("Approve inventory transfer"));
         assertFalse(json.contains("ChoicePicker"));

@@ -7,6 +7,8 @@
   <style>
     :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
     body { margin: 0; padding: 18px; background: Canvas; color: CanvasText; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .brand img { width: 126px; height: auto; }
     h1 { margin: 0 0 4px; font-size: 1.35rem; } p { color: GrayText; }
     #source { padding: 8px 10px; border-left: 4px solid #c74634; background: color-mix(in srgb, #c74634 10%, Canvas); }
     .mode { margin: 10px 0 0; padding: 8px 10px; border-radius: 7px; background: color-mix(in srgb, CanvasText 7%, Canvas); color: CanvasText; }
@@ -28,6 +30,10 @@
   </style>
 </head>
 <body>
+  <div class="brand">
+    <img src="https://www.oracle.com/a/ocom/img/oracle-logo.svg" alt="Oracle">
+    <strong>Oracle AI Database</strong>
+  </div>
   <h1>Supply-chain inventory exchange</h1>
   <p>Structured, governed stockout and transfer data delivered by an MCP tool.</p>
   <p id="source">Waiting for governed Toolkit results.</p>
