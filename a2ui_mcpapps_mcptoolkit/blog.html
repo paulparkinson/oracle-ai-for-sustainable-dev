@@ -381,6 +381,69 @@ else:
       </table>
       <p>The practical choice is trust and consistency versus open-ended presentation. This project implements both over
         the same governed recommendation and approval workflow so the database rules do not change with the host.</p>
+
+      <h3>What Does “Sandboxed Iframe” Mean for an MCP App?</h3>
+      <p>An MCP App is still a developer-built HTML and JavaScript application, but a web host does not insert that code
+        into its own page. It loads the <code>ui://</code> resource in an isolated iframe on a different origin. The app
+        can update its own interface, but it cannot read or modify the host page's DOM, cookies, or local storage;
+        navigate the parent page; or execute JavaScript in the host's context. This limits the damage a malicious or
+        compromised MCP server could cause.</p>
+      <table>
+        <tr>
+          <th>Boundary</th>
+          <th>How the host enforces it</th>
+          <th>Practical limitation</th>
+        </tr>
+        <tr>
+          <td>Host isolation</td>
+          <td>The browser's iframe <code>sandbox</code> attribute and a different origin separate the app from the host.
+          </td>
+          <td>The app cannot inspect the conversation, reuse host cookies, manipulate surrounding controls, or escape
+            into the parent page.</td>
+        </tr>
+        <tr>
+          <td>Network and resources</td>
+          <td>The host constructs Content Security Policy rules from the resource's declared
+            <code>_meta.ui.csp</code>. Undeclared connections, scripts, images, fonts, and nested frames are blocked;
+            CORS rules still apply.</td>
+          <td>Every required origin must be declared. Tight CSP can prevent third-party libraries, APIs, WebSockets, or
+            embedded content from loading.</td>
+        </tr>
+        <tr>
+          <td>Device capabilities</td>
+          <td>The app requests capabilities such as camera or microphone through permission metadata. The host may map
+            approved requests to the iframe's Permissions Policy and may deny them.</td>
+          <td>The app cannot assume a requested browser capability exists or was granted and must provide a fallback.</td>
+        </tr>
+        <tr>
+          <td>Host and tool interaction</td>
+          <td>JSON-RPC messages cross a controlled <code>postMessage</code> bridge. The host validates messages,
+            negotiates capabilities, applies tool visibility, and can require user consent.</td>
+          <td>The app cannot directly call arbitrary host functions or cross-server app-only tools. Available bridge
+            features can vary by host.</td>
+        </tr>
+      </table>
+      <p>The sandbox therefore provides browser isolation, not automatic application authorization. The MCP server must
+        still authenticate the actor, validate every tool input, enforce authorization, and protect downstream data and
+        transactions.</p>
+      <p>This project's <code>mcp-app/server.ts</code> declares no external connection or resource domains, so the host
+        can block all outbound network access from the iframe. The bundled app reaches the backend only through the
+        host-mediated MCP bridge. Approval and rejection are marked app-only, which keeps them out of the model's tool
+        list:</p>
+      <pre><code>_meta: {
+  ui: {
+    csp: {
+      connectDomains: [],
+      resourceDomains: []
+    }
+  }
+}
+
+// Approval tool metadata
+_meta: { ui: { visibility: ["app"] } }</code></pre>
+      <p>See the <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a> and the
+        <a href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx">stable MCP
+          Apps specification</a> for the normative sandbox, CSP, permissions, bridge, and tool-visibility behavior.</p>
     </section>
 
     <figure id="video-walkthrough">
