@@ -1,5 +1,5 @@
 # Compatible with Oracle Database MCP Java Toolkit 1.0.0.
-# Credentials are resolved from the child process environment, not stored here.
+# Credentials are resolved from the standalone Toolkit process environment, not stored here.
 dataSources:
   financial-db:
     url: ${DB_URL}

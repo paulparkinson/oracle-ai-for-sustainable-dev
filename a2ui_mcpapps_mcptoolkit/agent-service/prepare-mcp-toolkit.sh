@@ -9,23 +9,31 @@ checkout_root="$runtime_root/oracle-mcp"
 toolkit_root="$checkout_root/src/oracle-db-mcp-java-toolkit"
 toolkit_jar="$toolkit_root/target/oracle-db-mcp-toolkit-1.0.0.jar"
 toolkit_source="$toolkit_root/src/main/java/com/oracle/database/mcptoolkit/OracleDatabaseMCPToolkit.java"
-stdio_patch="$PWD/../oracle-db-mcp-toolkit/patches/stdio-tool-registration.patch"
 pki_dependencies_patch="$PWD/../oracle-db-mcp-toolkit/patches/oracle-wallet-dependencies.patch"
 pki_patch="$PWD/../oracle-db-mcp-toolkit/patches/oracle-pki-provider-registration.patch"
 
 if [ ! -d "$checkout_root/.git" ]; then
   echo "Downloading the pinned Oracle Database MCP Java Toolkit source..." >&2
-  git clone --quiet https://github.com/oracle/mcp.git "$checkout_root"
+  if ! git clone --quiet https://github.com/oracle/mcp.git "$checkout_root"; then
+    env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+      -u http_proxy -u https_proxy -u all_proxy \
+      git -c http.proxy= -c https.proxy= clone --quiet \
+      https://github.com/oracle/mcp.git "$checkout_root"
+  fi
 fi
 
 current_commit="$(git -C "$checkout_root" rev-parse HEAD)"
 if [ "$current_commit" != "$toolkit_commit" ]; then
-  git -C "$checkout_root" fetch --quiet origin "$toolkit_commit"
+  if ! git -C "$checkout_root" fetch --quiet origin "$toolkit_commit"; then
+    env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY \
+      -u http_proxy -u https_proxy -u all_proxy \
+      git -c http.proxy= -c https.proxy= -C "$checkout_root" \
+      fetch --quiet origin "$toolkit_commit"
+  fi
   git -C "$checkout_root" checkout --quiet --detach "$toolkit_commit"
 fi
 
 for compatibility_patch in \
-    "$stdio_patch" \
     "$pki_dependencies_patch" \
     "$pki_patch"; do
   if git -C "$checkout_root" apply --check "$compatibility_patch" 2>/dev/null; then

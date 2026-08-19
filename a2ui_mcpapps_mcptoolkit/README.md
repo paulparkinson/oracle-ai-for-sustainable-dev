@@ -24,10 +24,16 @@ cd agent-service
 ./setup-database.sh
 ./setup-deepsec.sh
 ./test.sh
+
+cd ../oracle-db-mcp-toolkit
+./run.sh full
+
+# In another terminal:
+cd agent-service
 ./run.sh
 ```
 
-Open `http://127.0.0.1:8080`. Run the broad inventory query first as the supply-chain planner and then as the environmental planner. The second Toolkit session logs on as `DB_USERNAME2`; Oracle Deep Data Security returns only `Environmental Monitoring` rows and exposes no write tools. The full-access planner can choose a concrete source-to-target transfer and approve or cancel it. On first start, `run.sh` downloads the pinned official Oracle Toolkit source into ignored `.runtime/`, builds it, and starts each allowlisted toolset as an MCP stdio child process. The Toolkit owns Oracle UCP and the runtime database connections.
+Open `http://127.0.0.1:8080`. The standalone Toolkit owns Oracle UCP and the runtime database connections, while the agent service connects through authenticated Streamable HTTP and verifies its exact allowlist. Start `./run.sh read` in another terminal when testing the optional second database identity.
 
 `setup-deepsec.sh` executes the checked-in [`database/07-deep-data-security.sql`](database/07-deep-data-security.sql) policy through an idempotent installer. It creates a local Deep Data Security end user from `DB_USERNAME2` and `DB_PASSWORD2`, a read-only data role, a direct-logon role containing `CREATE SESSION`, and a predicated data grant on `FINANCIAL.STOCKOUT_TRANSFER_RECOMMENDATION_V`. It then enables mandatory data-grant enforcement and verifies that the second user sees only the authorized category.
 
@@ -46,15 +52,13 @@ The Oracle artifacts are not mocked:
 
 The Toolkit is preferred for this reference architecture because its governed tool contracts can be reused by multiple agents and MCP-compatible clients. The application implements that path throughout:
 
-1. `prepare-mcp-toolkit.sh` builds a pinned revision of Oracle's official Toolkit without copying its source into this repository. It applies the checked-in one-line stdio compatibility patch described below.
-2. The agent starts it over stdio with `tools.yaml` and only the `supply-chain-exchange` toolset.
-3. Credentials pass in the child-process environment, not YAML, browser code, prompts, or Git.
+1. `prepare-mcp-toolkit.sh` builds a pinned revision of Oracle's official Toolkit without copying its source into this repository.
+2. `oracle-db-mcp-toolkit/run.sh` starts it as an independent TLS Streamable HTTP service with only the `supply-chain-exchange` toolset.
+3. Credentials remain in the Toolkit process environment, not YAML, browser code, prompts, or Git.
 4. The agent verifies the connected server identity and exact five-tool allowlist before accepting traffic.
 5. Every application read and approved write executes through MCP. Only the separate one-time schema installer connects through its own UCP configuration.
 
 The Toolkit YAML schema has no callable OUT-parameter mode. The demo therefore reserves a transfer ID with a bounded read tool and supplies it to an input-only stored procedure tool. The procedure locks both inventory positions in deterministic order, recomputes current source surplus and target shortage, rejects a stale or excessive transfer, inserts the audit row, and reserves source inventory in one database statement. A failed statement creates no business record, although Oracle sequences can legitimately contain gaps.
-
-The pinned Toolkit revision advertises tool-list change notifications before its stdio transport can enqueue several startup registrations. `patches/stdio-tool-registration.patch` changes only the stdio capability from `tools(true)` to `tools(false)`. Static tool discovery and invocation remain available; dynamic list-change notifications are disabled for this fixed local configuration. The agent's exact allowlist check fails closed if registration is incomplete.
 
 ## Host adapters: one workflow, three presentation contracts
 

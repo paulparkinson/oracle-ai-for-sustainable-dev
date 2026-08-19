@@ -42,7 +42,7 @@ ChatGPT
   -> HTTPS /mcp
   -> Cloud Run: oracle-supply-chain-mcp-app (Node, port 8080)
   -> Java agent service (loopback, port 8081)
-  -> Oracle Database MCP Java Toolkit (stdio)
+  -> Oracle Database MCP Java Toolkit (authenticated Streamable HTTP)
   -> paulparkdb_tp through Direct VPC egress
 ```
 

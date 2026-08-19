@@ -32,6 +32,13 @@ fi
 export DB_URL="${DB_URL:-jdbc:oracle:thin:@${DB_SERVICE_NAME}?TNS_ADMIN=${TNS_ADMIN}}"
 export GEMINI_ENTERPRISE_A2A_PORT="${GEMINI_ENTERPRISE_A2A_PORT:-${PORT:-8080}}"
 
+# The agent is an HTTP MCP client. This packaged deployment starts the Toolkit
+# as an independently managed process; production may instead set ORACLE_MCP_URL
+# to a separately deployed Toolkit service.
+# shellcheck disable=SC1091
+source /usr/local/bin/start-toolkit-runtime
+start_toolkit_runtime
+
 java -Dweb.root=/opt/app/web-client \
   -jar /opt/app/interactive-ai-agent-service.jar &
 java_pid=$!
@@ -39,6 +46,7 @@ java_pid=$!
 cleanup() {
   kill "$java_pid" 2>/dev/null || true
   wait "$java_pid" 2>/dev/null || true
+  stop_toolkit_runtime
 }
 trap cleanup EXIT INT TERM
 

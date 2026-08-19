@@ -41,8 +41,7 @@ public final class Main {
         repositories.put(
                 "full",
                 McpToolkitSupplyChainRepository.fromEnvironment(System.getenv()));
-        if (System.getenv().containsKey("DB_USERNAME2")
-                && System.getenv().containsKey("DB_PASSWORD2")) {
+        if (System.getenv().containsKey("ORACLE_MCP_READ_URL")) {
             repositories.put(
                     "environmental",
                     McpToolkitSupplyChainRepository.secondaryFromEnvironment(

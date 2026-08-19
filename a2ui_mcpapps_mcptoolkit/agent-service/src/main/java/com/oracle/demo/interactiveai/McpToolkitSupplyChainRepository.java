@@ -2,14 +2,14 @@ package com.oracle.demo.interactiveai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.nio.file.Files;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
-/** Calls purpose-built Oracle Database MCP Java Toolkit tools over MCP stdio. */
+/** Calls purpose-built tools on a standalone Oracle Database MCP Java Toolkit service. */
 public final class McpToolkitSupplyChainRepository implements SupplyChainRepository, AutoCloseable {
     private static final Set<String> WRITE_TOOLS = Set.of(
             "find-stockout-transfer-recommendations",
@@ -21,11 +21,11 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
             "find-stockout-transfer-recommendations",
             "get-stockout-transfer-details");
 
-    private final McpStdioClient client;
+    private final McpHttpClient client;
     private final boolean writesAllowed;
 
     private McpToolkitSupplyChainRepository(
-            McpStdioClient client,
+            McpHttpClient client,
             boolean writesAllowed) {
         this.client = client;
         this.writesAllowed = writesAllowed;
@@ -33,44 +33,26 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
     }
 
     public static McpToolkitSupplyChainRepository fromEnvironment(Map<String, String> environment) {
-        return create(environment, "DB_USERNAME", "DB_PASSWORD", true);
+        return create(environment, "ORACLE_MCP_URL", "ORACLE_MCP_AUTH_TOKEN", true);
     }
 
     public static McpToolkitSupplyChainRepository secondaryFromEnvironment(
             Map<String, String> environment) {
-        return create(environment, "DB_USERNAME2", "DB_PASSWORD2", false);
+        return create(environment, "ORACLE_MCP_READ_URL", "ORACLE_MCP_READ_AUTH_TOKEN", false);
     }
 
     private static McpToolkitSupplyChainRepository create(
             Map<String, String> environment,
-            String usernameName,
-            String passwordName,
+            String urlName,
+            String tokenName,
             boolean writesAllowed) {
-        Path toolkitJar = requiredPath(environment, "ORACLE_MCP_TOOLKIT_JAR");
-        Path configFile = optionalPath(environment, "ORACLE_MCP_CONFIG_FILE",
-                Path.of("../oracle-db-mcp-toolkit/config/tools.yaml"));
-        String databaseUrl = required(environment, "DB_URL");
-        String databaseUser = environment.get(usernameName);
-        if ("DB_USERNAME".equals(usernameName)) {
-            databaseUser = firstNonBlank(databaseUser, environment.get("DB_USER"));
-        }
-        String databasePassword = required(environment, passwordName);
-        if (databaseUser == null || databaseUser.isBlank()) {
-            throw new IllegalArgumentException(usernameName + " is required");
-        }
-
-        String javaCommand = Path.of(System.getProperty("java.home"), "bin", "java").toString();
-        McpStdioClient client = new McpStdioClient(
-                List.of(javaCommand,
-                        "-DconfigFile=" + configFile,
-                        "-Dtools=" + (writesAllowed
-                                ? "supply-chain-exchange"
-                                : "supply-chain-exchange-read"),
-                        "-jar", toolkitJar.toString()),
-                Map.of(
-                        "DB_URL", databaseUrl,
-                        "DB_USERNAME", databaseUser,
-                        "DB_PASSWORD", databasePassword));
+        String endpoint = required(environment, urlName);
+        String token = required(environment, tokenName);
+        Path trustStore = optionalPath(environment, "ORACLE_MCP_TRUSTSTORE");
+        char[] trustStorePassword = environment.getOrDefault(
+                "ORACLE_MCP_TRUSTSTORE_PASSWORD", "").toCharArray();
+        McpHttpClient client = new McpHttpClient(
+                URI.create(endpoint), token, trustStore, trustStorePassword);
         client.initialize();
         return new McpToolkitSupplyChainRepository(client, writesAllowed);
     }
@@ -172,13 +154,13 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
                 client.serverName(), client.serverVersion(), available.stream().sorted().toList());
     }
 
-    private static List<JsonNode> rows(McpStdioClient.ToolResult result) {
+    private static List<JsonNode> rows(McpHttpClient.ToolResult result) {
         JsonNode rows = result.structuredContent().path("rows");
         if (!rows.isArray()) throw new IllegalStateException("Oracle Database MCP tool did not return structured rows");
         return StreamSupport.stream(rows.spliterator(), false).toList();
     }
 
-    private static JsonNode firstRow(McpStdioClient.ToolResult result) {
+    private static JsonNode firstRow(McpHttpClient.ToolResult result) {
         List<JsonNode> rows = rows(result);
         if (rows.size() != 1) throw new IllegalStateException("Oracle Database MCP tool must return exactly one row");
         return rows.getFirst();
@@ -205,19 +187,9 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
         return value(row, name).asText();
     }
 
-    private static Path requiredPath(Map<String, String> environment, String name) {
-        return checkedPath(required(environment, name), name);
-    }
-
-    private static Path optionalPath(Map<String, String> environment, String name, Path fallback) {
+    private static Path optionalPath(Map<String, String> environment, String name) {
         String value = environment.get(name);
-        return checkedPath(value == null || value.isBlank() ? fallback.toString() : value, name);
-    }
-
-    private static Path checkedPath(String value, String name) {
-        Path path = Path.of(value).toAbsolutePath().normalize();
-        if (!Files.isRegularFile(path)) throw new IllegalArgumentException(name + " does not identify a file: " + path);
-        return path;
+        return value == null || value.isBlank() ? null : Path.of(value).toAbsolutePath().normalize();
     }
 
     private static String required(Map<String, String> environment, String name) {
@@ -226,8 +198,4 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
         return value;
     }
 
-    private static String firstNonBlank(String first, String second) {
-        if (first != null && !first.isBlank()) return first;
-        return second != null && !second.isBlank() ? second : null;
-    }
 }

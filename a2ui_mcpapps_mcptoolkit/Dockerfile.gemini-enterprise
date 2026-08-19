@@ -46,11 +46,14 @@ COPY web-client ./web-client
 COPY gemini-enterprise-a2a/main.py gemini-enterprise-a2a/a2ui_payloads.py \
     ./gemini-enterprise-a2a/
 COPY deploy/gcp/container-entrypoint.sh /usr/local/bin/container-entrypoint
+COPY deploy/gcp/start-toolkit-runtime.sh /usr/local/bin/start-toolkit-runtime
 COPY deploy/gcp/database-job-entrypoint.sh /usr/local/bin/database-job-entrypoint
 
 RUN sed -i 's/\r$//' /usr/local/bin/container-entrypoint \
+        /usr/local/bin/start-toolkit-runtime \
         /usr/local/bin/database-job-entrypoint \
     && chmod 0555 /usr/local/bin/container-entrypoint \
+        /usr/local/bin/start-toolkit-runtime \
         /usr/local/bin/database-job-entrypoint \
     && chown -R app:app /opt/app
 

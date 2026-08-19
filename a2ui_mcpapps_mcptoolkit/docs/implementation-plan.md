@@ -6,8 +6,8 @@ Originally verified on 2026-07-20 against the upstream projects linked below; th
 
 | Layer | Baseline | Decision |
 |---|---|---|
-| Oracle Database MCP Java Toolkit | `com.oracle.database.mcptoolkit:oracle-db-mcp-toolkit:1.0.0`; pinned upstream commit `5bb406b5b70e109a749cd16cc026422134a117b2`; JDK 17+, Maven 3.9+ | Build the official source into ignored `.runtime/`, apply the one-line stdio registration patch, and launch it with only `supply-chain-exchange`. Use Streamable HTTP with TLS/OAuth for a remote deployment. |
-| MCP protocol client | MCP `2025-03-26`, matching the Toolkit's `io.modelcontextprotocol.sdk:mcp:0.12.1` baseline | Keep the agent adapter small and dependency-light: newline-delimited JSON-RPC over stdio, initialization, tool discovery, tool calls, 30-second timeouts, server identity checks, and an exact allowlist. |
+| Oracle Database MCP Java Toolkit | `com.oracle.database.mcptoolkit:oracle-db-mcp-toolkit:1.0.0`; pinned upstream commit `5bb406b5b70e109a749cd16cc026422134a117b2`; JDK 17+, Maven 3.9+ | Build the official source into ignored `.runtime/` and run it independently with TLS, authentication, and only `supply-chain-exchange`. |
+| MCP protocol client | MCP `2025-03-26`, matching the Toolkit's `io.modelcontextprotocol.sdk:mcp:0.12.1` baseline | Use Streamable HTTP for initialization, tool discovery, calls, 30-second timeouts, server identity checks, and an exact allowlist. |
 | AG-UI | Current standardized lifecycle, text, tool-call, state, and `CUSTOM` events | Emit the official event names over SSE. Carry each A2UI envelope in a `CUSTOM` event named `a2ui.message`. Approval is application state, not an invented AG-UI event type. |
 | A2UI browser | v0.9.1 | Emit `createSurface`, `updateComponents`, and `updateDataModel` envelopes using the Basic Catalog ID. The browser renderer accepts only a small catalog and component allowlist. |
 | MCP Apps / ChatGPT | Stable 2026-01-26 extension; `@modelcontextprotocol/ext-apps` 1.7.4; `ui://` resource; `text/html;profile=mcp-app` | Keep the dashboard in a separate TypeScript package. The model-visible tool is read-only; approve and reject are app-only tools invoked after explicit interaction. |
@@ -31,7 +31,7 @@ web-client
   |  POST run / approval + SSE response
   v
 agent-service
-  |  MCP 2025-03-26 over stdio, exact tool allowlist
+  |  MCP 2025-03-26 over authenticated Streamable HTTP
   v
 Oracle Database MCP Java Toolkit
   |  YAML business tools + JDBC/UCP + binds
@@ -57,7 +57,7 @@ agent-service -> Toolkit -> Oracle AI Database
 
 1. **Foundation:** supply-chain schema, deterministic data, tool YAML, AG-UI SSE, allowlisted A2UI renderer, MCP App dashboard, tests, and blog.
 2. **Oracle schema bootstrap:** guarded one-time UCP setup using the financial database defaults, recommendation view, sequence, input-only procedure, and deterministic sample records. This installer is separate from application runtime access.
-3. **MCP integration:** pinned official Toolkit bootstrap, synchronous stdio client, exact allowlist verification, YAML reads, and a sequence-backed procedure write. Every application database operation uses this path.
+3. **MCP integration:** pinned official Toolkit bootstrap, standalone Streamable HTTP service, exact allowlist verification, YAML reads, and a sequence-backed procedure write. Every application database operation uses this path.
 4. **Host adapters:** MCP Apps approval inside ChatGPT-compatible hosts and
    A2A/A2UI v0.8 delivery for Gemini Enterprise, both over the same
    short-lived approval and Oracle transaction boundary.
@@ -73,7 +73,6 @@ agent-service -> Toolkit -> Oracle AI Database
 - MCP Apps is an MCP extension and host support varies. The base web app works without it.
 - Gemini Enterprise A2UI support is Preview and its supported A2UI/A2A revisions can change independently. Its Custom MCP Server path can separately consume the MCP App resource in a sandboxed iframe.
 - YAML cannot currently express a callable OUT parameter. The sequence-plus-input-only-procedure design avoids that requirement, but sequence gaps are expected and the exact Toolkit commit remains pinned and tested.
-- The pinned Toolkit/SDK combination can emit tool-list change notifications before stdio is ready when several tools register at startup. The checked-in patch disables only those dynamic stdio notifications; static discovery and calls remain enabled, and the agent checks the exact list before serving.
 - Oracle bind support in `FETCH FIRST :maximumRows ROWS ONLY` can vary by execution path. The demo uses `ROWNUM <= :maximumRows` in an outer query.
 - The recommendation formula is intentionally transparent and deterministic. A production planner may add lead-time uncertainty, service-level targets, capacity, shelf-life, shipment consolidation, and optimization across multiple simultaneous moves.
 

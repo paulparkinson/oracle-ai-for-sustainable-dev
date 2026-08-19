@@ -118,12 +118,17 @@ Run the database setup once:
 cd a2ui_mcpapps_mcptoolkit/agent-service
 ./setup-database.sh
 ./test.sh
+
+cd ../oracle-db-mcp-toolkit
+./run.sh full
+
+cd ../agent-service
 ./run.sh
 ```
 
-Keep `run.sh` running. It starts the Java service, builds the pinned Oracle
-Database MCP Java Toolkit when necessary, launches it over stdio, verifies the
-exact five-tool allowlist, and exposes the application on port `8080`.
+Keep both processes running. The Java service connects to the standalone
+Toolkit over authenticated Streamable HTTP, verifies the exact five-tool
+allowlist, and exposes the application on port `8080`.
 
 In another terminal:
 

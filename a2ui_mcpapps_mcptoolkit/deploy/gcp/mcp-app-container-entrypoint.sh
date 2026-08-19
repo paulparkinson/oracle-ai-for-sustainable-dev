@@ -28,6 +28,10 @@ fi
 
 export DB_URL="${DB_URL:-jdbc:oracle:thin:@${DB_SERVICE_NAME}?TNS_ADMIN=${TNS_ADMIN}}"
 
+# shellcheck disable=SC1091
+source /usr/local/bin/start-toolkit-runtime
+start_toolkit_runtime
+
 java -Dweb.root=/opt/app/web-client \
   -jar /opt/app/interactive-ai-agent-service.jar &
 java_pid=$!
@@ -35,6 +39,7 @@ java_pid=$!
 cleanup() {
   kill "$java_pid" 2>/dev/null || true
   wait "$java_pid" 2>/dev/null || true
+  stop_toolkit_runtime
 }
 trap cleanup EXIT INT TERM
 

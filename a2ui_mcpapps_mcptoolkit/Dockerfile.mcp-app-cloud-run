@@ -46,9 +46,12 @@ COPY oracle-db-mcp-toolkit/config/tools.yaml ./oracle-db-mcp-toolkit/config/tool
 COPY database ./database
 COPY web-client ./web-client
 COPY deploy/gcp/mcp-app-container-entrypoint.sh /usr/local/bin/mcp-app-container-entrypoint
+COPY deploy/gcp/start-toolkit-runtime.sh /usr/local/bin/start-toolkit-runtime
 
 RUN sed -i 's/\r$//' /usr/local/bin/mcp-app-container-entrypoint \
+        /usr/local/bin/start-toolkit-runtime \
     && chmod 0555 /usr/local/bin/mcp-app-container-entrypoint \
+        /usr/local/bin/start-toolkit-runtime \
     && chown -R app:app /opt/app
 
 ENV AGENT_PORT=8081 \

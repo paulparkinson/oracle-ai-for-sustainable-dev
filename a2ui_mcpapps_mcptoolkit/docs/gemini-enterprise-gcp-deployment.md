@@ -29,15 +29,15 @@ but is not required for this service.
 ## Runtime and secret boundaries
 
 The container exposes only the Python A2A adapter on Cloud Run's `PORT`.
-The Java service listens on loopback port 8081 and starts the pinned Oracle
-Database MCP Java Toolkit as a stdio child:
+The Java service listens on loopback port 8081 and reaches the independently
+running Oracle Database MCP Java Toolkit through authenticated Streamable HTTP:
 
 ```text
 Gemini Enterprise
   -> Cloud Run HTTPS / A2A v0.3 / A2UI v0.8
   -> Python adapter :8080
   -> Java review and approval service 127.0.0.1:8081
-  -> Oracle Database MCP Java Toolkit over stdio
+  -> Oracle Database MCP Java Toolkit over authenticated Streamable HTTP
   -> paulparkdb_tp over wallet-authenticated TCPS
 ```
 

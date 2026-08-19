@@ -280,11 +280,12 @@
         </tr>
         <tr>
           <td><code>agent-service/</code></td>
-          <td>Java orchestration, MCP client, approval state, AG-UI events, REST endpoints, and A2UI payloads.</td>
+          <td>Java orchestration, Streamable HTTP MCP client, approval state, AG-UI events, REST endpoints, and A2UI
+            payloads.</td>
         </tr>
         <tr>
           <td><code>oracle-db-mcp-toolkit/</code></td>
-          <td>Oracle Database MCP Java Toolkit YAML tool definitions, contracts, and pinned-runtime support.</td>
+          <td>Standalone Toolkit startup, TLS setup, YAML tool definitions, contracts, and pinned-runtime support.</td>
         </tr>
         <tr>
           <td><code>database/</code></td>
@@ -389,10 +390,10 @@ tools:
          WHERE stockout_risk_score &gt;= :minimumStockoutRisk
          ORDER BY stockout_risk_score DESC
       ) WHERE ROWNUM &lt;= :maximumRows</code></pre>
-      <p><code>McpToolkitSupplyChainRepository</code> launches the pinned official Toolkit over stdio, completes MCP
-        initialization, verifies the server identity, and requires the exact <code>supply-chain-exchange</code>
-        allowlist. Built-in <code>read-query</code>, <code>write-query</code>, table, and administration tools are never
-        enabled.</p>
+      <p><code>McpToolkitSupplyChainRepository</code> connects to the independently running Toolkit through authenticated
+        Streamable HTTP, completes MCP initialization, verifies the server identity, and requires the exact
+        <code>supply-chain-exchange</code> allowlist. Built-in <code>read-query</code>, <code>write-query</code>, table,
+        and administration tools are never enabled.</p>
       <p>The following excerpt from
         <code>agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java</code>
         validates input and invokes the named MCP tool rather than accepting generated SQL:</p>
@@ -421,27 +422,33 @@ if (!available.equals(requiredTools)) {
         <tr>
           <th>UI contract</th>
           <th>How it works</th>
+          <th>Security method</th>
           <th>Advantage</th>
           <th>Tradeoff</th>
         </tr>
         <tr>
-          <td><strong>A2UI: consistent and safe</strong></td>
+          <td><strong>A2UI</strong></td>
           <td>The host renders the agent's validated declarative recipe with trusted native components.</td>
+          <td>The host validates the payload and permits only components, properties, and actions in its approved
+            catalog.</td>
           <td>Native appearance, accessibility, predictable behavior, and a host-controlled catalog.</td>
           <td>The agent can compose supported controls but cannot invent a new component or arbitrary JavaScript.</td>
         </tr>
         <tr>
-          <td><strong>MCP Apps: maximum flexibility</strong></td>
+          <td><strong>MCP Apps</strong></td>
           <td>An agent or MCP server returns an interactive HTML/JavaScript resource through a <code>ui://</code>
             pointer; the host renders it in a sandboxed iframe or mobile WebView.</td>
+          <td>The host isolates the app with a sandbox, CSP, permissions policy, and validated bridge; the MCP server
+            still authenticates and authorizes every tool call.</td>
           <td>Custom charts, maps, canvases, and complete mini-applications can travel with the MCP server without being
             prebuilt into every host frontend.</td>
           <td>The sandbox adds overhead, Content Security Policy constraints, and a visual boundary that may not
             perfectly match the host's native interface.</td>
         </tr>
       </table>
-      <p>The practical choice is trust and consistency versus open-ended presentation. This project implements both over
-        the same governed recommendation and approval workflow so the database rules do not change with the host.</p>
+      <p>The practical choice is host-native catalog consistency or developer-supplied presentation flexibility. Both
+        can be secured, using the different controls summarized above, and both retain the same governed recommendation
+        and approval workflow.</p>
 
       <h3>What Does “Sandboxed Iframe” Mean for an MCP App?</h3>
       <p>An MCP App is developer-built HTML and JavaScript loaded as a <code>ui://</code> resource in an isolated iframe
@@ -733,8 +740,9 @@ UPDATE inventory_positions
 
     <section id="walkthrough">
       <h2>Run the Application Locally End to End</h2>
-      <p>Use Oracle AI Database 26ai and a least-privileged application schema. Keep database credentials only in the
-        ignored <code>.env</code> file:</p>
+      <p>This local reference run validates the shared database, standalone Toolkit, Java service, AG-UI stream, A2UI
+        renderer, and MCP App before the following sections connect those same components to external conversational
+        hosts.</p>
       <pre><code>cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
 # Set DB_URL, TNS_ADMIN, DB_USERNAME, and DB_PASSWORD.
@@ -742,14 +750,27 @@ cp .env.example .env
 cd agent-service
 ./setup-database.sh
 ./test.sh
+
+# Terminal 1: standalone Toolkit
+cd ../oracle-db-mcp-toolkit
+./run.sh full
+
+# Terminal 2: Java service and browser
+cd ../agent-service
 ./run.sh
 
 # Open http://127.0.0.1:8080</code></pre>
-      <ol>
+      <ol start="0">
+        <li><strong>Create Oracle AI Database 26ai.</strong> Use a cloud service or a local installation by following
+          the <a href="https://www.oracle.com/database/free/get-started/">Oracle AI Database 26ai quick start</a>.</li>
         <li><strong>Prepare the database.</strong> Run <code>agent-service/setup-database.sh</code> to create the sample
           inventory objects, recommendation view, transfer sequence, and approval procedure.</li>
-        <li><strong>Start the service and Toolkit.</strong> Run <code>agent-service/run.sh</code>. The repository starts
-          the Toolkit over stdio, verifies its identity and tool allowlist, and exposes the API and web client.</li>
+        <li><strong>Start the Toolkit.</strong> In one terminal, run
+          <code>oracle-db-mcp-toolkit/run.sh full</code>. It exposes the allowlisted tools at an authenticated TLS MCP
+          endpoint.</li>
+        <li><strong>Start the application.</strong> In another terminal, run <code>agent-service/run.sh</code>. Its HTTP
+          MCP client connects to the Toolkit, verifies its identity and exact allowlist, and exposes the API and web
+          client.</li>
         <li><strong>Open the inventory exchange.</strong> Browse to <code>http://127.0.0.1:8080</code>.</li>
         <li><strong>Run the analysis.</strong> Set minimum stockout risk to <code>50</code>, maximum rows to
           <code>10</code>, and submit.</li>
@@ -1025,7 +1046,9 @@ Oracle AI Database</code></pre>
 Cloud Run: A2A/A2UI adapter
   |  IAM-authenticated adapter :8080
   |  loopback Java service :8081
-  |  stdio MCP Toolkit child
+  |  authenticated Streamable HTTP
+  v
+Oracle Database MCP Java Toolkit service
   v
 Oracle AI Database private service</code></pre>
       <p>The Cloud Run image contains the adapter, Java service, and pinned Toolkit but no secret. Secret Manager mounts
@@ -1073,7 +1096,7 @@ Oracle AI Database private service</code></pre>
       <h2>Security and Governance Checklist</h2>
       <ul>
         <li>Use a least-privileged database principal with only the required view and procedure grants.</li>
-        <li>Use stdio for the local child process; use TLS and OAuth 2.0 for remote MCP.</li>
+        <li>Run the Toolkit as a separate Streamable HTTP service with TLS and bearer authentication or OAuth 2.0.</li>
         <li>Enable only purpose-built tools. Do not use <code>-Dtools=*</code> or unrestricted <code>write-query</code>.
         </li>
         <li>Validate and bind every user value; enforce score, row-count, text-length, and timeout limits.</li>
