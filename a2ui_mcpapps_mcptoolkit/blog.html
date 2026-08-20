@@ -87,6 +87,21 @@
       border-radius: 0;
     }
 
+    .video-embed {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #111;
+    }
+
+    .video-embed iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     figcaption {
       margin-top: 8px;
       color: #5c6673;
@@ -170,6 +185,19 @@
     <p>All Java, JavaScript, TypeScript, SQL, YAML, security notes, and setup instructions are in the <a
         href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit">project
         folder on GitHub</a>.</p>
+    <p><strong>Video walkthrough:</strong> Watch the complete <a href="https://youtu.be/FZGAqpYul1A">A2UI, MCP Apps,
+        Oracle Database MCP Java Toolkit, and Oracle AI Database demonstration on YouTube</a>.</p>
+    <figure>
+      <div class="video-embed">
+        <iframe src="https://www.youtube-nocookie.com/embed/FZGAqpYul1A"
+          title="Video walkthrough of A2UI and MCP Apps with Oracle AI Database and the Java MCP Toolkit"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+      <figcaption>Video walkthrough of the A2UI and MCP Apps reference application, source code, protocol boundaries,
+        Oracle Database MCP Java Toolkit, and Oracle AI Database.</figcaption>
+    </figure>
 
     <figure class="cover">
       <img src="images/interactive-ai-architecture.svg"
