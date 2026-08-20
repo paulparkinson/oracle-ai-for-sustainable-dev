@@ -508,34 +508,6 @@ if (!available.equals(requiredTools)) {
           href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/web-client/app.js"><code>web-client/app.js</code></a>.
         An A2UI payload does not inherit an MCP App's CSP.</p>
 
-      <h3>What Does “Sandboxed Iframe” Mean for an MCP App?</h3>
-      <p>An MCP App is developer-built HTML and JavaScript loaded as a <code>ui://</code> resource in an isolated iframe
-        on a different origin, not inserted into the host's page. It can update its own interface but cannot read or
-        modify the host DOM, cookies, or local storage; navigate the parent page; or execute code in the host context.</p>
-      <p>The host enforces that boundary with a separate-origin iframe, Content Security Policy, Permissions Policy, and
-        a validated JSON-RPC <code>postMessage</code> bridge, blocking access to host state, undeclared networks and
-        resources, unapproved device capabilities, and unauthorized tools.</p>
-      <p>The sandbox provides browser isolation, not application authorization. The MCP server must still authenticate
-        the actor, validate every tool input, enforce authorization, and protect downstream transactions.</p>
-      <p>The following metadata from <a
-          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/server.ts"><code>mcp-app/server.ts</code></a>
-        keeps network requests disabled, permits the Oracle logo as a static image from one official origin, and keeps
-        approval callable by the app rather than the model. <code>connectDomains</code> governs fetch, XHR, and
-        WebSocket destinations; <code>resourceDomains</code> governs images, scripts, styles, fonts, and media:</p>
-      <pre><code>_meta: {
-  ui: {
-    csp: {
-      connectDomains: [],
-      resourceDomains: ["https://www.oracle.com"]
-    }
-  }
-}
-
-// Approval tool metadata
-_meta: { ui: { visibility: ["app"] } }</code></pre>
-      <p>See the <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a> and the
-        <a href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx">stable MCP
-          Apps specification</a> for normative sandbox and bridge behavior.</p>
     </section>
 
     <section id="a2ui">
@@ -552,6 +524,10 @@ _meta: { ui: { visibility: ["app"] } }</code></pre>
     "sendDataModel": true
   }
 }</code></pre>
+      <p>Gemini Enterprise also publishes a <a
+          href="https://www.gstatic.com/vertexaisearch/a2ui/v0_9/gemini_enterprise_composite_catalog.json"><code>gemini_enterprise_composite_catalog.json</code></a>
+        example that combines standard Material components with Gemini Enterprise components. This application uses
+        the standard catalog IDs advertised in its agent card.</p>
       <p>The same class requests an <code>Image</code> from the host's approved Basic Catalog and declares the bounded
         action names:</p>
       <pre><code>Map.of(
@@ -626,37 +602,51 @@ name.textContent = `${recommendation.sku} · ${recommendation.productName}`;</co
       <p>Advertising A2UI support does not require every response to contain a UI. An agent can choose text, A2UI, or
         both according to the request, workflow state, host capabilities, and product policy. The host must still
         validate every A2UI message against the advertised version and catalog.</p>
-      <p>This application makes that choice deterministically rather than asking an LLM. The following excerpt is from
-        <code>SupplyChainExecutor.execute()</code> in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>:</p>
+      <p>This application makes that choice deterministically rather than asking an LLM. In
+        <code>SupplyChainExecutor.execute()</code> in <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>,
+        a normal request builds the review while a returned <code>userAction</code> follows the action path:</p>
       <pre><code>action = _extract_user_action(context)
-
 if action:
     parts = await _handle_action(action, access_profile)
 else:
-    review = await asyncio.to_thread(
-        _post_agent,
-        "/api/reviews",
-        {
-            "minimumStockoutRisk": minimum_risk,
-            "maximumRows": maximum_rows,
-            # Additional server-controlled context is omitted here.
-        },
-    )
-    messages = review_messages(
-        review["recommendations"],
-        review["approvalId"],
-        access_profile,
-        bool(review["writesAllowed"]),
-    )
-    parts = [
-        Part(root=TextPart(
-            text=f"Showing {len(review['recommendations'])} recommendations."
-        )),
-        *(create_a2ui_part(message) for message in messages),
-    ]</code></pre>
+    # Retrieve recommendations and return the A2UI review.</code></pre>
       <p>A normal request returns text plus an A2UI review surface. An approve or cancel <code>userAction</code> returns
         text plus a smaller A2UI result surface. A host that does not render the optional extension can still use the
         text part, and an error path returns text only.</p>
+
+      <h3>Map Oracle Database Results into Gemini Enterprise A2UI</h3>
+      <ol>
+        <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>
+          calls the Java service and receives the database-backed recommendation dictionaries:
+          <pre><code>review = await asyncio.to_thread(
+    _post_agent,
+    "/api/reviews",
+    {
+        "minimumStockoutRisk": minimum_risk,
+        "maximumRows": maximum_rows,
+        "accessProfile": access_profile,
+    },
+)</code></pre>
+        </li>
+        <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/a2ui_payloads.py"><code>gemini-enterprise-a2a/a2ui_payloads.py</code></a>
+          maps those values into approved A2UI components:
+          <pre><code>_text(
+    f"route-{index}",
+    f"{recommendation['sourceLocationCode']} to "
+    f"{recommendation['targetLocationCode']}: "
+    f"{recommendation['recommendedTransferQuantity']} units",
+)</code></pre>
+        </li>
+        <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>
+          packages the messages as A2UI DataParts in the A2A response:
+          <pre><code>parts = [
+    Part(root=TextPart(
+        text=f"Showing {len(review['recommendations'])} recommendations."
+    )),
+    *(create_a2ui_part(message) for message in messages),
+]</code></pre>
+        </li>
+      </ol>
       <figure>
         <img src="images/native-a2ui-sequence.svg"
           alt="Native A2UI sequence showing a human supply-chain planner using Gemini Enterprise, which calls the A2A adapter, agent service, Oracle MCP Toolkit, and Oracle AI Database before rendering native controls and returning approval as a userAction.">
@@ -775,6 +765,35 @@ void app.updateModelContext({
     text: `The user approved transfer ${payload.transferId}.`
   }]
 });</code></pre>
+
+      <h3>What Does “Sandboxed Iframe” Mean for an MCP App?</h3>
+      <p>An MCP App is developer-built HTML and JavaScript loaded as a <code>ui://</code> resource in an isolated iframe
+        on a different origin, not inserted into the host's page. It can update its own interface but cannot read or
+        modify the host DOM, cookies, or local storage; navigate the parent page; or execute code in the host context.</p>
+      <p>The host enforces that boundary with a separate-origin iframe, Content Security Policy, Permissions Policy, and
+        a validated JSON-RPC <code>postMessage</code> bridge, blocking access to host state, undeclared networks and
+        resources, unapproved device capabilities, and unauthorized tools.</p>
+      <p>The sandbox provides browser isolation, not application authorization. The MCP server must still authenticate
+        the actor, validate every tool input, enforce authorization, and protect downstream transactions.</p>
+      <p>The following metadata from <a
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/mcp-app/server.ts"><code>mcp-app/server.ts</code></a>
+        keeps network requests disabled, permits the Oracle logo as a static image from one official origin, and keeps
+        approval callable by the app rather than the model. <code>connectDomains</code> governs fetch, XHR, and
+        WebSocket destinations; <code>resourceDomains</code> governs images, scripts, styles, fonts, and media:</p>
+      <pre><code>_meta: {
+  ui: {
+    csp: {
+      connectDomains: [],
+      resourceDomains: ["https://www.oracle.com"]
+    }
+  }
+}
+
+// Approval tool metadata
+_meta: { ui: { visibility: ["app"] } }</code></pre>
+      <p>See the <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps overview</a> and the
+        <a href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx">stable MCP
+          Apps specification</a> for normative sandbox and bridge behavior.</p>
       <figure>
         <img src="images/mcp-app-chatgpt-sequence.svg"
           alt="MCP App sequence showing a human supply-chain planner using a compatible host such as ChatGPT, Claude, or Gemini Enterprise, which calls the MCP server, loads a sandboxed UI resource, and routes interaction through the host bridge.">
