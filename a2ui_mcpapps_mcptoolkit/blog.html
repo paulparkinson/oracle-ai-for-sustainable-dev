@@ -4,10 +4,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Paul Parkinson">
   <title>Develop A2UI and MCP Apps with Oracle AI Database and the Java MCP Toolkit running in Google Gemini Enterprise
     App, ChatGPT, and Claude</title>
   <meta name="description"
-    content="Build A2UI and MCP Apps with Oracle AI Database and the Java MCP Toolkit for Gemini Enterprise, ChatGPT, and Claude.">
+    content="Build auditable, database-backed AI applications with A2UI, MCP Apps, Oracle AI Database, and the Java MCP Toolkit for Gemini Enterprise, ChatGPT, and Claude.">
   <style>
     :root {
       color-scheme: light;
@@ -161,11 +162,14 @@
     <p class="eyebrow">Oracle AI Database · Supply-chain AI · MCP · Agent-to-UI protocols</p>
     <h1>Develop A2UI and MCP Apps with Oracle AI Database and the Java MCP Toolkit running in Google Gemini Enterprise
       App, ChatGPT, and Claude</h1>
+    <p>By Paul Parkinson · Updated August 20, 2026</p>
     <p class="subtitle">Build dynamic agent experiences with trusted native A2UI components or portable, sandboxed MCP
       Apps while keeping rendering, interaction, and execution boundaries explicit.</p>
 
     <p>How can an AI agent build a useful interface during a task while keeping data access and execution governed? This
       runnable supply-chain reference separates each responsibility:</p>
+    <p><strong>A planner reviews a database-calculated recommendation in a task-specific interface, while Oracle AI
+        Database retains final authority over validation, locking, the transaction, and its audit record.</strong></p>
     <ul>
       <li><strong>Oracle AI Database</strong> calculates feasible source-to-target recommendations and remains the
         authoritative data, transaction, and audit layer.</li>
@@ -206,12 +210,18 @@
         authoritative inventory, feasibility, transaction, and audit layer. The protocols are capability-based and are
         not owned by one host product.</figcaption>
     </figure>
+    <p class="note"><strong>A2UI version compatibility:</strong> the standalone browser adapter emits A2UI v0.9.1 in
+      AG-UI events, while the checked-in Gemini Enterprise adapter emits A2UI v0.8 DataParts over A2A. These are separate
+      host adapters over the same service, not mixed versions on one UI surface. Each host validates the version and
+      catalog it advertises. Gemini Enterprise currently documents both A2UI v0.8 and v0.9 support.</p>
 
     <section id="key-takeaways">
       <h2>Key Takeaways</h2>
       <ul>
-        <li>Oracle AI Database provides governed data and transaction services that the Oracle Database MCP Java Toolkit
-          exposes as reusable, bounded operations.</li>
+        <li>A planner can review a database-calculated recommendation while Oracle AI Database retains final transaction
+          and audit authority.</li>
+        <li>Oracle AI Database provides governed data services that the Oracle Database MCP Java Toolkit exposes as
+          reusable, bounded operations, helping AI agents query business data safely through MCP.</li>
         <li>A2UI is a runtime protocol, not a code generator: an agent describes intent as validated JSON and the host
           renders approved native components from its own design system.</li>
         <li>Rich agent tasks need interfaces beyond chat. A2UI provides safe, consistent composition; MCP Apps provide
@@ -775,12 +785,15 @@ void app.updateModelContext({
 });</code></pre>
 
       <h3>What Does “Sandboxed Iframe” Mean for an MCP App?</h3>
-      <p>An MCP App is developer-built HTML and JavaScript loaded as a <code>ui://</code> resource in an isolated iframe
-        on a different origin, not inserted into the host's page. It can update its own interface but cannot read or
-        modify the host DOM, cookies, or local storage; navigate the parent page; or execute code in the host context.</p>
-      <p>The host enforces that boundary with a separate-origin iframe, Content Security Policy, Permissions Policy, and
-        a validated JSON-RPC <code>postMessage</code> bridge, blocking access to host state, undeclared networks and
-        resources, unapproved device capabilities, and unauthorized tools.</p>
+      <p>In a compatible host that implements the MCP Apps security model, developer-built HTML and JavaScript is loaded
+        as a <code>ui://</code> resource in an isolated iframe rather than inserted into the host page. The intended
+        boundary prevents the app from reading or modifying the host DOM, cookies, or local storage; navigating the
+        parent page; or executing code in the host context.</p>
+      <p>Those guarantees depend on the host correctly implementing and enforcing separate origins, iframe sandbox
+        flags, Content Security Policy, Permissions Policy, and a validated JSON-RPC <code>postMessage</code> bridge.
+        MCP Apps metadata requests network, resource, and device permissions; it does not independently enforce the
+        browser boundary. Review the specific host's implementation and current documentation before relying on a
+        capability or restriction.</p>
       <p>The sandbox provides browser isolation, not application authorization. The MCP server must still authenticate
         the actor, validate every tool input, enforce authorization, and protect downstream transactions.</p>
       <p>The following metadata from <a
@@ -842,19 +855,17 @@ UPDATE inventory_positions
       <p>The insert and inventory reservation are one tool statement and one transaction. Canceling consumes the pending
         approval without invoking the write. Reuse, an actor change, an unknown recommendation, invalid notes, or stale
         inventory causes rejection.</p>
+      <p>Auditable AI agent answers need more than explanatory prose: the UI preserves the Toolkit source label and
+        database-calculated inputs, while an approved action returns a database transfer ID and durable audit state.</p>
     </section>
 
     <section id="walkthrough">
       <h2>Run the Application Locally End to End</h2>
-      <p>This local reference run validates the shared database, standalone Toolkit, Java service, AG-UI stream, A2UI
-        renderer, and MCP App before the following sections connect those same components to external conversational
-        hosts.</p>
-      <figure>
-        <img src="images/local-end-to-end-application.png"
-          alt="Local supply-chain inventory exchange showing one Oracle AI Database recommendation rendered as an A2UI review surface beside the corresponding AG-UI lifecycle and tool events.">
-        <figcaption>The local browser renders a database-calculated recommendation and bounded approval controls while
-          the adjacent AG-UI stream exposes the run, tool-call, state, and A2UI custom events.</figcaption>
-      </figure>
+      <p>This local reference run shows how to test a database-backed AI application locally before deployment. It
+        validates the shared database, standalone Toolkit, Java service, AG-UI stream, A2UI renderer, and MCP App before
+        the following sections connect those same components to external conversational hosts. The browser places the
+        database-calculated recommendation and approval controls beside the event stream so tool calling and state
+        synchronization remain visible without an oversized full-page screenshot.</p>
       <pre><code>cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
 # Set DB_URL, TNS_ADMIN, DB_USERNAME, and DB_PASSWORD.
@@ -910,6 +921,11 @@ cd ../agent-service
 
     <section id="chatgpt-mcp-app">
       <h2>Run the MCP App in ChatGPT</h2>
+      <p class="note"><strong>Author verification:</strong> The capability and setup claims in this section were checked
+        against OpenAI's official <a href="https://developers.openai.com/plugins/build/chatgpt-ui">ChatGPT UI</a>, <a
+          href="https://developers.openai.com/plugins/build/auth">authentication</a>, and <a
+          href="https://developers.openai.com/plugins/deploy/connect-chatgpt">connection and testing</a> documentation
+        on August 20, 2026. Product interfaces and terminology can change.</p>
       <p>ChatGPT can discover the bounded MCP tool, call it with validated limits, load the <code>ui://</code> resource,
         and render the Oracle Database MCP Java Toolkit result inline.</p>
       <p>OpenAI's current flow calls the host integration a <em>plugin</em> backed by an MCP connection. The server
@@ -969,6 +985,12 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
 
     <section id="claude-mcp-app">
       <h2>Run the MCP App in Claude</h2>
+      <p class="note"><strong>Author verification:</strong> The capability and setup claims in this section were checked
+        against Anthropic's official <a
+          href="https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp">remote
+          MCP connector</a> and <a
+          href="https://support.claude.com/en/articles/13454812-use-interactive-connectors-in-claude">interactive
+          connector</a> documentation on August 20, 2026. Product interfaces and terminology can change.</p>
       <p>Claude can discover the custom connector, call its bounded interactive tool, receive the Oracle Database MCP
         Java Toolkit result, and render the same <code>ui://</code> MCP App. Because Claude connects from Anthropic's
         cloud, it needs a securely exposed remote endpoint that meets the host's network and authentication
@@ -1032,6 +1054,10 @@ Java approval service -> Oracle DB MCP Toolkit -> Oracle AI Database</code></pre
 
     <section id="gemini-enterprise-mcp-app">
       <h2>Run the MCP App in Gemini Enterprise</h2>
+      <p class="note"><strong>Author verification:</strong> The capability and setup claims in this section were checked
+        against Google Cloud's official <a
+          href="https://docs.cloud.google.com/gemini/enterprise/docs/connectors/custom-mcp-server/set-up-custom-mcp-server">custom
+          MCP server data store</a> documentation on August 20, 2026. Product interfaces and terminology can change.</p>
       <p>Gemini Enterprise can load the same <code>ui://</code> dashboard through a Custom MCP Server data store. This
         is separate from its native A2UI/A2A agent: the MCP path discovers a tool and loads sandboxed web content, while
         the A2UI path receives declarative component messages and renders native controls.</p>
@@ -1073,6 +1099,12 @@ Java service -&gt; Oracle DB MCP Toolkit -&gt; Oracle AI Database</code></pre>
 
     <section id="gemini-enterprise">
       <h2>Run Native A2UI in Gemini Enterprise</h2>
+      <p class="note"><strong>Author verification:</strong> The capability and setup claims in this section were checked
+        against Google Cloud's official <a
+          href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/register-and-manage-an-a2ui-agent">A2UI
+          registration</a> and <a
+          href="https://docs.cloud.google.com/gemini/enterprise/docs/a2ui-agents/tutorial-host-agent-cloud-run">Cloud Run
+          tutorial</a> documentation on August 20, 2026. Product interfaces and terminology can change.</p>
       <p>Gemini Enterprise is the A2UI-capable host used in this reference application. Its custom-agent path uses A2A
         as the conversation transport and A2UI as declarative UI cargo. This implementation targets A2A v0.3 and A2UI
         v0.8, while the standalone browser consumes A2UI v0.9.1 envelopes. This is one implementation example, not a
@@ -1236,6 +1268,9 @@ Oracle AI Database private service</code></pre>
 
     <section id="references">
       <h2>References</h2>
+      <p>Host product names identify documented examples tested for this article; they do not imply partnership,
+        endorsement, or certification. Host-specific capability and setup claims link to the vendors' canonical
+        documentation below.</p>
       <ul>
         <li><a
             href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/tree/main/a2ui_mcpapps_mcptoolkit">Source
@@ -1288,6 +1323,9 @@ Oracle AI Database private service</code></pre>
         <li><a href="https://github.com/wadave/agent-a2ui-demo">A2UI reference implementation linked by Google</a></li>
         <li><a href="https://docs.cloud.google.com/run/docs/configuring/vpc-direct-vpc">Google Cloud Run Direct VPC
             egress</a></li>
+        <li><a
+            href="https://docs.cloud.google.com/gemini/enterprise/docs/connectors/custom-mcp-server/set-up-custom-mcp-server">Gemini
+            Enterprise: set up a custom MCP server data store</a></li>
         <li><a
             href="https://docs.oracle.com/en-us/iaas/Content/database-at-gcp-autonomous/ogadb-task-1-creating-odb-network-oracle-databasegoogle.html">Oracle
             Database@Google Cloud ODB network setup</a></li>
