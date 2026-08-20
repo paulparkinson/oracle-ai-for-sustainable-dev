@@ -199,10 +199,10 @@
         should not execute arbitrary model-generated frontend code. Fixed widgets are safer yet too rigid for
         task-specific interfaces.</p>
       <p>A2UI closes that gap with declarative JSON for components, layout, data bindings, and actions. A
-        <strong>host</strong> is the user-facing application, such as the standalone browser, Gemini Enterprise,
-        ChatGPT, or Claude. Its <strong>component catalog</strong> is the allowlist of native controls it knows how to
-        validate and render. The host preserves its design system and accessibility while rejecting unsupported
-        capabilities.</p>
+        <strong>host</strong> is the user-facing application. In this article, the standalone browser and Gemini
+        Enterprise demonstrate host-rendered A2UI, while Gemini Enterprise, ChatGPT, and Claude demonstrate MCP Apps.
+        An A2UI host's <strong>component catalog</strong> is the allowlist of native controls it knows how to validate
+        and render. The host preserves its design system and accessibility while rejecting unsupported capabilities.</p>
       <p><strong>The result is a UI that can appear and update during a conversation without executing agent-generated
           frontend code. The host controls rendering, and Oracle AI Database retains authority over the
           transaction.</strong></p>
@@ -253,12 +253,12 @@
         </tr>
         <tr>
           <td>MCP</td>
-          <td>Standardize discovery and invocation of tools and resources.</td>
+          <td>Standardizes discovery and invocation of tools and resources.</td>
           <td>Connects the service to five governed Oracle Database operations.</td>
         </tr>
         <tr>
           <td>A2A</td>
-          <td>Standardize agent discovery, requests, and results.</td>
+          <td>Standardizes agent discovery, requests, and results.</td>
           <td>Carries host requests and A2UI v0.8 DataParts.</td>
         </tr>
         <tr>
@@ -340,7 +340,7 @@
       <h2>How the Shared Architecture Connects</h2>
       <p>A2UI does not mandate a transport. The standalone browser example receives A2UI v0.9.1 inside AG-UI
         <code>CUSTOM</code> events, while the Gemini Enterprise Apps example receives A2UI v0.8 DataParts over A2A. The
-        MCP Apps use MCP Streamable HTTP and a host bridge instead of either A2UI transport.</p>
+        MCP Apps use MCP Streamable HTTP and a host bridge instead of either transport used to carry A2UI.</p>
       <p>A <strong>host adapter</strong> translates the shared domain result into the contract supported by a particular
         host. <a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>
         adapts the result to A2A/A2UI for Gemini Enterprise; <a
@@ -358,10 +358,11 @@
         activate the other.</p>
       <figure>
         <img src="images/a2ui-host-process-boundary.svg"
-          alt="Architecture diagram showing a human typing a request and seeing native A2UI controls inside one capable host process, which calls a Python A2A adapter, Java service, standalone Oracle Database MCP Java Toolkit, and Oracle AI Database.">
+          alt="Architecture diagram showing a human typing a request and seeing native A2UI controls inside one capable host process. The request flows through a Python A2A adapter, Java service, standalone Oracle Database MCP Java Toolkit, and Oracle AI Database, and the governed result returns through each layer to the host renderer.">
         <figcaption>Both the prompt input and rendered A2UI are host-side experiences. The A2UI-capable host can be a
           custom browser application or a compatible enterprise host; product support must be verified rather than
-          assumed. Adapted to this Oracle implementation from the <a href="https://a2ui.org/quickstart/#step-5-try-it-out">A2UI
+          assumed. The dashed response path returns through the Toolkit, Java service, and A2A adapter before the host
+          renders the A2UI DataParts. Adapted to this Oracle implementation from the <a href="https://a2ui.org/quickstart/#step-5-try-it-out">A2UI
             quickstart flow</a>.</figcaption>
       </figure>
       <p class="callout"><strong>Keep the boundaries clear:</strong> the Oracle Database MCP Java Toolkit is

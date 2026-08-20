@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
   <title id="title">A2UI host and Oracle AI Database process boundaries</title>
-  <desc id="desc">The human types a request and sees native A2UI components inside one A2UI-capable host process. The host sends the request to a Python A2A adapter and A2UI builder, which calls a Java service, a standalone Oracle Database MCP Java Toolkit process, and Oracle AI Database.</desc>
+  <desc id="desc">The human types a request and sees native A2UI components inside one A2UI-capable host process. The request flows through a Python A2A adapter, Java service, standalone Oracle Database MCP Java Toolkit process, and Oracle AI Database. The governed result returns through each of those layers before the host renders it.</desc>
   <defs>
     <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#167da6"/></marker>
     <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#008f83"/></marker>
@@ -66,8 +66,14 @@
   <path d="M1160 370 L1160 520" class="call"/><text x="1240" y="452" class="label">MCP tools/call</text>
   <line x1="1285" y1="595" x2="1350" y2="595" class="call"/><text x="1318" y="579" class="label">JDBC</text>
 
-  <path d="M1350 635 L1298 635 L1298 715 L955 715 L955 410 L665 410 L665 615 L505 615" class="return"/>
-  <text x="810" y="695" class="label">Governed result + A2UI DataParts</text>
+  <line x1="1350" y1="635" x2="1285" y2="635" class="return"/>
+  <text x="1318" y="666" class="label">Rows</text>
+  <path d="M1100 520 L1100 370" class="return"/>
+  <text x="1025" y="452" class="label">Tool result</text>
+  <line x1="1035" y1="345" x2="955" y2="345" class="return"/>
+  <text x="995" y="397" class="label">Review result</text>
+  <path d="M665 345 L630 345 L630 615 L555 615" class="return"/>
+  <text x="705" y="590" class="label">A2UI DataParts</text>
   <text x="325" y="794" class="small">The host renders approved native components.</text>
   <text x="325" y="820" class="small">No agent-generated frontend code executes.</text>
 </svg>
