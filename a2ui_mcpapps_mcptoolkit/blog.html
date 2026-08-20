@@ -771,6 +771,12 @@ UPDATE inventory_positions
       <p>This local reference run validates the shared database, standalone Toolkit, Java service, AG-UI stream, A2UI
         renderer, and MCP App before the following sections connect those same components to external conversational
         hosts.</p>
+      <figure>
+        <img src="images/local-end-to-end-application.png"
+          alt="Local supply-chain inventory exchange showing one Oracle AI Database recommendation rendered as an A2UI review surface beside the corresponding AG-UI lifecycle and tool events.">
+        <figcaption>The local browser renders a database-calculated recommendation and bounded approval controls while
+          the adjacent AG-UI stream exposes the run, tool-call, state, and A2UI custom events.</figcaption>
+      </figure>
       <pre><code>cd a2ui_mcpapps_mcptoolkit
 cp .env.example .env
 # Set DB_URL, TNS_ADMIN, DB_USERNAME, and DB_PASSWORD.

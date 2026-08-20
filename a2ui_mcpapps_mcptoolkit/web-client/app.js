@@ -126,6 +126,7 @@ function renderCatalogImage(componentId) {
   image.alt = component.description || "";
   image.width = 150;
   image.loading = "lazy";
+  image.referrerPolicy = "no-referrer";
   return image;
 }
 
