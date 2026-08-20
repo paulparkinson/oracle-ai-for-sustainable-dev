@@ -630,12 +630,20 @@ else:
         </li>
         <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/a2ui_payloads.py"><code>gemini-enterprise-a2a/a2ui_payloads.py</code></a>
           maps those values into approved A2UI components:
-          <pre><code>_text(
-    f"route-{index}",
-    f"{recommendation['sourceLocationCode']} to "
-    f"{recommendation['targetLocationCode']}: "
-    f"{recommendation['recommendedTransferQuantity']} units",
-)</code></pre>
+          <pre><code>components.extend([
+    _component(
+        card_id,
+        "Card",
+        {"child": content_id},
+    ),
+    # Additional approved components are omitted.
+    _text(
+        f"route-{index}",
+        f"{recommendation['sourceLocationCode']} to "
+        f"{recommendation['targetLocationCode']}: "
+        f"{recommendation['recommendedTransferQuantity']} units",
+    ),
+])</code></pre>
         </li>
         <li><a href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/gemini-enterprise-a2a/main.py"><code>gemini-enterprise-a2a/main.py</code></a>
           packages the messages as A2UI DataParts in the A2A response:
