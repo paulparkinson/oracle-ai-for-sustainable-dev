@@ -1,1 +1,0 @@
-Claude adds the same endpoint as a custom web connector, verifies its single interactive tool and permission policy, and enables it for a conversation. The connector uses the same Streamable HTTP server and the same self-contained MCP App resource as ChatGPT.

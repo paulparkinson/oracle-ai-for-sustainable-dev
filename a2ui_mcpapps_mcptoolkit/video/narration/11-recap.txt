@@ -1,1 +1,0 @@
-Public validation remains synthetic and read-only. The widget says so explicitly and disables its preview action when no approval handle exists. Production approval requires OAuth, durable actor-bound state, least-privileged Oracle access, revalidation under locks, auditing, and immediate removal of temporary anonymous access.

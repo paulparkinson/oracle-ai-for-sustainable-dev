@@ -1,1 +1,0 @@
-Gemini Enterprise registers the Cloud Run adapter as a custom A2A agent. The adapter streams A2UI version zero point eight DataParts, while the host owns the native component catalog, layout, accessibility, and interaction model.

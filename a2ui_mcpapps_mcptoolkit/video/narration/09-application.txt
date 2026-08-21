@@ -1,1 +1,0 @@
-In a regular browser, Claude invokes the tool and renders the same live WATER-SENSE dashboard inline. The installed Chrome-app surface failed during this test, so the verified claim is deliberately limited to Claude in a regular browser.

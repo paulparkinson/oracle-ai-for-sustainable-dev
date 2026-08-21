@@ -1,1 +1,0 @@
-The Java service launches a pinned Oracle Database MCP Java Toolkit over standard input and output, verifies the exact five-tool allowlist, and rejects broader capabilities. Oracle SQL calculates the feasible product, source, target, quantity, transit time, cost, and stockout risk.

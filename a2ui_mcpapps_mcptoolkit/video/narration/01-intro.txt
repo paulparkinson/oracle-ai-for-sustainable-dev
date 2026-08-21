@@ -1,1 +1,0 @@
-One governed supply-chain workflow now runs through three conversational host models. Gemini Enterprise renders native A2UI delivered over A2A. ChatGPT and Claude render the same Oracle-backed results as an MCP App. The video is silent and fully captioned.

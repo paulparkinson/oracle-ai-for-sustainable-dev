@@ -1,1 +1,0 @@
-The host adapter changes, but the governed core does not. Gemini Enterprise calls an A2A agent carrying declarative A2UI. ChatGPT and Claude call a Streamable HTTP MCP server carrying a sandboxed HTML resource. Every path reaches the same Java service, Toolkit, and Oracle AI Database.

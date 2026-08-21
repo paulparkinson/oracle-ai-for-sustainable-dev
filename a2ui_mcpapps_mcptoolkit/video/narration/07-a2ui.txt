@@ -1,1 +1,0 @@
-ChatGPT calls the tool, loads the versioned UI resource, and renders the Toolkit-labeled dashboard inline. The recommendation, route, quantity, risk score, and model-readable summary match the private Cloud Run and Oracle Database preflight.

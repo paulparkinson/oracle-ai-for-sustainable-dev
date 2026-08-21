@@ -1,1 +1,0 @@
-The three hosts use different UI trust models. Gemini receives declarative A2UI and renders native controls. ChatGPT and Claude receive sandboxed HTML through MCP Apps. All three share the governed recommendation service, identifiers, Toolkit operations, and Oracle transaction boundary.

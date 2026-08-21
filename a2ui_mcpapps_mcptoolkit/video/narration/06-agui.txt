@@ -1,1 +1,0 @@
-ChatGPT Developer Mode connects to the dedicated public HTTPS MCP endpoint for the time-bounded synthetic read-only test. Discovery exposes exactly one model-visible dashboard tool with bounded stockout-risk and row-limit inputs; write tools remain unregistered.
