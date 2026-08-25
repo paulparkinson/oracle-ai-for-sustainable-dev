@@ -8,6 +8,30 @@ Current contents:
 - schema and seed SQL for the inventory-risk and hotspot demo tables
 - Select AI profile helper SQL
 - SQLcl wrapper scripts that load the repo-level `.env` and run the shared SQL from one canonical location
+- region-scoped Deep Data Security setup and direct database verification for
+  the inventory-analysis data
+
+For the regional stockout demonstration, keep `FINANCIAL` as the schema and
+agent-team owner, set distinct secrets for `SUPPLYCHAIN_NA_MGR` and
+`SUPPLYCHAIN_APAC_MGR` in the ignored `.env`, and run:
+
+```bash
+./sql/run_inventory_risk_deepsec_regions.sh
+```
+
+The runner adds synthetic APAC risk rows, creates the two local Deep Sec end
+users, assigns NA and APAC data roles, enables mandatory data-grant enforcement
+on `FINANCIAL.SC_INVENTORY_RISK_DEMO_V`, and verifies each identity sees only
+its authorized region.
+
+`FINANCIAL` intentionally remains the schema and Select AI agent-team owner.
+Local Deep Sec end users connect as `XS$NULL` and do not own or inherit
+schema-scoped Select AI agent teams. Consequently, the managed Marketplace
+Oracle AI Database Agent cannot directly run the existing `FINANCIAL` team
+after a user signs in as one of these local Deep Sec identities. An end-to-end
+Gemini demonstration must either propagate the Deep Sec end-user context through
+an application/A2A adapter running under the application identity, or use
+schema users with a different row-security mechanism such as VPD.
 
 Use this directory as the canonical home for database assets instead of treating them as Java-specific files.
 
@@ -35,6 +59,10 @@ sequence is:
 5. Fetch and run Oracle's pinned official `oracle_ai_database_agent_tool.sql`
    and `oracle_ai_database_agent.sql` installers as described in
    `../docs/ADB_PM_PROD_REDEPLOYMENT.md`.
+6. Run `verify_oracle_ai_database_agent.sql` as the application schema. It
+   creates a one-day verification conversation, executes the stockout prompt
+   through `DBMS_CLOUD_AI_AGENT.RUN_TEAM`, and lists the enabled team and its
+   four expected tools.
 
 The ADMIN preparation script grants only `CREATE PROPERTY GRAPH`, execute on the
 two Select AI packages, and outbound HTTP access to the documented Google and
