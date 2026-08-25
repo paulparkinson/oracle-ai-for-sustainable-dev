@@ -24,14 +24,14 @@ users, assigns NA and APAC data roles, enables mandatory data-grant enforcement
 on `FINANCIAL.SC_INVENTORY_RISK_DEMO_V`, and verifies each identity sees only
 its authorized region.
 
-`FINANCIAL` intentionally remains the schema and Select AI agent-team owner.
-Local Deep Sec end users connect as `XS$NULL` and do not own or inherit
-schema-scoped Select AI agent teams. Consequently, the managed Marketplace
-Oracle AI Database Agent cannot directly run the existing `FINANCIAL` team
-after a user signs in as one of these local Deep Sec identities. An end-to-end
-Gemini demonstration must either propagate the Deep Sec end-user context through
-an application/A2A adapter running under the application identity, or use
-schema users with a different row-security mechanism such as VPD.
+`FINANCIAL` intentionally remains the one shared application schema and Select
+AI agent-team owner. `SUPPLYCHAIN_NA_MGR` and `SUPPLYCHAIN_APAC_MGR` follow the
+Oracle Deep Data Security direct-logon pattern: they are password-authenticated
+local end users, not separate schema owners. Their assigned data roles and data
+grants restrict the rows returned from the same protected `FINANCIAL` view.
+No OCI IAM or Microsoft Entra ID identity propagation is required for this
+database-side demonstration, and separate Select AI profiles or agent teams are
+not required per end user.
 
 Use this directory as the canonical home for database assets instead of treating them as Java-specific files.
 

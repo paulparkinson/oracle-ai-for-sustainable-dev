@@ -1,10 +1,10 @@
 -- Region-scoped Oracle Deep Data Security demonstration for the inventory
 -- analysis data used by the Gemini Enterprise application.
 --
--- FINANCIAL remains the schema and Select AI agent-team owner. The two local
--- Deep Sec end users receive only region-specific data grants. They validate
--- database authorization directly; they do not own schema-scoped Select AI
--- agent teams.
+-- FINANCIAL remains the shared application schema and Select AI agent-team
+-- owner. The two password-authenticated local Deep Sec end users receive
+-- different region-specific data roles and data grants over the same protected
+-- view. No OCI IAM or Microsoft Entra ID propagation is used in this demo.
 -- Run through run_inventory_risk_deepsec_regions.sh; do not hard-code secrets.
 
 set define on verify off echo off feedback on serveroutput on size unlimited
