@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.StreamSupport;
 
 /** Calls purpose-built tools on a standalone Oracle Database MCP Java Toolkit service. */
-public final class McpToolkitSupplyChainRepository implements SupplyChainRepository, AutoCloseable {
+public final class McpToolkitSupplyChainGateway implements SupplyChainRepository, AutoCloseable {
     private static final Set<String> WRITE_TOOLS = Set.of(
             "find-stockout-transfer-recommendations",
             "get-stockout-transfer-details",
@@ -24,7 +24,7 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
     private final McpHttpClient client;
     private final boolean writesAllowed;
 
-    private McpToolkitSupplyChainRepository(
+    private McpToolkitSupplyChainGateway(
             McpHttpClient client,
             boolean writesAllowed) {
         this.client = client;
@@ -32,16 +32,16 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
         verifyToolkit(writesAllowed ? WRITE_TOOLS : READ_TOOLS);
     }
 
-    public static McpToolkitSupplyChainRepository fromEnvironment(Map<String, String> environment) {
+    public static McpToolkitSupplyChainGateway fromEnvironment(Map<String, String> environment) {
         return create(environment, "ORACLE_MCP_URL", "ORACLE_MCP_AUTH_TOKEN", true);
     }
 
-    public static McpToolkitSupplyChainRepository secondaryFromEnvironment(
+    public static McpToolkitSupplyChainGateway secondaryFromEnvironment(
             Map<String, String> environment) {
         return create(environment, "ORACLE_MCP_READ_URL", "ORACLE_MCP_READ_AUTH_TOKEN", false);
     }
 
-    private static McpToolkitSupplyChainRepository create(
+    private static McpToolkitSupplyChainGateway create(
             Map<String, String> environment,
             String urlName,
             String tokenName,
@@ -54,7 +54,7 @@ public final class McpToolkitSupplyChainRepository implements SupplyChainReposit
         McpHttpClient client = new McpHttpClient(
                 URI.create(endpoint), token, trustStore, trustStorePassword);
         client.initialize();
-        return new McpToolkitSupplyChainRepository(client, writesAllowed);
+        return new McpToolkitSupplyChainGateway(client, writesAllowed);
     }
 
     @Override

@@ -482,7 +482,7 @@ tools:
          WHERE stockout_risk_score &gt;= :minimumStockoutRisk
          ORDER BY stockout_risk_score DESC
       ) WHERE ROWNUM &lt;= :maximumRows</code></pre>
-      <p><code>McpToolkitSupplyChainRepository</code> connects to the independently running Toolkit through
+      <p><code>McpToolkitSupplyChainGateway</code> connects to the independently running Toolkit through
         authenticated
         Streamable HTTP, completes MCP initialization, verifies the server identity, and requires the exact
         <code>supply-chain-exchange</code> allowlist. Built-in <code>read-query</code>, <code>write-query</code>, table,
@@ -490,7 +490,7 @@ tools:
       </p>
       <p>The following excerpt from
         <a
-          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java"><code>agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainRepository.java</code></a>
+          href="https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/a2ui_mcpapps_mcptoolkit/agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainGateway.java"><code>agent-service/src/main/java/com/oracle/demo/interactiveai/McpToolkitSupplyChainGateway.java</code></a>
         validates input and invokes the named MCP tool rather than accepting generated SQL:
       </p>
       <pre><code>InputValidation.minimumStockoutRisk(minimumStockoutRisk);
