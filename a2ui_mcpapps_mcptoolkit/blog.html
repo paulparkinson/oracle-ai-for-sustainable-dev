@@ -170,6 +170,12 @@
       runnable supply-chain reference separates each responsibility:</p>
     <p><strong>A planner reviews a database-calculated recommendation in a task-specific interface, while Oracle AI
         Database retains final authority over validation, locking, the transaction, and its audit record.</strong></p>
+    <p>There is a useful security analogy: MCP Apps and A2UI address the frontend version of the vibe-coding risk seen
+      in tools such as Lovable and v0, where arbitrary generated UI code needs boundaries, just as the Oracle Database
+      MCP Java Toolkit addresses backend MCP risk by exposing allowlisted, governed database tools instead of arbitrary
+      server capabilities.</p>
+    <p>Together, MCP for backend tools, A2A for agent-to-agent or host-to-agent communication, and A2UI plus MCP Apps
+      for frontend interaction form a practical full-stack pattern for safer agentic AI applications.</p>
     <ul>
       <li><strong>Oracle AI Database</strong> calculates feasible source-to-target recommendations and remains the
         authoritative data, transaction, and audit layer.</li>
@@ -202,6 +208,24 @@
       </div>
       <figcaption>Video walkthrough of the A2UI and MCP Apps reference application, source code, protocol boundaries,
         Oracle Database MCP Java Toolkit, and Oracle AI Database.</figcaption>
+    </figure>
+    <figure>
+      <video controls preload="metadata" poster="video/mcp-app-developer-walkthrough-poster.png" style="width:100%;border:1px solid #d6dce3;border-radius:8px;background:#111;">
+        <source src="video/mcp-app-developer-walkthrough.mp4" type="video/mp4">
+        <track kind="captions" src="video/mcp-app-developer-walkthrough.vtt" srclang="en" label="English captions" default>
+        Download the <a href="video/mcp-app-developer-walkthrough.mp4">MCP App developer walkthrough video</a>.
+      </video>
+      <figcaption>Silent, captioned 29-step MCP App developer walkthrough from Gemini Enterprise connector discovery
+        through the Java MCP Toolkit call and Oracle AI Database response path.</figcaption>
+    </figure>
+    <figure>
+      <video controls preload="metadata" poster="video/a2ui-developer-walkthrough-poster.png" style="width:100%;border:1px solid #d6dce3;border-radius:8px;background:#111;">
+        <source src="video/a2ui-developer-walkthrough.mp4" type="video/mp4">
+        <track kind="captions" src="video/a2ui-developer-walkthrough.vtt" srclang="en" label="English captions" default>
+        Download the <a href="video/a2ui-developer-walkthrough.mp4">A2UI developer walkthrough video</a>.
+      </video>
+      <figcaption>Silent, captioned 29-step A2UI developer walkthrough covering the local AG-UI transport,
+        Gemini Enterprise A2A DataParts, the Java MCP Toolkit, and Oracle AI Database.</figcaption>
     </figure>
 
     <figure class="cover">
