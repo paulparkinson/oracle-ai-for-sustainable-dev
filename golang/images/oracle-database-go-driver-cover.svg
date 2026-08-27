@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">Oracle Database Driver for Go architecture</title>
-  <desc id="desc">A Go service uses the standard database/sql API, the native go-oracledb driver, and TCP or TCPS to connect to Oracle Database.</desc>
+  <title id="title">Oracle AI Database Driver for Go architecture</title>
+  <desc id="desc">A Go service uses the standard database/sql API, the native go-oracledb driver, and TCP or TCPS to connect to Oracle AI Database.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#111820"/>
@@ -12,7 +12,7 @@
   </defs>
   <rect width="1600" height="900" fill="url(#bg)"/>
   <text x="92" y="118" fill="#f3a59d" font-family="Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="4">OFFICIAL NATIVE GO CONNECTIVITY</text>
-  <text x="92" y="200" fill="#ffffff" font-family="Arial, sans-serif" font-size="64" font-weight="700">Oracle Database Driver for Go</text>
+  <text x="92" y="200" fill="#ffffff" font-family="Arial, sans-serif" font-size="58" font-weight="700">Oracle AI Database Driver for Go</text>
   <text x="92" y="257" fill="#d6dde5" font-family="Arial, sans-serif" font-size="30">Standard database/sql APIs with no CGO or Oracle Client dependency</text>
   <g font-family="Arial, sans-serif">
     <rect x="92" y="380" width="300" height="220" rx="26" fill="#1e2b37" stroke="#6f8293" stroke-width="3"/>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Oracle Database Driver for Go: Official Native Go Connectivity</title>
-  <meta name="description" content="Learn how the official native go-oracledb driver connects Go applications to Oracle Database through database/sql without CGO or Oracle Client libraries.">
+  <title>Oracle AI Database Driver for Go: Official Native Go Connectivity</title>
+  <meta name="description" content="Learn how the official native go-oracledb driver connects Go applications to Oracle AI Database through database/sql without CGO or Oracle Client libraries.">
   <style>
     body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #1f2933; background: #f7f7f5; line-height: 1.6; }
     article { max-width: 980px; margin: 0 auto; padding: 42px 24px 72px; background: #fff; }
@@ -33,20 +33,25 @@
 </head>
 <body>
 <article>
-  <p class="eyebrow">Oracle Database and Go</p>
-  <h1>Oracle Database Driver for Go: Official Native Go Connectivity</h1>
-  <p class="subtitle">Build Oracle Database applications with Go's standard <code>database/sql</code> API, without CGO or an Oracle Client installation.</p>
+  <p class="eyebrow">Oracle AI Database and Go</p>
+  <h1>Oracle AI Database Driver for Go: Official Native Go Connectivity</h1>
+  <p class="subtitle">Build Oracle AI Database applications with Go's standard <code>database/sql</code> API, without CGO or an Oracle Client installation.</p>
 
   <p>
-    Oracle Database Driver for Go, published as <code>go-oracledb</code>, gives Go developers an official native-Go path to Oracle Database. It implements Go's standard <code>database/sql</code> driver interface, supports Oracle Database 19c and later, and connects over TCP or TCPS without requiring CGO or Oracle Client libraries.
+    Oracle AI Database Driver for Go, published as <code>go-oracledb</code>, gives Go developers an official native-Go path to Oracle AI Database. It implements Go's standard <code>database/sql</code> driver interface, supports Oracle AI Database 19c and later, and connects over TCP or TCPS without requiring CGO or Oracle Client libraries.
   </p>
   <p>
     The immediate benefit is operational simplicity: fewer build dependencies, more reproducible containers, and an easier route to cross-platform Go deployments. The longer-term benefit is an Oracle-owned Go driver and public API direction for microservices, automation, AI services, and cloud-native back ends.
   </p>
+  <p>
+    The complete driver source is available in the
+    <a href="https://github.com/oracle/go-oracledb">Oracle AI Database Driver for Go GitHub repository</a>.
+    Its <a href="https://github.com/oracle/go-oracledb/tree/main/examples">examples directory</a> provides runnable samples for common connection and database operations.
+  </p>
 
   <figure>
-    <img src="images/oracle-database-go-driver-cover.svg" alt="Architecture diagram showing a Go service using database/sql and the native go-oracledb driver to connect to Oracle Database over TCP or TCPS.">
-    <figcaption>The official native-Go driver fits between Go's standard database API and Oracle Database.</figcaption>
+    <img src="images/oracle-database-go-driver-cover.svg" alt="Architecture diagram showing a Go service using database/sql and the native go-oracledb driver to connect to Oracle AI Database over TCP or TCPS.">
+    <figcaption>The official native-Go driver fits between Go's standard database API and Oracle AI Database.</figcaption>
   </figure>
 
   <section class="takeaways">
@@ -59,9 +64,9 @@
     </ul>
   </section>
 
-  <h2>What Is Oracle Database Driver for Go?</h2>
+  <h2>What Is Oracle AI Database Driver for Go?</h2>
   <p>
-    <a href="https://github.com/oracle/go-oracledb">Oracle Database Driver for Go</a> is a native implementation of Go's <code>database/sql/driver</code> interface. The module is <code>github.com/oracle/go-oracledb/v26</code>, and the registered driver name is <code>oracledb</code>. Applications can continue using familiar <code>sql.DB</code>, context-aware queries, prepared statements, transactions, and connection pooling.
+    <a href="https://github.com/oracle/go-oracledb">Oracle AI Database Driver for Go</a> is a native implementation of Go's <code>database/sql/driver</code> interface. The module is <code>github.com/oracle/go-oracledb/v26</code>, and the registered driver name is <code>oracledb</code>. Applications can continue using familiar <code>sql.DB</code>, context-aware queries, prepared statements, transactions, and connection pooling.
   </p>
   <p>
     Oracle-specific public APIs are exposed through <code>github.com/oracle/go-oracledb/v26/oracle</code>. Packages below the internal driver tree are implementation details and should not become application dependencies.
@@ -70,7 +75,7 @@
     <strong>Release status:</strong> <a href="https://pkg.go.dev/github.com/oracle/go-oracledb/v26">pkg.go.dev currently lists v26.0.0-beta</a>. Treat the driver as a fast-moving beta and confirm the latest release before adopting it.
   </p>
 
-  <h2>Connect to Oracle Database from Go</h2>
+  <h2>Connect to Oracle AI Database from Go</h2>
   <p>Install the module through the standard Go module workflow:</p>
   <pre><code>go get github.com/oracle/go-oracledb/v26@latest</code></pre>
   <p>
@@ -122,10 +127,13 @@ func main() {
     Go teams often optimize for simple builds, reproducible containers, cross-compilation, and small deployment artifacts. A native-Go database driver follows that model because the application does not need a C toolchain during the build or Oracle Client libraries at runtime.
   </p>
   <p>
-    The driver also follows an operational pattern familiar from current Python and Node.js Oracle drivers: connect directly in the default thin-style path, with fewer external components between the application and database. For Go services, this can simplify developer laptops, CI/CD jobs, containers, and internal operational tools.
+    The driver also follows an operational pattern familiar from current
+    <a href="https://github.com/oracle/ojdbc">Java</a>,
+    <a href="https://github.com/oracle/python-oracledb">Python</a>, and
+    <a href="https://github.com/oracle/node-oracledb">Node.js</a> Oracle drivers: connect directly in the default thin-style path, with fewer external components between the application and database. For Go services, this can simplify developer laptops, CI/CD jobs, containers, and internal operational tools.
   </p>
 
-  <h2>Compare the Oracle Database Drivers for Go</h2>
+  <h2>Compare the Oracle AI Database Drivers for Go</h2>
   <table>
     <thead>
       <tr><th>Driver</th><th>Implementation</th><th>Strengths</th><th>Considerations</th></tr>
@@ -209,7 +217,7 @@ func main() {
 
   <h2>Conclusion</h2>
   <p>
-    Oracle Database Driver for Go is an important step for the Go ecosystem. It provides an official native-Go route to Oracle Database, aligns with standard Go database APIs, and removes two common deployment dependencies: CGO and Oracle Client libraries.
+    Oracle AI Database Driver for Go is an important step for the Go ecosystem. It provides an official native-Go route to Oracle AI Database, aligns with standard Go database APIs, and removes two common deployment dependencies: CGO and Oracle Client libraries.
   </p>
   <p>
     Today, it is best approached as a promising beta for evaluation and new-service prototypes. Its architecture is already compelling: fewer moving parts, idiomatic Go APIs, and an Oracle-owned roadmap. As feature coverage and release maturity increase, it can become a natural foundation for Oracle-backed Go microservices and AI application infrastructure.
@@ -217,7 +225,7 @@ func main() {
 
   <h2>References</h2>
   <ul>
-    <li><a href="https://github.com/oracle/go-oracledb">Oracle Database Driver for Go repository and README</a></li>
+    <li><a href="https://github.com/oracle/go-oracledb">Oracle AI Database Driver for Go repository and README</a></li>
     <li><a href="https://pkg.go.dev/github.com/oracle/go-oracledb/v26">go-oracledb module documentation</a></li>
     <li><a href="https://pkg.go.dev/github.com/oracle/go-oracledb/v26/oracle">Oracle-specific public Go API</a></li>
     <li><a href="https://go.dev/wiki/SQLDrivers">Go Wiki: SQL database drivers</a></li>
