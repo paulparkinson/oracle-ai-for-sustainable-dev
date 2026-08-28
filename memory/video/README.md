@@ -27,6 +27,40 @@ Generated publication assets:
 - `memory-agent-walkthrough.srt`
 - `memory-agent-walkthrough.vtt`
 
+An optional enhanced edition adds small cinematic picture-in-picture windows
+to the accessibility, quest, and AR application scenes without covering the
+source or database evidence:
+
+```bash
+cd memory/video
+./build-video-enhanced.swift
+```
+
+Enhanced assets:
+
+- `memory-agent-walkthrough-enhanced.mp4`
+- `memory-agent-walkthrough-enhanced-poster.png`
+- `memory-agent-walkthrough-enhanced.srt`
+- `memory-agent-walkthrough-enhanced.vtt`
+
+The generated inserts live under `enhanced-assets/`. They are illustrative
+fictional scenes, while the underlying application and database captures remain
+the verified evidence.
+
+The presentation loop is available as both an MP4 and an auto-looping GIF:
+
+```bash
+cd memory/video
+./build-presentation-loop.swift
+```
+
+- `presentation/guest-journey-command-center-loop.mp4`
+- `presentation/guest-journey-command-center-loop.gif`
+
+For PowerPoint, the MP4 provides the best image quality. Enable **Loop until
+stopped** on the Playback tab. The GIF is convenient when automatic looping is
+more important than file size or image quality.
+
 The MP4 intentionally contains no audio track. Captions are burned into the
 video and also published as SRT and WebVTT sidecars. Current Chrome captures are
 kept as build inputs under `.build/captures-latest/` and are not published as

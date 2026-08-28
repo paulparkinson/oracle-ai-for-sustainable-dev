@@ -707,3 +707,11 @@ packages/
 *.key
 *.cert
 *.p12
+
+# Locally generated demo-video media. Keep these assets on a workstation or in
+# an external video host; do not commit them to the repository.
+a2ui_mcpapps_mcptoolkit/video/*.mp4
+memory/video/*.mp4
+memory/video/presentation/*.mp4
+memory/video/presentation/*.gif
+oracle-ai-database-gcp-gemini/video/*.mp4

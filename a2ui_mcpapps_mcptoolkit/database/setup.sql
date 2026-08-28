@@ -6,5 +6,6 @@ PROMPT Creating supply-chain exchange schema objects...
 @@04-views.sql
 @@05-mcp-sequence.sql
 @@06-mcp-procedure.sql
+@@08-normalize-inventory-demo.sql
 
 PROMPT Supply-chain exchange database setup complete.

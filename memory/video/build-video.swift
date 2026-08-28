@@ -74,7 +74,7 @@ let steps: [StepInfo] = [
 ]
 
 var scenes: [Scene] = [
-    Scene(visual: .title, eyebrow: "ORACLE AI DATABASE + AGENT MEMORY", title: "Memories Are\nthe Magic", subtitle: "A 16-step theme-park walkthrough", caption: "Follow Ava and Leo through durable memory, Deep Data Security, governed learning, accessible routing, transactional play, GraphRAG, and consented AR memory.", seconds: 8)
+    Scene(visual: .title, eyebrow: "ORACLE AI DATABASE + AGENT MEMORY", title: "Memories Are\nthe Magic", subtitle: "", caption: "Follow Ava and Leo through durable memory, Deep Data Security, governed learning, accessible routing, transactional play, GraphRAG, and consented AR memory.", seconds: 8)
 ]
 
 for step in steps {
@@ -263,9 +263,6 @@ func imageFor(index: Int) -> NSImage {
 
     switch scene.visual {
     case .title:
-        badge("16 VERIFIED STEPS", x: 75, y: 595, color: teal)
-        badge("SILENT + CAPTIONED", x: 75, y: 660, color: red)
-        badge("APPLICATION + CODE + DATA", x: 75, y: 725, color: gold)
         drawTitleVisual()
     case .image(let filename, let label):
         drawImage(filename: filename, label: label)

@@ -39,12 +39,12 @@ SOURCE_DIR="$DESTINATION/$SOURCE_SUBDIR"
 (
   cd "$SOURCE_DIR"
   printf '%s  %s\n' \
-    'e1cb47df96bc85601c83159ec1a2fe364d86ee5d692f7cbbe5521fbcea550b35' \
+    '206bc7384eb41df08881894130c16f0c19ff393c954255d9c14731ba2f8b4699' \
     'oracle_ai_database_agent.sql' \
-    'd6a144a736adb1a08dfa7e3cae3c8b46215c90374a7ec34b7a9001a1b48ca54d' \
+    '9b28880ac6fea442b4f343a5504ebd19b9ba39cc47e6f3d093d415e67e83aaa3' \
     'oracle_ai_database_agent_tool.sql' \
-    '5cac89bbaa3fe597d12685b3d075a020dc44c16053cc53a1df5d808d4ec57600' \
-    'README.md' | sha256sum --check --strict
+    'b884c14f87949d54cc33054f8efe94cd85bd985d02250d865217c749865b23cb' \
+    'README.md' | sha256sum -c -
 )
 
 echo "$SOURCE_DIR"
