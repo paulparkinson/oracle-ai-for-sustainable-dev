@@ -34,11 +34,6 @@
     .subtitle { margin: 0 0 28px; max-width: 970px; color: var(--muted); font-size: 1.35rem; line-height: 1.45; }
     .updated { color: var(--muted); font-size: .9rem; }
     .lead { font-size: 1.13rem; }
-    .callout, .note, .presenter {
-      margin: 25px 0; padding: 17px 19px; border: 1px solid rgba(255,79,120,.3); border-left: 4px solid var(--oracle); background: rgba(255,79,120,.065); box-shadow: inset 0 0 22px rgba(255,79,120,.03);
-    }
-    .note { border-color: rgba(0,229,255,.38); background: rgba(0,229,255,.055); }
-    .presenter { border-color: rgba(255,209,102,.48); background: rgba(255,209,102,.06); }
     .takeaways { padding: 18px 23px; border: 1px solid rgba(0,229,255,.42); border-radius: 5px; background: linear-gradient(135deg, rgba(0,229,255,.06), rgba(122,49,255,.045)); box-shadow: 0 0 28px rgba(0,229,255,.08); }
     figure { margin: 34px 0; }
     figure img { display: block; width: 100%; height: auto; border: 1px solid rgba(0,229,255,.42); border-radius: 5px; box-shadow: 0 0 26px rgba(0,229,255,.1); }
@@ -106,7 +101,7 @@
         Your browser does not support embedded video. <a href="video/memory-agent-walkthrough.mp4">Open the walkthrough video</a>.
       </video>
     </div>
-    <figcaption>Complete 16-step walkthrough: follow Ava and Leo through governed memory, accessible map routing, transactional quest play, GraphRAG, and privacy-first AR. Every step shows the live application, the source method called, and the database content or change. The video is silent so a presenter can narrate it live; burned-in captions and the <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a> contain the complete explanation.</figcaption>
+    <figcaption>Complete 16-step walkthrough: follow Ava and Leo through governed memory, accessible map routing, transactional quest play, GraphRAG, and privacy-first AR. Every step shows the live application, the source method called, and the database content or change. The silent video includes burned-in captions and a <a href="video/memory-agent-walkthrough.srt">downloadable SRT caption file</a>.</figcaption>
   </figure>
 
   <section class="takeaways" id="key-takeaways">
@@ -121,7 +116,7 @@
   </section>
 
   <h2 id="scenario-at-a-glance">Flynn's Theme Park Scenario at a Glance</h2>
-  <p>This sequence is the shortest presenter runbook for the complete application. Steps 0 through 7 exercise Oracle Agent Memory lifecycle operations and the Ava-versus-Leo Deep Data Security proof on <code>MAGIC_PY_MEMORY</code>. Steps 8 through 12 add the <code>AIM_PARK_*</code> graph, Spatial, vector, quest, and reward lane. Steps 13 through 16 add the optional Lens Studio and Spectacles AR flow. The deterministic actions produce inspectable database transitions during every presentation instead of asking an LLM to improvise them.</p>
+  <p>This sequence is the complete application flow. Steps 0 through 7 exercise Oracle Agent Memory lifecycle operations and the Ava-versus-Leo Deep Data Security proof on <code>MAGIC_PY_MEMORY</code>. Steps 8 through 12 add the <code>AIM_PARK_*</code> graph, Spatial, vector, quest, and reward lane. Steps 13 through 16 add the optional Lens Studio and Spectacles AR flow. Every action produces an inspectable application or database transition.</p>
   <table>
     <thead>
       <tr><th>Scenario event and observed behavior</th><th>Memory-core action</th><th>Oracle AI Database action</th><th>Memory principle shown</th></tr>
@@ -155,7 +150,7 @@
     <li><strong>Learn under controls:</strong> repeated successful, minimized outcomes can induce a candidate rainy-route procedure. Privacy checks and human approval govern the general lesson, while Deep Data Security keeps Ava's private facts and raw traces from Leo.</li>
     <li><strong>Reuse:</strong> Leo can receive the approved procedure and a quest adapted to his own memory. His points, route, and rewards remain separate from Ava's.</li>
   </ol>
-  <p class="note"><strong>Other combinations:</strong> a family party quest can use consented relationships while preserving individual accessibility needs; a seasonal operations quest can reward safe reroutes during weather or crowd changes; and a discovery quest can use GraphRAG to reveal location-aware lore while remembering which themes each visitor enjoyed.</p>
+  <p>The same pattern also supports family party quests that preserve individual accessibility needs, seasonal operations quests that reward safe reroutes, and discovery quests that use GraphRAG to reveal location-aware lore.</p>
   <h3 id="ar-experience">Add an Optional Lens Studio and Spectacles AR Experience</h3>
   <p>The AR client is a presentation layer over the same governed services, not a second memory system. Lens Studio 5.15.4 can preview route arrows, clues, checkpoint state, privacy status, and HTTPS calls. On Spectacles hardware, the <a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/asr-module">ASR Module</a> can transcribe a guest saying “remember this,” while the <a href="https://developers.snap.com/spectacles/about-spectacles-features/apis/internet-access">Internet Module</a> sends the confirmed text to the Oracle Agent Memory service.</p>
   <p>The implementation keeps four boundaries visible:</p>
@@ -166,8 +161,8 @@
     <li><strong>Scope precedes similarity:</strong> guest identity, consent status, session expiration, and record TTL are applied before semantic ranking.</li>
   </ul>
   <p><code>AIM_AR_SESSIONS</code> stores separate camera-sensing, media-recording, location-sharing, and retention choices. <code>AIM_AR_MEDIA</code> stores consented descriptions, optional object references, native vectors, and expiration. <code>AIM_AR_AUDIT</code> records session, memory, media, and search events. Private “remember this” observations are stored through Oracle Agent Memory with exact guest, concierge-agent, and AR-thread scope.</p>
-  <p class="note"><strong>Honest validation boundary:</strong> the browser simulator and database/API paths are testable without hardware. Lens Studio Preview can model the overlay and HTTPS contract. ASR, camera frames, permission prompts, tracking, outdoor visibility, comfort, battery, heat, and venue or ride rules require actual Spectacles and park testing. The design keeps the responsive browser map as the non-AR, reduced-distraction, and accessibility fallback.</p>
-  <p class="note"><strong>What the prior rainy-visit episode means:</strong> the blog and video refer to the same seeded demonstration record. It is not evidence that an earlier live app session occurred. Retain stores one simulated prior-visit episode for Ava plus three separate synthetic, generalized rainy-route outcomes for skill induction. The latter have no user scope and must pass the demo's privacy gate, but they are still treated as reviewable evidence rather than automatically anonymous data.</p>
+  <p>The browser simulator and database/API paths work without hardware. Lens Studio Preview can model the overlay and HTTPS contract, while ASR, camera frames, permission prompts, tracking, outdoor visibility, comfort, battery, heat, and venue rules require actual Spectacles and park testing. The responsive browser map remains the non-AR accessibility fallback.</p>
+  <p>The prior rainy-visit episode is a seeded demonstration record, not evidence of an earlier live session. Retain stores that simulated episode plus three separate synthetic, generalized rainy-route outcomes for skill induction. These unscoped outcomes pass the demo's privacy gate and remain reviewable evidence rather than automatically anonymous data.</p>
 
   <h2 id="engineering-ladder">From Prompt Engineering to Context Engineering to Memory Engineering</h2>
   <p><strong>Agent memory</strong> combines models, extraction, embeddings, retrieval, and persistent storage so an agent can retain, recall, update, and forget information while maintaining continuity across long-horizon tasks. <strong>Memory engineering</strong> is the discipline of designing and operating that lifecycle so retained experience remains useful, scoped, current, and governable over time.</p>
@@ -226,13 +221,12 @@ List&lt;OracleSearchResult&gt; hits =
 OracleContextCard card = thread.getContextCard();      // OracleThread: Reuse
 thread.deleteMemory(oldMemoryId);                      // OracleThread: Refine
 thread.addMemory(correctedMemory);                     // OracleThread: Refine</code></pre>
-  <p class="note"><strong>Why Refine uses two calls:</strong> the implementation used by this lane does not expose a single <code>updateMemory(...)</code> method, so its source-level replacement primitive is delete followed by add.</p>
-  <p class="note"><strong>RAG versus memory:</strong> RAG retrieves existing knowledge. Agent memory includes the write-back and lifecycle that allow the system to change what it knows from later interactions. A production application often uses both.</p>
+  <p>Refine uses delete followed by add because this implementation does not expose a single <code>updateMemory(...)</code> method. RAG retrieves existing knowledge; agent memory adds the write-back and lifecycle needed to change what the system knows from later interactions.</p>
 
   <h2 id="why-agents-forget">Why Agents Forget</h2>
   <p>A stateless agent repeatedly re-onboards users, repeats failed approaches, and forgets what produced a good outcome. Trust cannot compound because experience disappears at the end of the call. A large prompt can postpone the problem, but it does not provide identity scope, correction, deletion, expiration, transaction boundaries, or a durable audit history.</p>
   <p>An agent is still a loop: observe, plan, act, and evaluate. The model supplies reasoning inside that loop. External memory acts as a computational exocortex across loops, preserving selected facts and outcomes after the model invocation ends. The distinction matters because context-window contents are transient, while database records can have owners, versions, policies, and an audit trail.</p>
-  <p class="presenter"><strong>Presenter thesis:</strong> “The durable competitive advantage is not one clever prompt. It is accumulated, governed experience that the right agent can recall at the right time.”</p>
+  <blockquote>The durable advantage is not one clever prompt. It is accumulated, governed experience that the right agent can recall at the right time.</blockquote>
 
   <h2 id="four-memory-types">The Four Memory Types</h2>
   <table>
@@ -246,7 +240,7 @@ thread.addMemory(correctedMemory);                     // OracleThread: Refine</
       <tr><td>Procedural</td><td>How should I handle this pattern?</td><td><code>rainy-evening-reroute</code>: “When rain closes a path, check accessibility, choose covered connectors, resequence dining, and verify arrival time.”</td><td><code>SKILL.md</code> or agent skills, loaded through progressive disclosure.</td><td>Induced from successful traces; inactive until a person approves it.</td></tr>
     </tbody>
   </table>
-  <p class="note"><strong>These are analogies, not storage rules.</strong> A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions; classify each entry by what it communicates and how the agent uses it.</p>
+  <p>These are conceptual analogies rather than storage rules. A file such as <code>CLAUDE.md</code> or <code>AGENTS.md</code> can contain both semantic facts and procedural instructions, so each entry should be classified by what it communicates and how the agent uses it.</p>
   <p>These categories prevent a common design failure: treating every transcript fragment as equally durable. A live closure should expire; a confirmed accessibility preference can live longer; a reusable operational skill should contain the general lesson, not the original guest's private data.</p>
 
   <h2 id="architecture">What the Demo Actually Implements</h2>
@@ -317,7 +311,7 @@ Oracle AI Database
 
   <h3 id="database-objects">Database Tables and Objects Used by Oracle Agent Memory and Agent</h3>
   <p>There are three intentionally separate object groups. Oracle Agent Memory uses the message and durable-record tables. The agent lifecycle lane uses <code>AIM_DEMO_*</code> tables for history, expiry, traces, approval, and audit. The Memory Quest lane uses <code>AIM_PARK_*</code> tables for graph, spatial, vector, and transactional game state. The scenario table above links directly to the memory tables below.</p>
-  <p class="note"><strong>Status ownership:</strong> <code>ACTIVE</code>, <code>SUPERSEDED</code>, and <code>EXPIRED</code> are application-defined values in <code>AIM_DEMO_MEMORIES.STATUS</code>. They are not statuses in the Oracle Agent Memory managed tables, which store messages and typed records using their own lifecycle model.</p>
+  <p><code>ACTIVE</code>, <code>SUPERSEDED</code>, and <code>EXPIRED</code> are application-defined values in <code>AIM_DEMO_MEMORIES.STATUS</code>. Oracle Agent Memory managed tables use their own lifecycle model for messages and typed records.</p>
 
   <h4 id="table-oamj-message"><code>OAMJ_CONCIERGE_MESSAGE</code>: Persistent Conversation History</h4>
   <table>
@@ -370,7 +364,7 @@ Oracle AI Database
     </tbody>
   </table>
   <p>The extractor prefers <code>preference</code>, <code>fact</code>, or <code>guideline</code> over generic <code>memory</code>. The demo searches all four durable types together; <code>message</code> appears only when the API presents recent conversation and durable records together.</p>
-  <p class="note"><strong>Important distinctions:</strong> working memory is not a durable <code>RECORD_TYPE</code>. The approved shared procedure in <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> is application-governed procedural memory, not a library-extracted <code>guideline</code>. The application-specific <code>OPERATIONAL</code> value in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES.MEMORY_TYPE</code></a> is not an Oracle Agent Memory record type.</p>
+  <p>Working memory is not a durable <code>RECORD_TYPE</code>. The approved shared procedure in <a href="#table-aim-skills"><code>AIM_DEMO_SKILLS</code></a> is application-governed procedural memory, not a library-extracted <code>guideline</code>. The application-specific <code>OPERATIONAL</code> value in <a href="#table-aim-memories"><code>AIM_DEMO_MEMORIES.MEMORY_TYPE</code></a> is not an Oracle Agent Memory record type.</p>
 
   <p>The remaining application-owned database objects are:</p>
   <table>
@@ -406,7 +400,7 @@ Oracle AI Database
     </tbody>
   </table>
   <p>This is not a 3D simulation. The app renders a responsive 2D SVG map from the same <code>X_M</code> and <code>Y_M</code> coordinates stored with each spatial place. A 3D or game-engine client could consume the APIs later, but it is unnecessary for demonstrating the data and agent patterns.</p>
-  <p class="callout"><strong>Social graph versus GraphRAG:</strong> the party graph models consented guest relationships and must not weaken memory isolation. GraphRAG begins with semantically relevant park knowledge, then follows place and quest relationships to add grounded context. They use the same graph technology for different policy and retrieval purposes.</p>
+  <p>The party graph models consented guest relationships without weakening memory isolation. GraphRAG begins with semantically relevant park knowledge, then follows place and quest relationships to add grounded context. The same graph technology serves distinct policy and retrieval purposes.</p>
 
   <h3>Why Oracle AI Database Fits the Memory Substrate</h3>
   <ul>
@@ -419,7 +413,7 @@ Oracle AI Database
 
   <h3 id="deep-data-security">Make the Shared-Learning Boundary Enforceable with Deep Data Security</h3>
   <p>The sentence “three successful de-identified traces produced a generalized guideline” is possible only if those traces have already been minimized and generalized. In this demo they are synthetic, contain no user identifier, carry an explicit de-identification result, pass a small direct-identifier check, and must reach a three-trace threshold. The generated guideline remains <code>pending</code> until Ava approves it.</p>
-  <p class="callout"><strong>Do not confuse a label with proof:</strong> an application-supplied <code>privacy_safe=true</code> value cannot establish anonymity. Rare combinations can reidentify a person, vector embeddings preserve meaning, and malicious or low-quality traces can poison a learned procedure. “De-identified” means identifiers were reduced under a defined process; it does not mean the record is anonymous or safe for every reuse.</p>
+  <p>An application-supplied <code>privacy_safe=true</code> value cannot establish anonymity. Rare combinations can reidentify a person, vector embeddings preserve meaning, and malicious or low-quality traces can poison a learned procedure. De-identified means identifiers were reduced under a defined process; it does not mean the record is anonymous or safe for every reuse.</p>
   <p>The app now demonstrates the database boundary on the real <code>FINANCIAL.MAGIC_PY_MEMORY</code> table:</p>
   <ul>
     <li><strong>Ava, trip organizer:</strong> <code>MEMORY_TRIP_ORGANIZER</code> can read Ava's own rows plus shared traces and guidelines, and can update approval metadata on eligible rows.</li>
@@ -445,8 +439,8 @@ Oracle AI Database
       <tr><td>Stale or over-retained memory</td><td>Oracle Agent Memory TTL and database timestamps support bounded retrieval and cleanup workflows.</td><td>Choosing lawful retention periods and verifying deletion from derived summaries, exports, and backups.</td></tr>
     </tbody>
   </table>
-  <p class="note"><strong>Why DDS instead of a UI filter:</strong> a browser filter or application <code>WHERE</code> clause can be omitted by a bug or an AI-generated query. Deep Data Security replaces the pooled session's broad domain with the end user's identity and data roles, so every SQL operation on the protected object is evaluated against the data grants.</p>
-  <p class="note"><strong>Teaching-only identity comparison:</strong> the local service binds to <code>127.0.0.1</code> and deliberately runs both identities so one screen can compare results. A production endpoint must authenticate one caller, attach only that caller's end-user security context, and never expose an impersonation or cross-identity comparison API. Cross-origin access is disabled by default; configure one explicit <code>AR_ALLOWED_ORIGIN</code> only when the AR client requires it.</p>
+  <p>A browser filter or application <code>WHERE</code> clause can be omitted by a bug or an AI-generated query. Deep Data Security replaces the pooled session's broad domain with the end user's identity and data roles, so every SQL operation on the protected object is evaluated against the data grants.</p>
+  <p>The local comparison service binds to <code>127.0.0.1</code> and runs both demonstration identities on one screen. A production endpoint must authenticate one caller, attach only that caller's end-user security context, and never expose an impersonation or cross-identity comparison API. Cross-origin access is disabled by default; configure one explicit <code>AR_ALLOWED_ORIGIN</code> only when the AR client requires it.</p>
   <figure>
     <img src="images/oracle-deep-data-security-memory-proof.png" alt="Live Flynn's Theme Park memory application showing Ava with the MEMORY_TRIP_ORGANIZER data role, Leo with the MEMORY_TRIP_PARTICIPANT data role, zero Ava-private rows returned to Leo, and a cross-user query blocked in Oracle AI Database.">
     <figcaption>Live database proof: the same memory query returns role-appropriate rows for Ava and Leo, and the deliberate Leo query for Ava's private rows returns zero.</figcaption>
@@ -478,7 +472,7 @@ ollama pull llama3.2</code></pre>
   <pre><code>cd memory/test-utils
 ./load-allminilm.sh
 ./run-local.sh</code></pre>
-  <p class="note"><strong>Library availability:</strong> the <code>ojdbc-agent-memory</code> dependency used here is a proof-of-concept snapshot, not a public package artifact. The runner expects a local library clone and accepts its location through <code>OAM_LIBRARY_DIR</code>.</p>
+  <p>The <code>ojdbc-agent-memory</code> dependency used here is a proof-of-concept snapshot rather than a public package artifact. The runner expects a local library clone and accepts its location through <code>OAM_LIBRARY_DIR</code>.</p>
 
   <h3>4. Run the Complete Browser App</h3>
   <p>The top-level runner starts the complete memory, graph, Spatial, vector, transaction, gamification, and AR demonstration. It creates only missing objects and never drops the schema. From the repository root, open one terminal and run:</p>
@@ -511,7 +505,7 @@ ollama pull llama3.2</code></pre>
 
   <h3>5. Optional: Import the Lens Studio 5.15.4 Source Kit</h3>
   <p>Open <a href="spectacles-lens/README.md"><code>memory/spectacles-lens</code></a> and follow its project setup. Mark the project <strong>Made for Spectacles</strong>, import the TypeScript controllers, add the Internet and ASR modules, bind the overlay text components, and replace the placeholder API address with an approved public HTTPS tunnel to port 8092. Restrict <code>AR_ALLOWED_ORIGIN</code> and replace the demonstration token with production authentication before sharing the Lens.</p>
-  <p class="note">The repository provides a source kit rather than claiming a hardware-tested Lens Studio project. The Internet API can work in Preview when the device override is Spectacles; ASR and camera frames require Spectacles hardware.</p>
+  <p>The repository provides a source kit rather than a hardware-tested Lens Studio project. The Internet API can work in Preview when the device override is Spectacles; ASR and camera frames require Spectacles hardware.</p>
 
   <h2 id="live-library-walkthrough">Live Memory Library Walkthrough</h2>
   <p>Use this three-action lane first when presenting the app. It connects the memory concepts directly to the library calls and the visible database result.</p>
@@ -520,7 +514,7 @@ ollama pull llama3.2</code></pre>
     <li><strong>Retain Ava's conversation:</strong> <code>addMessages()</code> persists the user and assistant messages. Ollama extracts durable <code>memory</code>, <code>preference</code>, and <code>guideline</code> records. Oracle Agent Memory asks Oracle AI Database to create an embedding for each record with <code>VECTOR_EMBEDDING</code>.</li>
     <li><strong>Recall and build context:</strong> <code>search()</code> embeds the request in the database, applies Ava's exact identity scope, and ranks records by vector distance. The generated context card combines durable records with recent messages. A separate exact Leo search returns zero Ava records.</li>
   </ol>
-  <p class="presenter"><strong>What to say:</strong> “Memory is not merely saved chat. The write path extracts typed, durable state. The read path applies authorization scope before semantic ranking, then returns compact context for the next model turn. Continual learning begins when governed experience changes future context.”</p>
+  <blockquote>Memory is not merely saved chat. The write path extracts typed, durable state. The read path applies authorization scope before semantic ranking, then returns compact context for the next model turn. Continual learning begins when governed experience changes future context.</blockquote>
 
   <h2 id="demo-walkthrough">Demo Walkthrough</h2>
   <p>After the live library lane, use the UI's numbered buttons in order to explain the broader governed lifecycle. Each screen displays a short cue; the following script provides the narration, action, implementation detail, and visible proof.</p>
@@ -571,7 +565,7 @@ ollama pull llama3.2</code></pre>
     <p class="action"><strong>Action:</strong> Click <strong>5 · Dream</strong>, then click <strong>Run identity comparison</strong>. Notice the pending guideline is visible to Ava but absent from Leo's results.</p>
     <p class="happens"><strong>What happens:</strong> <code>dream()</code> searches <code>MAGIC_PY_MEMORY</code> for three successful trace records, rejects any record with a user scope, failed de-identification result, email address, or phone number, and stores one <code>PENDING</code> guideline. The participant data grant filters the traces and pending guideline from Leo.</p>
     <p class="proof"><strong>Proof to point at:</strong> the DDS panel shows Ava's review material, zero raw traces for Leo, and a database-enforced cross-user probe. The procedure remains pending and no model weights changed.</p>
-    <p class="note"><strong>Implementation boundary:</strong> this demo has no <code>sleep()</code> method or background scheduler. Clicking <strong>Dream</strong> synchronously sends <code>POST /api/actions/dream</code>, and the service handler invokes the repository's dream operation. A production system could schedule equivalent induction work asynchronously.</p>
+    <p>This demo has no <code>sleep()</code> method or background scheduler. Clicking <strong>Dream</strong> synchronously sends <code>POST /api/actions/dream</code>, and the service handler invokes the repository's dream operation. A production system can schedule equivalent induction work asynchronously.</p>
   </article>
 
   <article class="demo-step">
@@ -633,7 +627,7 @@ ollama pull llama3.2</code></pre>
     <p class="proof"><strong>Proof to point at:</strong> the verified run displays three vector-ranked cards and seven graph-expansion chips. Retrieval distance and relationship evidence remain visible instead of being hidden inside generated prose.</p>
   </article>
 
-  <p class="note"><strong>How memory improves the game:</strong> semantic memory supplies Ava's durable accessibility and quiet-morning needs; episodic memory can retain whether a route or quest worked; procedural memory can hold an approved recovery workflow; operational memory carries temporary path status. The quest does not reward private facts or expose them to another guest.</p>
+  <p>Semantic memory supplies Ava's durable accessibility and quiet-morning needs; episodic memory can retain whether a route or quest worked; procedural memory can hold an approved recovery workflow; operational memory carries temporary path status. The quest does not reward private facts or expose them to another guest.</p>
 
   <h2 id="continual-learning">Continual Learning: Token Space Before Weight Space</h2>
   <p>The Monday–Tuesday–Wednesday progression is simple: on Monday an agent explores and makes a recoverable mistake; on Tuesday a stateless agent repeats it; by Wednesday an agent with governed memory recalls the trap or approved procedure and avoids it. The fastest safe improvement is often external:</p>
@@ -660,7 +654,7 @@ ollama pull llama3.2</code></pre>
   </table>
 
   <h3>The Awake Loop and the Dream Loop</h3>
-  <p>During the awake loop, the agent serves the current request and records a minimized trace after the outcome is known. A trace is not declared safe merely because a flag says so. In this demo, the presenter starts the dream operation synchronously; in production, a separate asynchronous process could group successful traces, propose a generalized guideline, evaluate whether private details survived the abstraction, and submit it for human review. Approval activates the procedure; rejection or later rollback keeps the learning reversible.</p>
+  <p>During the awake loop, the agent serves the current request and records a minimized trace after the outcome is known. A trace is not declared safe merely because a flag says so. In this demo, the dream operation starts synchronously; in production, a separate asynchronous process could group successful traces, propose a generalized guideline, evaluate whether private details survived the abstraction, and submit it for human review. Approval activates the procedure; rejection or later rollback keeps the learning reversible.</p>
 
   <h2 id="production">Taking the Pattern to Production</h2>
   <ol>
@@ -673,7 +667,7 @@ ollama pull llama3.2</code></pre>
     <li>Keep gamification abuse-resistant: authorize checkpoint evidence, make reward writes idempotent, cap point issuance, and monitor anomalous completion patterns.</li>
     <li>For AR, separate camera sensing from recording consent, minimize retained media, enforce identity and expiration before vector ranking, keep visible capture indicators, and retain a non-AR accessibility fallback.</li>
   </ol>
-  <p class="note">Background extraction is generally eventually visible rather than immediately available. Applications that require read-your-write consistency should use an inline path or explicitly wait for the extraction job before relying on the new memory.</p>
+  <p>Background extraction is generally eventually visible rather than immediately available. Applications that require read-your-write consistency should use an inline path or explicitly wait for the extraction job before relying on the new memory.</p>
 
   <h2 id="conclusion">The Database Is the Memory System of Record</h2>
   <p>The model supplies reasoning; memory engineering supplies continuity. When identities, facts, episodes, traces, and procedures live in a governed database layer, an agent can improve without turning every prior interaction into an unbounded prompt or every private experience into a shared lesson.</p>

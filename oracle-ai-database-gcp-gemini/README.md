@@ -30,11 +30,11 @@ This repo is set up for multiple A2A-style agents. The common pattern is:
 
 The current demo flow is:
 
-1. Gemini Enterprise asks an Oracle inventory analyst which products are at risk of stockouts.
-2. The Oracle AI Database-backed flow identifies risk drivers by product, warehouse, county, and region.
+1. Gemini Enterprise calls the Marketplace-delivered Oracle AI Database Agent to ask which products are at risk of stockouts.
+2. The managed agent invokes the in-database `ORACLE_AI_DATABASE_AGENT` team and its narrow Select AI profile to identify risk drivers by product, warehouse, county, and region under the signed-in database user's identity.
 3. A spatial specialist renders hotspot maps for warehouse and regional risk.
 4. A graph specialist renders Oracle Database property graph supply-chain dependencies.
-5. The Oracle AI Database Agent can be used from Gemini Enterprise for database-grounded answers.
+5. The custom Select AI agent remains a development and fallback surface, but the presented Gemini Enterprise flow uses the managed Oracle AI Database Agent for database-grounded analysis.
 6. An inventory-action coordinator gathers the graph, spatial, and inventory evidence and recommends the safest next move.
 
 ## Agent Implementations
@@ -85,11 +85,15 @@ The inventory-system gateway can delegate general inventory and database-style q
 
 ## Suggested Gemini Enterprise Prompts
 
-Select AI:
+Oracle AI Database Agent in Gemini Enterprise:
 
 ```text
 Which products are at risk of stockouts next quarter, and which regions are driving that risk?
 ```
+
+Use `oracle_select_ai_agent` only as an explicitly identified fallback or
+comparison. It should not replace the managed Marketplace agent in the primary
+demo.
 
 Spatial:
 

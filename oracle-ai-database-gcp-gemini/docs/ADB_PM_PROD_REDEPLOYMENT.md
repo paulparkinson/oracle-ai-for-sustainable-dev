@@ -6,7 +6,7 @@ This runbook reconciles the existing implementation with the shared demo environ
 - Oracle AI Database: `paulparkdb` (`paulparkdb_tp`)
 - Compute host: the existing shared VM in `us-east4-a`
 - Gemini Enterprise app: the existing Inventory System application
-- Runtime: the Java service in `oracle_agent_java`, exposing inventory-system, graph, spatial, Select AI, and inventory-action A2A surfaces
+- Runtime: the managed Oracle AI Database Agent for inventory analysis, plus the Java service in `oracle_agent_java` for graph, spatial, inventory-system, and inventory-action A2A surfaces
 
 It does **not** create another VM or database. It also does not depend on the separate Custom MCP Server organization-policy exception.
 
@@ -115,16 +115,22 @@ cd /path/to/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-gemini
 bash sql/fetch_official_oracle_ai_database_agent.sh
 ```
 
-Connect as `ADMIN`, then run the two official scripts in this order:
+Connect as `ADMIN` or as the target schema when it already has `EXECUTE` on
+`DBMS_CLOUD_AI` and `DBMS_CLOUD_AI_AGENT`, then run the two official scripts in
+this order:
 
 ```text
 oracle_ai_database_agent_tool.sql
 oracle_ai_database_agent.sql
 ```
 
-Supply the selected schema name and `PAULPARK_SUPPLY_CHAIN_DEMO` profile when prompted. The official installer creates the reusable tools plus `ORACLE_AI_DATABASE_TASK`, `ORACLE_AI_DATABASE_AGENT`, and `ORACLE_AI_DATABASE_TEAM`.
+Supply the selected schema name and its narrow supply-chain profile when prompted. The official installer creates the reusable tools plus `ORACLE_AI_DATABASE_TASK`, `ORACLE_AI_DATABASE_AGENT_ROLE`, and `ORACLE_AI_DATABASE_AGENT` team.
 
-Verify in `USER_AI_AGENT_TEAMS` and enable the team if needed before exposing it through A2A.
+Run `sql/verify_oracle_ai_database_agent.sql` as the target schema, verify the
+team in `USER_AI_AGENT_TEAMS`, and enable it if needed before exposing it
+through A2A. The verification script creates a real conversation ID before
+calling `DBMS_CLOUD_AI_AGENT.RUN_TEAM`; an arbitrary string is not a valid
+conversation ID.
 
 ## Phase 5: enable the `paulparkdb` managed A2A server
 
@@ -194,13 +200,13 @@ Fill this table during deployment rather than assuming old project state:
 | Existing services and free port/memory capacity | Existing 443 service retained; new service stable on 8443 at about 180-250 MiB; no resize required |
 | Demo schema owner | `FINANCIAL` |
 | Existing `SC_*` objects and row counts | Installed: 11 graph base/edge tables plus risk/spatial objects; three deterministic demo entities per primary domain and nine warehouse snapshots |
-| Existing Select AI profiles | None in `FINANCIAL`; narrow profile script prepared, provider credential pending |
-| `ORACLE_AI_DATABASE_TEAM` installed and enabled | Pending |
-| `adb$feature` A2A tag active | Pending |
-| Gemini OAuth client registered | Pending |
+| Existing Select AI profiles | `PAULPARK_SUPPLY_CHAIN_OPENAI` is enabled in `FINANCIAL` and retains a narrow `SC_*` object allowlist |
+| `ORACLE_AI_DATABASE_AGENT` installed and enabled | Installed and enabled in `FINANCIAL` on August 16, 2026, with `SQL_TOOL`, `DISTINCT_VALUES_CHECK`, `RANGE_VALUES_CHECK`, and `GENERATE_CHART`; package and installer procedure are valid |
+| `adb$feature` A2A tag configured | Configured in OCI on August 16, 2026; paulparkdb returned to `AVAILABLE`, but the documented managed agents-list endpoint still returns HTTP 404 and requires Oracle back-end activation verification |
+| Gemini OAuth client registered | Registered on August 16, 2026; the one-time credentials are stored only in the ignored local `.runtime` directory |
 | Marketplace database agent verified | Pending |
 | Inventory-system/graph/spatial/action cards verified | All six discovery cards return HTTP 200 locally over TLS on port 8443 |
-| Four-prompt demo verified end to end | Verified locally: Oracle SQL inventory fallback, relational graph fallback with PNG, database spatial PNG, and approval-gated draft action |
+| Four-prompt demo verified end to end | Custom specialists verified. On August 16, 2026, `DBMS_CLOUD_AI_AGENT.RUN_TEAM` returned SKU-500, SKU-700, and SKU-900 with the expected risk, revenue, and region values. Remote A2A and Gemini Marketplace validation remain pending until the OCI A2A tag and OAuth registration are completed |
 
 The current certificate is valid from August 8 through August 15, 2026. The
 `certbot-oracle-graph-agent-ip.timer` unit is enabled and checks renewal twice

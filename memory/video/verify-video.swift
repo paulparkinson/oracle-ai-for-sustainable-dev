@@ -5,8 +5,10 @@ import AVFoundation
 import Foundation
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let video = root.appendingPathComponent("memory-agent-walkthrough.mp4")
-let sheetURL = root.appendingPathComponent(".build/contact-sheet.png")
+let videoName = CommandLine.arguments.dropFirst().first ?? "memory-agent-walkthrough.mp4"
+let video = root.appendingPathComponent(videoName)
+let sheetName = video.deletingPathExtension().lastPathComponent + "-contact-sheet.png"
+let sheetURL = root.appendingPathComponent(".build").appendingPathComponent(sheetName)
 let asset = AVURLAsset(url: video)
 let duration = CMTimeGetSeconds(asset.duration)
 let videoTracks = asset.tracks(withMediaType: .video)
@@ -20,7 +22,8 @@ guard let track = videoTracks.first, audioTracks.isEmpty else {
 let size = track.naturalSize.applying(track.preferredTransform)
 let pixelWidth = Int(abs(size.width))
 let pixelHeight = Int(abs(size.height))
-guard pixelWidth == 1920, pixelHeight == 1080, duration >= 80 else {
+let minimumDuration = videoName.contains("loop") ? 7.5 : 80
+guard pixelWidth == 1920, pixelHeight == 1080, duration >= minimumDuration else {
     fputs("Unexpected media dimensions or duration.\n", stderr)
     exit(1)
 }

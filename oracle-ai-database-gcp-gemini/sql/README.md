@@ -11,15 +11,31 @@ Current contents:
 - region-scoped Deep Data Security setup and direct database verification for
   the inventory-analysis data
 
-For the regional stockout demonstration, keep `FINANCIAL` as the schema and
-agent-team owner, set distinct secrets for `SUPPLYCHAIN_NA_MGR` and
-`SUPPLYCHAIN_APAC_MGR` in the ignored `.env`, and run:
+Two mutually exclusive manager-identity configurations are available. Do not
+run both for the same users without intentionally switching modes.
+
+For ordinary schema users that can authenticate directly to the managed Oracle
+AI Database Agent, set distinct `DB_PASSWORD_NA` and `DB_PASSWORD_APAC` values
+in the ignored `.env`, then run:
+
+```bash
+./sql/run_supply_chain_manager_schema_users.sh
+```
+
+This replaces any same-named local Deep Sec end users with conventional
+`CREATE USER` schemas, gives both managers identical read access to the
+`FINANCIAL.SC_*` objects, and creates an equivalent Select AI profile and
+official Oracle AI Database Agent team in each schema. It reuses the encrypted
+`FINANCIAL.OPENAI_CRED` database credential without exposing its secret.
+
+For the separate regional Deep Sec database-only demonstration, keep
+`FINANCIAL` as the schema and agent-team owner and run:
 
 ```bash
 ./sql/run_inventory_risk_deepsec_regions.sh
 ```
 
-The runner adds synthetic APAC risk rows, creates the two local Deep Sec end
+That runner adds synthetic APAC risk rows, creates the two local Deep Sec end
 users, assigns NA and APAC data roles, enables mandatory data-grant enforcement
 on `FINANCIAL.SC_INVENTORY_RISK_DEMO_V`, and verifies each identity sees only
 its authorized region.
