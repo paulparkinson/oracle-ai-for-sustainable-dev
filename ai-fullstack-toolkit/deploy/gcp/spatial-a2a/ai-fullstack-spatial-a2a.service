@@ -1,0 +1,17 @@
+[Unit]
+Description=AI Fullstack supply-chain spatial A2A service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/ai-fullstack-spatial-a2a/launch.sh
+Restart=on-failure
+RestartSec=5s
+MemoryMax=700M
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
