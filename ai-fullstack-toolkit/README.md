@@ -27,25 +27,46 @@ mvn test
 mvn -pl runtime -am spring-boot:run
 ```
 
-Open [http://localhost:8080](http://localhost:8080). The Tron-themed **Tool Surface Grid** shows the seeded `inventory-transfer` tool. Select each output tab to view the generated MCP descriptor, A2A card, A2UI messages, or MCP App resource descriptor. Use **Configure tool** to create or replace a definition in the running registry. This first runtime configuration store is intentionally in-memory: restart restores the seeded definition, which makes the demo safe to explore.
+Open [http://localhost:8080](http://localhost:8080). The Tron-themed **AI Fullstack Toolkit** dashboard displays the seeded definitions and their enabled surfaces. Select each output tab to view the generated MCP descriptor, A2A card, A2UI messages, or MCP App resource descriptor. Use **Create** to create or replace a definition in the running registry. This first runtime configuration store is intentionally in-memory: restart restores the seeded definition, which makes the demo safe to explore.
+
+## Seeded supply-chain surfaces
+
+| Tool | MCP | A2A | A2UI | MCP App |
+| --- | --- | --- | --- | --- |
+| `inventory-transfer-a2ui` | disabled | enabled | enabled | disabled |
+| `inventory-transfer-mcpapp` | enabled | disabled | disabled | enabled |
+| `inventory-spatial-mcpapp` | enabled | disabled | disabled | enabled |
+| `inventory-graph-mcpapp` | enabled | disabled | disabled | enabled |
+
+The runtime also imports the checked-in Oracle Database MCP Java Toolkit `tools.yaml` snapshot as MCP-only definitions. This makes the SQL surface visible as `oracle-sql`, alongside the existing supply-chain toolkit entries such as `find-stockout-transfer-recommendations` and `approve-inventory-transfer`. The imported configuration has placeholders only (`${DB_URL}`, `${DB_USERNAME}`, `${DB_PASSWORD}`); it contains no database secret.
 
 ## Walkthrough: inventory transfer
 
 1. Start the runtime with the command above.
-2. In the UI, select `inventory-transfer`. Its four neon tiles show which surfaces are enabled.
-3. Select **A2A CARD**. The result is the agent-card-shaped document an A2A client can discover; its generated endpoint is `/a2a/inventory-transfer`.
-4. Select **A2UI**. The response begins a `inventory-transfer-review` surface and supplies a review card with an approval button. Your application is responsible for receiving that user action and enforcing authorization.
-5. Select **MCP** or **MCP APP** to inspect the matching descriptor from the same definition.
-6. Use **Configure tool** to add a second definition. The UI performs a `PUT /api/tools/{id}` and immediately regenerates all enabled projections.
+2. Select `inventory-transfer-a2ui`. Its tiles show only **A2A** and **A2UI** enabled. The A2A card has an addressable inventory-transfer skill, and the A2UI tab begins the `inventory-transfer-review` surface.
+3. Select any `*-mcpapp` tool. Its tiles show only **MCP** and **MCP APP** enabled. Use the MCP APP tab to inspect the interactive resource URI.
+4. Select `oracle-sql` or an imported supply-chain tool to inspect the MCP descriptor and input schema imported from the Oracle toolkit catalog.
+5. Use **Create** to add a definition. The UI performs a `PUT /api/tools/{id}` and immediately regenerates all enabled projections.
 
 Equivalent HTTP inspection:
 
 ```bash
 curl -s http://localhost:8080/api/tools | jq
-curl -s http://localhost:8080/api/tools/inventory-transfer/a2a/card | jq
-curl -s http://localhost:8080/api/tools/inventory-transfer/a2ui/example | jq
-curl -s http://localhost:8080/api/tools/inventory-transfer/mcp-app | jq
+curl -s http://localhost:8080/api/tools/inventory-transfer-a2ui/a2a/card | jq
+curl -s http://localhost:8080/api/tools/inventory-transfer-a2ui/a2ui/example | jq
+curl -s http://localhost:8080/api/tools/inventory-spatial-mcpapp/mcp-app | jq
+curl -s http://localhost:8080/api/tools/oracle-sql/mcp | jq
 ```
+
+## Demonstrating database access
+
+Use **DATABASE CHECK** in the dashboard, or call the equivalent endpoint:
+
+```bash
+curl -s 'http://localhost:8080/api/tools/database/spatial-demo?sku=SKU-500' | jq
+```
+
+It runs the supply-chain spatial lookup with the runtime's configured Oracle JDBC connection. A real database result is unambiguous: the response has `"sourceMode": "oracle-database"`, along with the resolved inventory locations. If it returns `"sourceMode": "seeded-demo"`, the response's `sourceDetail` identifies why the live connection was unavailable; that is intentionally not presented as a database demonstration. Configure `DB_USERNAME`, `DB_PASSWORD`, `DB_DSN`, and, for wallet connections, `TNS_ADMIN` (or `DB_WALLET_DIR`) before starting the runtime.
 
 ## Configuration format
 
@@ -88,6 +109,6 @@ mvn -pl examples/inventory-transfer-demo -am spring-boot:run
 curl -s http://localhost:8081/demo/a2a-card | jq
 ```
 
-## Current scope and next integration step
+## Current scope
 
-This initial runnable slice supplies the unified contract, generated discovery/UI documents, live runtime API, GUI, test coverage, and a vendor baseline. It does not claim that each upstream database tool has already been migrated through the registry. The next implementation increment is an adapter that reads the vendored/original Oracle MCP toolkit `ToolConfig` entries and registers them as `ToolDefinition` instances, preserving Oracle Database MCP behavior while adding opt-in A2A/A2UI/MCP App exposure. This is intentionally opt-in: exposing an MCP tool as an agent endpoint must carry its existing authentication, authorization, input validation, auditing, and approval rules forward.
+This runnable slice supplies the unified contract, generated discovery/UI documents, live runtime API, GUI, test coverage, and a vendor baseline. It imports the original Oracle toolkit YAML entries as MCP-only dashboard definitions; their production execution remains owned by the Oracle MCP Java Toolkit. Exposing an MCP tool as an A2A, A2UI, or MCP App surface is intentionally opt-in and must carry its authentication, authorization, input validation, auditing, and approval rules forward.
