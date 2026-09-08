@@ -9,7 +9,12 @@ import java.util.Map;
 public final class ToolProjections {
     private ToolProjections() {}
     public static Map<String, Object> mcpDescriptor(ToolDefinition tool) {
-        return Map.of("name", tool.id(), "description", tool.description(), "inputSchema", Map.of("type", "object", "properties", tool.inputSchema()));
+        Map<String, Object> descriptor = new LinkedHashMap<>();
+        descriptor.put("name", tool.id());
+        descriptor.put("description", tool.description());
+        descriptor.put("inputSchema", Map.of("type", "object", "properties", tool.inputSchema()));
+        if (!tool.mcp().statement().isBlank()) descriptor.put("statement", tool.mcp().statement());
+        return Map.copyOf(descriptor);
     }
     public static Map<String, Object> a2aCard(ToolDefinition tool, String baseUrl) {
         var a = tool.a2a();

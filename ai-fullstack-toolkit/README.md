@@ -38,7 +38,7 @@ Open [http://localhost:8080](http://localhost:8080). The Tron-themed **AI Fullst
 | `inventory-spatial-mcpapp` | enabled | disabled | disabled | enabled |
 | `inventory-graph-mcpapp` | enabled | disabled | disabled | enabled |
 
-The runtime also imports the checked-in Oracle Database MCP Java Toolkit `tools.yaml` snapshot as MCP-only definitions. This makes the SQL surface visible as `oracle-sql`, alongside the existing supply-chain toolkit entries such as `find-stockout-transfer-recommendations` and `approve-inventory-transfer`. The imported configuration has placeholders only (`${DB_URL}`, `${DB_USERNAME}`, `${DB_PASSWORD}`); it contains no database secret.
+The runtime also imports the checked-in Oracle Database MCP Java Toolkit `tools.yaml` snapshot as MCP-only definitions. This makes the SQL surface visible as `oracle-sql`, alongside the existing supply-chain toolkit entries such as `find-stockout-transfer-recommendations` and `approve-inventory-transfer`. For each imported configured tool, the MCP tab also displays its exact SQL statement or PL/SQL block. The imported configuration has placeholders only (`${DB_URL}`, `${DB_USERNAME}`, `${DB_PASSWORD}`); it contains no database secret.
 
 ## Walkthrough: inventory transfer
 

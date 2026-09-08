@@ -16,7 +16,11 @@ public record ToolDefinition(String id, String description, Map<String, String> 
         a2ui = a2ui == null ? new A2uiExposure(false, id + "-surface") : a2ui;
         mcpApp = mcpApp == null ? new McpAppExposure(false, "ui://" + id) : mcpApp;
     }
-    public record McpExposure(boolean enabled) {}
+    /** MCP projection settings; statement is optional because generic tools need not expose SQL. */
+    public record McpExposure(boolean enabled, String statement) {
+        public McpExposure(boolean enabled) { this(enabled, ""); }
+        public McpExposure { statement = Objects.requireNonNullElse(statement, ""); }
+    }
     public record A2aExposure(boolean enabled, String name, String description, String version) {}
     public record A2uiExposure(boolean enabled, String surfaceId) {}
     public record McpAppExposure(boolean enabled, String resourceUri) {}
