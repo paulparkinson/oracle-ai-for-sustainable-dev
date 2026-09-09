@@ -1,5 +1,12 @@
 const endpoint='/api/tools';let current;const tools=document.querySelector('#tools'),out=document.querySelector('#output');
-const pretty=o=>out.textContent=JSON.stringify(o,null,2);
+function pretty(value){
+  if(value&&typeof value.statement==='string'){
+    const {statement,...descriptor}=value;
+    out.textContent=`${JSON.stringify(descriptor,null,2)}\n\n-- SQL / PL/SQL\n${statement.trim()}`;
+    return;
+  }
+  out.textContent=JSON.stringify(value,null,2);
+}
 async function load(){const list=await fetch(endpoint).then(r=>r.json());tools.innerHTML='';list.forEach(t=>{let b=document.createElement('button');b.className='tool';b.textContent='> '+t.id;b.onclick=()=>select(t);tools.append(b)});if(list.length)select(list[0])}
 async function select(t){current=t;document.querySelector('#selected').textContent='// '+t.id;document.querySelector('#tool-title').textContent=t.id.toUpperCase();document.querySelector('#tool-description').textContent=t.description;document.querySelector('#surfaces').innerHTML=[['MCP',t.mcp.enabled],['A2A',t.a2a.enabled],['A2UI',t.a2ui.enabled],['MCP APP',t.mcpApp.enabled]].map(([n,on])=>`<div class="surface ${on?'on':''}">${n}<br><b>${on?'ENABLED':'OFFLINE'}</b></div>`).join('');show('mcp')}
 async function show(kind){if(!current)return;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.kind===kind));pretty(await fetch(`${endpoint}/${current.id}/${kind}${kind==='a2a'?'/card':kind==='a2ui'?'/example':''}`).then(r=>r.json()))}
