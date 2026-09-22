@@ -29,8 +29,9 @@ Direct AWS CloudShell calls using the renewed console session in account
 
 Both errors said no identity-based policy allows `bedrock:InvokeModel` for
 `AWSReservedSSO_Field-Engineering-Standard_7d5eeaaa25bfd1d3`.
-The full RAG test has **not passed against live services**. This machine also needs
-an authenticated AWS SDK session and this database's wallet/connection credentials.
+The full RAG test has **not passed against live services**. The database wallet and
+local database credentials are now configured; the encrypted PEM key still needs
+its wallet password. This machine also needs an authenticated AWS SDK session.
 The browser session alone does not supply credentials to local Python.
 
 Suggested admin request (not sent):
@@ -70,7 +71,12 @@ password. A user able to connect and run the SELECT expressions is sufficient;
 no `CREATE TABLE` privilege or administrator account is required.
 
 The test uses `RAG_DB_*` variables to avoid accidentally using another project's
-`ORACLE_*` settings. It verifies the AWS account and Oracle database/service name
+`ORACLE_*` settings. It also accepts this project's existing `DB_USERNAME`,
+`DB_PASSWORD`, `DB_WALLET_DIR` (or `TNS_ADMIN`), and `DB_WALLET_PASSWORD`
+(or `WALLET_PASSWORD`) settings;
+`RAG_DB_*` takes precedence. Set `RAG_DB_DSN=paulparkdbaws_low` for the verified
+low service alias in the `Wallet_paulparkdbaws` wallet.
+It verifies the AWS account and Oracle database/service name
 before the RAG model calls. Override the `RAG_EXPECTED_*` settings only when
 intentionally testing a different target. No passwords, wallets, or tokens belong
 in Git or chat.

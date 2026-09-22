@@ -51,8 +51,8 @@ FETCH FIRST 2 ROWS ONLY
 """
 
 
-def required(name):
-    value = os.getenv(name, "")
+def required(name, alias=None):
+    value = os.getenv(name) or (os.getenv(alias) if alias else None)
     if not value:
         raise ValueError(f"Set {name} in the project .env (see .env.example).")
     return value
@@ -62,22 +62,27 @@ def connection_options():
     # Deliberately do not fall back to generic ORACLE_* variables: they may refer
     # to another project/database in the developer's shell.
     options = {
-        "user": required("RAG_DB_USER"),
-        "password": required("RAG_DB_PASSWORD"),
+        "user": required("RAG_DB_USER", "DB_USERNAME"),
+        "password": required("RAG_DB_PASSWORD", "DB_PASSWORD"),
         "dsn": required("RAG_DB_DSN"),
         "tcp_connect_timeout": 15,
         "retry_count": 0,
         "ssl_server_dn_match": True,
     }
-    wallet = os.getenv("RAG_DB_WALLET_DIR", "").strip()
+    wallet = (os.getenv("RAG_DB_WALLET_DIR") or os.getenv("DB_WALLET_DIR")
+              or os.getenv("TNS_ADMIN", "")).strip()
     if wallet:
         directory = Path(wallet).expanduser().resolve()
         for filename in ("tnsnames.ora", "ewallet.pem"):
             if not (directory / filename).is_file():
                 raise ValueError(f"Wallet directory must contain {filename} for Python Thin mode.")
         options.update(config_dir=str(directory), wallet_location=str(directory))
-        if os.getenv("RAG_DB_WALLET_PASSWORD"):
-            options["wallet_password"] = os.environ["RAG_DB_WALLET_PASSWORD"]
+        wallet_password = (os.getenv("RAG_DB_WALLET_PASSWORD") or os.getenv("DB_WALLET_PASSWORD")
+                           or os.getenv("WALLET_PASSWORD"))
+        if wallet_password:
+            options["wallet_password"] = wallet_password
+        elif "ENCRYPTED PRIVATE KEY" in (directory / "ewallet.pem").read_text():
+            raise ValueError("Set WALLET_PASSWORD, DB_WALLET_PASSWORD, or RAG_DB_WALLET_PASSWORD to decrypt the wallet PEM key.")
     return options
 
 
