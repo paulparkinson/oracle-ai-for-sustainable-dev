@@ -6,7 +6,7 @@ You can also contact Paul Parkinson with any questions [here](https://www.linked
 
 ## Content
 
-1. **Develop A2A Agentic AI with Oracle AI Database and Gemini Enterprise**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/oracle-ai-database-gcp-gemini/blog.html) | [Source](oracle-ai-database-gcp-gemini/)
+1. **Develop A2A Agentic AI with Oracle AI Database and Gemini Enterprise**: [Blog](https://paulparkinson.github.io/oracle-ai-database-gcp-gemini/blog.html) | [Source](https://github.com/paulparkinson/oracle-ai-database-gcp-gemini)
 2. **Develop A2UI and MCP Apps running in Gemini Enterprise, ChatGPT, and Claude, using Oracle AI Database and Java MCP Toolkit**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/a2ui_mcpapps_mcptoolkit/blog.html) | [Source](a2ui_mcpapps_mcptoolkit/)
 3. **End-to-End Agentic AI Observability: Tracing from Agents INTO the Oracle AI Database**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/observability/blog.html) | [Source](observability/)
 4. **Develop Database-Enforced End-User Auth with Oracle AI Database Deep Data Security and Java**: [Blog](https://paulparkinson.github.io/oracle-ai-for-sustainable-dev/security/blog.html) | [Source](security/)
