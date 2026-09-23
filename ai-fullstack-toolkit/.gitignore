@@ -1,3 +1,0 @@
-# Local build output and workstation metadata stay local.
-**/target/
-.DS_Store

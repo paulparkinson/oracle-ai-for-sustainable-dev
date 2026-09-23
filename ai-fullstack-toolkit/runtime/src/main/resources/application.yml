@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: ai-fullstack-runtime
-server:
-  port: 8080
-ai:
-  fullstack:
-    public-url: ${PUBLIC_A2A_URL:http://localhost:8080}
